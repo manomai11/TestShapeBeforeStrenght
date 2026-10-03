@@ -1,7 +1,6 @@
 import random
 import streamlit as st
 
-# ตั้งค่าหน้าเว็บ
 st.set_page_config(page_title="Bridge Master Training", page_icon="🃏", layout="centered")
 
 HCP_MAP = {'A': 4, 'K': 3, 'Q': 2, 'J': 1}
@@ -139,52 +138,53 @@ def logic_resp_1n(hcp, shape, counts, suit_cards):
     if 11 <= hcp <= 15 and ((2 < s < 5) or (2 < h < 5)): return "3C", "3-card Major support"
     return "Pass", "Default Pass"
 
+# --- ปรับปรุงกฎ Response 1C และ 1D ตามกติกาใหม่ที่คุณสรุป ---
 def logic_resp_1c(hcp, shape, counts, suit_cards):
     s, h, d, c = shape
-    has_M4 = (s >= 4 or h >= 4)
-    has_m6 = (d >= 6 or c >= 6)
+    if hcp <= 5: return "Pass", "0-5 HCP"
+    
+    # เช็ค Major 4+ ก่อนเสมอ (แม้ m จะยาวกว่า)
+    # Open 1C: ตอบ 1D = H4+, ตอบ 1H = S4+
+    if h >= 4 and s >= 4:
+        if s > h: return "1H", "H4S4, S > H"
+        elif h > s: return "1D", "H4S4, H > S"
+        else: return "1D", "H4S4 (Equal, show H via 1D)"
+    if h >= 4: return "1D", "H4+ (Show H)"
+    if s >= 4: return "1H", "S4+ (Show S)"
+    
+    # กรณีไม่มี Major 4 ใบ
     has_m55 = (d >= 5 and c >= 5)
-    def check_bal_dbl():
-        if is_balanced(shape):
-            for st, cards in suit_cards.items():
-                if len(cards) == 2 and not has_honor(cards): return False
-            return True
-        return False
-    if hcp <= 5 and c >= 4 and c > s and c > h and c > d: return "Pass", "Pass"
-    if h >= 4 and s >= 4: return "1D", "H4S4"
-    if h >= 4 and h > s: return "1D", "H4+ H>S"
-    if s >= 4 and s >= h and not (s == 4 and h == 4): return "1H", "S4+, S>=H"
+    has_m6 = (d >= 6 or c >= 6)
     if 5 <= hcp <= 10 and has_m55: return "2S", "m55"
     if 5 <= hcp <= 10 and c >= 6: return "3C", "C6+"
-    if 0 <= hcp <= 10 and d >= 6 and not has_M4: return "2C", "D6 no M4"
-    if 11 <= hcp <= 12 and d >= 5 and not has_M4: return "2C", "D5 no M4"
-    if 11 <= hcp <= 12 and c >= 5 and s < 4 and h < 4: return "2D", "C5+ M<4"
-    if 11 <= hcp <= 12 and is_balanced(shape) and s < 4 and h < 4 and d < 5 and c < 5: return "2H", "Balanced"
-    if 5 <= hcp <= 10 and s < 4 and h < 4 and not has_m6 and not has_m55: return "1S", "M<4"
-    if hcp >= 13 and s < 4 and h < 4: return "1N", "13+ M<4"
-    if hcp >= 13 and (s == 4 or h == 4) and check_bal_dbl(): return "1N", "13+ 4M Balanced"
+    if 0 <= hcp <= 10 and d >= 6: return "2C", "D6 no M4"
+    if 11 <= hcp <= 12 and d >= 5: return "2C", "D5 no M4"
+    if 11 <= hcp <= 12 and c >= 5: return "2D", "C5+ M<4"
+    if 11 <= hcp <= 12 and is_balanced(shape): return "2H", "Balanced"
+    if 5 <= hcp <= 10: return "1S", "M<4"
+    if hcp >= 13: return "1N", "13+ M<4"
     return "Pass", "Pass"
 
 def logic_resp_1d(hcp, shape, counts, suit_cards):
     s, h, d, c = shape
-    def check_bal_dbl():
-        if is_balanced(shape):
-            for st, cards in suit_cards.items():
-                if len(cards) == 2 and not has_honor(cards): return False
-            return True
-        return False
-    if hcp <= 5: return "Pass", "Pass"
-    if hcp >= 5 and h >= 4 and h > s and not (h == 4 and s == 4): return "1H", "H4+ H>S"
-    if hcp >= 5 and s >= 4 and s >= h and not (h == 4 and s == 4): return "1S", "S4+ S>=H"
-    if hcp >= 13 and s < 4 and h < 4: return "1N", "13+ M<4"
-    if hcp >= 13 and (h == 4 or s == 4) and check_bal_dbl(): return "1N", "13+ 4M Balanced"
-    if 5 <= hcp <= 10 and c == 5 and s < 4 and h < 4 and d < 3: return "2C", "C=5"
-    if 5 <= hcp <= 10 and c >= 6 and s < 4 and h < 4 and d < 4: return "2C", "C6+"
-    if 5 <= hcp <= 10 and 3 <= d <= 4 and s < 4 and h < 4: return "2D", "D 3-4"
-    if 11 <= hcp <= 12 and is_balanced(shape) and s < 4 and h < 4: return "2H", "Balanced"
-    if 11 <= hcp <= 12 and c >= 5 and not is_balanced(shape) and s < 4 and h < 4: return "2S", "C5+ Unbalanced"
-    if 11 <= hcp <= 12 and d >= 4 and not is_balanced(shape) and s < 4 and h < 4: return "3C", "D4+ Unbalanced"
-    if 5 <= hcp <= 10 and d == 5 and s < 4 and h < 4: return "3D", "D=5"
+    if hcp <= 5: return "Pass", "0-5 HCP"
+    
+    # Open 1D: ตอบ 1H = H4+, ตอบ 1S = S4+
+    if h >= 4 and s >= 4:
+        if s > h: return "1S", "H4S4, S > H"
+        elif h > s: return "1H", "H4S4, H > S"
+        else: return "1H", "H4S4 (Equal, show H via 1H)"
+    if h >= 4: return "1H", "H4+ (Show H)"
+    if s >= 4: return "1S", "S4+ (Show S)"
+    
+    if hcp >= 13: return "1N", "13+ M<4"
+    if 5 <= hcp <= 10 and c == 5 and d < 3: return "2C", "C=5"
+    if 5 <= hcp <= 10 and c >= 6 and d < 4: return "2C", "C6+"
+    if 5 <= hcp <= 10 and 3 <= d <= 4: return "2D", "D 3-4"
+    if 11 <= hcp <= 12 and is_balanced(shape): return "2H", "Balanced"
+    if 11 <= hcp <= 12 and c >= 5: return "2S", "C5+ Unbalanced"
+    if 11 <= hcp <= 12 and d >= 4: return "3C", "D4+ Unbalanced"
+    if 5 <= hcp <= 10 and d == 5: return "3D", "D=5"
     return "Pass", "Pass"
 
 def logic_resp_1h(hcp, shape, counts, suit_cards):
@@ -242,7 +242,7 @@ def logic_resp_1s(hcp, shape, counts, suit_cards):
     if hcp <= 9 and s >= 5: return "4S", "S5+"
     return "Pass", "Pass"
 
-# จัดการ Session State ของ Streamlit
+# Streamlit Session States
 if 'logged_in' not in st.session_state: st.session_state.logged_in = False
 if 'username' not in st.session_state: st.session_state.username = ""
 if 'mode' not in st.session_state: st.session_state.mode = None
@@ -264,8 +264,10 @@ def generate_hand_data(mode):
             if bid == 'Pass': continue
         elif mode == 'resp_1c':
             bid, reason = logic_resp_1c(hcp, shape, counts, suit_cards)
+            if bid == 'Pass' and hcp >= 6: continue 
         elif mode == 'resp_1d':
             bid, reason = logic_resp_1d(hcp, shape, counts, suit_cards)
+            if bid == 'Pass' and hcp >= 6: continue
         elif mode == 'resp_1h':
             bid, reason = logic_resp_1h(hcp, shape, counts, suit_cards)
         elif mode == 'resp_1s':
@@ -336,6 +338,15 @@ else:
         hand_data = st.session_state.current_hand_data
         suit_cards = hand_data['suit_cards']
         
+        # แสดงหัวข้อเตือนความจำเพื่อไม่ให้ผู้เล่นหลง
+        if st.session_state.mode == 'opening':
+            reminder_text = "Opener เปิด <b>[คุณกำลังฝึกเปิดไพ่]</b> — คุณถือไพ่นี้จะเลือกเปิดอะไร?"
+        else:
+            op_suit = st.session_state.mode_name.replace('ฝึกตอบ ', '').replace(' opening', '')
+            reminder_text = f"Opener เปิด <b>{op_suit}</b> — คุณถือไพ่นี้จะ Response อะไร?"
+        
+        st.info(reminder_text)
+        
         col_left, col_right = st.columns([1.2, 1])
         
         with col_left:
@@ -346,43 +357,35 @@ else:
             st.markdown(f"♣ **C:** {'  '.join(suit_cards['C'])}")
             st.markdown(f"📊 **HCP:** {hand_data['hcp']} &nbsp;&nbsp;|&nbsp;&nbsp; **Shape:** {hand_data['shape'][0]}{hand_data['shape'][1]}{hand_data['shape'][2]}{hand_data['shape'][3]}")
             
-            st.markdown("#### เลือกคำตอบ Bidding:")
-            levels = ['1', '2', '3', '4', '5', '6', '7']
-            suits_list = ['C', 'D', 'H', 'S', 'N']
-            
-            # สร้างปุ่มกดเลือกคำตอบ
-            for lvl in levels:
-                cols = st.columns(5)
-                for i, s in enumerate(suits_list):
-                    bid_str = lvl + s
-                    with cols[i]:
-                        if st.button(bid_str, key=f"btn_{lvl}_{s}", use_container_width=True):
-                            # ตรวจคำตอบ
-                            correct = (bid_str == hand_data['bid'])
-                            if correct:
-                                st.session_state.score += 1
-                                st.session_state.feedback = ("correct", bid_str, hand_data['reason'])
-                            else:
-                                st.session_state.feedback = ("wrong", bid_str, hand_data['bid'], hand_data['reason'])
-                            st.rerun()
-            
-            if st.button("Pass", type="secondary", use_container_width=True):
-                correct = ("Pass" == hand_data['bid'])
-                if correct:
-                    st.session_state.score += 1
-                    st.session_state.feedback = ("correct", "Pass", hand_data['reason'])
-                else:
-                    st.session_state.feedback = ("wrong", "Pass", hand_data['bid'], hand_data['reason'])
-                st.rerun()
-
-        with col_right:
-            st.markdown(f"### คะแนน: {st.session_state.score} / {st.session_state.question_no - 1}")
             st.markdown("---")
             
-            if st.session_state.feedback:
+            # Dynamic UI: ถ้ายังไม่ตอบ ให้แสดงปุ่ม Bidding / ถ้าตอบแล้ว ให้แสดงผลเฉลยแทนที่ตำแหน่งเดิม
+            if st.session_state.feedback is None:
+                st.markdown("#### เลือกคำตอบ Bidding:")
+                levels = ['1', '2', '3', '4', '5', '6', '7']
+                suits_list = ['C', 'D', 'H', 'S', 'N']
+                
+                for lvl in levels:
+                    cols = st.columns(5)
+                    for i, s in enumerate(suits_list):
+                        bid_str = lvl + s
+                        with cols[i]:
+                            if st.button(bid_str, key=f"btn_{lvl}_{s}", use_container_width=True):
+                                correct = (bid_str == hand_data['bid'])
+                                if correct: st.session_state.score += 1
+                                st.session_state.feedback = ("correct" if correct else "wrong", bid_str, hand_data['bid'], hand_data['reason'])
+                                st.rerun()
+                
+                if st.button("Pass", type="secondary", use_container_width=True):
+                    correct = ("Pass" == hand_data['bid'])
+                    if correct: st.session_state.score += 1
+                    st.session_state.feedback = ("correct" if correct else "wrong", "Pass", hand_data['bid'], hand_data['reason'])
+                    st.rerun()
+            else:
+                # แสดงผลเฉลยแทนที่ปุ่มกดเดิมทันที
                 fb = st.session_state.feedback
                 if fb[0] == "correct":
-                    st.success(f"✅ ถูกต้อง! คุณตอบ {fb[1]}\n\n💡 **เหตุผล:** {fb[2]}")
+                    st.success(f"✅ ถูกต้อง! คุณตอบ {fb[1]}\n\n💡 **เหตุผล:** {fb[3]}")
                 else:
                     st.error(f"❌ ผิด! คุณตอบ {fb[1]} แต่ที่ถูกคือ **{fb[2]}**\n\n💡 **เหตุผล:** {fb[3]}")
                 
@@ -392,3 +395,8 @@ else:
                     if st.session_state.question_no <= 20:
                         st.session_state.current_hand_data = generate_hand_data(st.session_state.mode)
                     st.rerun()
+
+        with col_right:
+            st.markdown(f"### คะแนน: {st.session_state.score} / {st.session_state.question_no - 1}")
+            st.markdown("---")
+            st.markdown("📌 **คำแนะนำ:**\n- เลือกตอบคำตอบที่ถูกต้องตามระบบ Bidding\n- ปุ่มกดจะสลับเป็นหน้าแสดงเฉลยและปุ่มไปข้อถัดไปอัตโนมัติ เพื่อความสะดวกในการเล่นครับ")
