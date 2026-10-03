@@ -1,8 +1,8 @@
 import random
-import ipywidgets as widgets
-from IPython.display import display, clear_output
+import streamlit as st
 
-USER_DATABASE = {}
+# ตั้งค่าหน้าเว็บ
+st.set_page_config(page_title="Bridge Master Training", page_icon="🃏", layout="centered")
 
 HCP_MAP = {'A': 4, 'K': 3, 'Q': 2, 'J': 1}
 RANK_ORDER = {'A': 14, 'K': 13, 'Q': 12, 'J': 11, 'T': 10, '9': 9, '8': 8, '7': 7, '6': 6, '5': 5, '4': 4, '3': 3, '2': 2}
@@ -11,7 +11,6 @@ def evaluate_hand(hand):
     counts = {'S': 0, 'H': 0, 'D': 0, 'C': 0}
     hcp = 0
     suit_cards = {'S': [], 'H': [], 'D': [], 'C': []}
-    
     for card in hand:
         rank = card[0]
         suit = card[1]
@@ -19,10 +18,8 @@ def evaluate_hand(hand):
         suit_cards[suit].append(rank)
         if rank in HCP_MAP:
             hcp += HCP_MAP[rank]
-            
     for suit in suit_cards:
         suit_cards[suit].sort(key=lambda r: RANK_ORDER[r], reverse=True)
-            
     shape = [counts['S'], counts['H'], counts['D'], counts['C']]
     return hcp, shape, counts, suit_cards
 
@@ -30,11 +27,7 @@ def is_balanced(shape):
     s = sorted(shape, reverse=True)
     return s in [[4, 3, 3, 3], [4, 4, 3, 2], [5, 3, 3, 2]]
 
-def has_honor(cards):
-    return any(r in ['A', 'K', 'Q'] for r in cards)
-
 def match_shape_new(shape, pattern_str):
-    s, h, d, c = shape
     parts = pattern_str.strip().split()
     if parts[0] == "any":
         target_counts = sorted([int(x) for x in parts[1]])
@@ -56,10 +49,8 @@ def has_second_suit_5plus(shape, primary_suit_idx):
             return True
     return False
 
-# --- ฟังก์ชันกฎ Opening ที่แก้ไขการ return ให้ถูกต้องครบถ้วน ---
 def logic_opening(hcp, shape, counts, suit_cards):
     s, h, d, c = shape
-    
     def is_solid(suit_name, suit_idx):
         cards = suit_cards[suit_name]
         if len(cards) >= 7:
@@ -99,7 +90,6 @@ def logic_opening(hcp, shape, counts, suit_cards):
         return "1D", "D=4, C=5"
 
     if hcp < 11: return "Pass", "<11 HCP"
-    
     if hcp >= 21:
         if 20 <= hcp <= 22 and is_balanced(shape): return "2N", "20-22 Balanced"
         return "2C", "21+ HCP"
@@ -126,21 +116,17 @@ def logic_opening(hcp, shape, counts, suit_cards):
     if 11 <= hcp <= 13 and is_balanced(shape): return "1C", "Balanced"
     if 14 <= hcp <= 16 and is_balanced(shape): return "1N", "Balanced"
     if 17 <= hcp <= 19 and is_balanced(shape) and s < 5 and h < 5: return "1C", "Balanced"
-    
     if 11 <= hcp <= 20 and c >= 5 and c >= s and c >= h: return "1C", "C5+"
     if 11 <= hcp <= 20 and d >= 5: return "1D", "D5+"
     if 11 <= hcp <= 16 and s >= 5: return "1S", "S5+"
     if 17 <= hcp <= 20 and s >= 5: return "1S", "S5+"
     if 11 <= hcp <= 16 and h >= 5: return "1H", "H5+"
     if 17 <= hcp <= 20 and h >= 5: return "1H", "H5+"
-    
     return "Pass", "Pass"
 
-# --- ฟังก์ชันกฎ Resp_1N, 1C, 1D, 1H, 1S ---
 def logic_resp_1n(hcp, shape, counts, suit_cards):
     s, h, d, c = shape
     has_M5 = (s >= 5 or h >= 5)
-    has_m6 = (d >= 6 or c >= 6)
     has_m55 = (d >= 5 and c >= 5)
     has_M55 = (s >= 5 and h >= 5)
     if hcp >= 11 and (s == 3 and h == 1 and ((d == 5 and c == 4) or (d == 4 and c == 5))): return "3H", "3154/3145"
@@ -256,206 +242,153 @@ def logic_resp_1s(hcp, shape, counts, suit_cards):
     if hcp <= 9 and s >= 5: return "4S", "S5+"
     return "Pass", "Pass"
 
-# --- แอปพลิเคชันหลัก ---
-class MasterBridgeQuizApp:
-    def __init__(self):
-        self.current_user = None
-        self.current_score = 0
-        self.current_question = 1
-        
-        self.username_input = widgets.Text(description='ชื่อผู้ใช้:', placeholder='กรอกชื่อของคุณ')
-        self.login_btn = widgets.Button(description='เข้าสู่ระบบ', button_style='primary')
-        self.login_btn.on_click(self.handle_login)
-        self.login_output = widgets.Output()
-        
-        self.login_page = widgets.VBox([
-            widgets.HTML("<h2>🃏 ระบบฝึกทักษะบริดจ์ (Bridge Master Training)</h2>"),
-            widgets.HBox([self.username_input, self.login_btn]),
-            self.login_output
-        ])
-        
-        self.btn_opening = widgets.Button(description='ฝึกเปิด (Opening)', button_style='info', layout=widgets.Layout(width='250px', height='40px'))
-        self.btn_resp_1c = widgets.Button(description='ฝึกตอบ 1C opening', button_style='info', layout=widgets.Layout(width='250px', height='40px'))
-        self.btn_resp_1d = widgets.Button(description='ฝึกตอบ 1D opening', button_style='info', layout=widgets.Layout(width='250px', height='40px'))
-        self.btn_resp_1h = widgets.Button(description='ฝึกตอบ 1H opening', button_style='info', layout=widgets.Layout(width='250px', height='40px'))
-        self.btn_resp_1s = widgets.Button(description='ฝึกตอบ 1S opening', button_style='info', layout=widgets.Layout(width='250px', height='40px'))
-        self.btn_resp_1n = widgets.Button(description='ฝึกตอบ 1N opening', button_style='info', layout=widgets.Layout(width='250px', height='40px'))
-        
-        self.btn_opening.on_click(lambda b: self.start_quiz('opening', 'ฝึกเปิด (Opening)'))
-        self.btn_resp_1c.on_click(lambda b: self.start_quiz('resp_1c', 'ฝึกตอบ 1C opening'))
-        self.btn_resp_1d.on_click(lambda b: self.start_quiz('resp_1d', 'ฝึกตอบ 1D opening'))
-        self.btn_resp_1h.on_click(lambda b: self.start_quiz('resp_1h', 'ฝึกตอบ 1H opening'))
-        self.btn_resp_1s.on_click(lambda b: self.start_quiz('resp_1s', 'ฝึกตอบ 1S opening'))
-        self.btn_resp_1n.on_click(lambda b: self.start_quiz('resp_1n', 'ฝึกตอบ 1N opening'))
-        
-        self.menu_page = widgets.VBox([
-            widgets.HTML("<h3>📂 กรุณาเลือกหัวข้อแบบฝึกหัด (เซ็ตละ 20 ข้อ)</h3>"),
-            self.btn_opening, self.btn_resp_1c, self.btn_resp_1d, 
-            self.btn_resp_1h, self.btn_resp_1s, self.btn_resp_1n
-        ])
-        
-        self.stats_label = widgets.HTML("<b>ผู้เล่น: - | โหมด: -</b>")
-        self.back_to_menu_btn = widgets.Button(description='⬅️ กลับหน้าเมนู', button_style='warning')
-        self.back_to_menu_btn.on_click(self.go_to_menu)
-        
-        self.output_area = widgets.Output()
-        
-        self.next_btn = widgets.Button(
-            description='ข้อต่อไป (Next) ➡️', 
-            button_style='success',
-            layout=widgets.Layout(width='200px', height='60px')
-        )
-        self.next_btn.on_click(self.load_new_hand)
-        
-        self.score_summary_label = widgets.HTML("<b>คะแนน: 0 / 0</b>")
-        self.feedback_area = widgets.Output()
-        
-        right_panel = widgets.VBox([
-            self.score_summary_label,
-            widgets.HTML("<br>"),
-            self.next_btn,
-            widgets.HTML("<br><b>ผลการตรวจคำตอบ:</b>"),
-            self.feedback_area
-        ], layout=widgets.Layout(padding='0px 0px 0px 20px'))
-        
-        self.keypad_box = self.create_keypad()
-        
-        self.quiz_page = widgets.VBox([
-            widgets.HBox([self.stats_label, widgets.HTML("&nbsp;&nbsp;|&nbsp;&nbsp;"), self.back_to_menu_btn]),
-            widgets.HTML("<hr>"),
-            widgets.HBox([
-                widgets.VBox([
-                    self.output_area,
-                    widgets.HTML("<b>เลือกคำตอบ Bidding:</b>"),
-                    self.keypad_box
-                ]),
-                right_panel
-            ])
-        ])
-        
-        self.container = widgets.VBox([self.login_page])
+# จัดการ Session State ของ Streamlit
+if 'logged_in' not in st.session_state: st.session_state.logged_in = False
+if 'username' not in st.session_state: st.session_state.username = ""
+if 'mode' not in st.session_state: st.session_state.mode = None
+if 'mode_name' not in st.session_state: st.session_state.mode_name = ""
+if 'question_no' not in st.session_state: st.session_state.question_no = 1
+if 'score' not in st.session_state: st.session_state.score = 0
+if 'current_hand_data' not in st.session_state: st.session_state.current_hand_data = None
+if 'feedback' not in st.session_state: st.session_state.feedback = None
 
-    def create_keypad(self):
-        levels = ['1', '2', '3', '4', '5', '6', '7']
-        suits_list = ['C', 'D', 'H', 'S', 'N']
-        rows = []
-        for lvl in levels:
-            row_btns = []
-            for s in suits_list:
-                bid_str = lvl + s
-                btn = widgets.Button(description=bid_str, layout=widgets.Layout(width='45px', height='32px'))
-                btn.on_click(lambda b, val=bid_str: self.check_answer(val))
-                row_btns.append(btn)
-            rows.append(widgets.HBox(row_btns))
+def generate_hand_data(mode):
+    suits = ['S', 'H', 'D', 'C']
+    ranks = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
+    deck = [r + s for s in suits for r in ranks]
+    while True:
+        hand = random.sample(deck, 13)
+        hcp, shape, counts, suit_cards = evaluate_hand(hand)
+        if mode == 'opening':
+            bid, reason = logic_opening(hcp, shape, counts, suit_cards)
+            if bid == 'Pass': continue
+        elif mode == 'resp_1c':
+            bid, reason = logic_resp_1c(hcp, shape, counts, suit_cards)
+        elif mode == 'resp_1d':
+            bid, reason = logic_resp_1d(hcp, shape, counts, suit_cards)
+        elif mode == 'resp_1h':
+            bid, reason = logic_resp_1h(hcp, shape, counts, suit_cards)
+        elif mode == 'resp_1s':
+            bid, reason = logic_resp_1s(hcp, shape, counts, suit_cards)
+        elif mode == 'resp_1n':
+            bid, reason = logic_resp_1n(hcp, shape, counts, suit_cards)
+        break
+    return {'suit_cards': suit_cards, 'hcp': hcp, 'shape': shape, 'bid': bid, 'reason': reason}
+
+# 1. หน้า Login
+if not st.session_state.logged_in:
+    st.title("🃏 ระบบฝึกทักษะบริดจ์")
+    username = st.text_input("กรอกชื่อผู้ใช้ของคุณ:")
+    if st.button("เข้าสู่ระบบ", type="primary"):
+        if username.strip():
+            st.session_state.username = username.strip()
+            st.session_state.logged_in = True
+            st.rerun()
+        else:
+            st.warning("⚠️ กรุณากรอกชื่อก่อนครับ")
+
+# 2. หน้า Menu เลือกหมวดหมู่
+elif st.session_state.mode is None:
+    st.title(f"ยินดีต้อนรับคุณ {st.session_state.username}")
+    st.subheader("📂 กรุณาเลือกหัวข้อแบบฝึกหัด (เซ็ตละ 20 ข้อ)")
+    
+    modes = [
+        ('ฝึกเปิด (Opening)', 'opening'),
+        ('ฝึกตอบ 1C opening', 'resp_1c'),
+        ('ฝึกตอบ 1D opening', 'resp_1d'),
+        ('ฝึกตอบ 1H opening', 'resp_1h'),
+        ('ฝึกตอบ 1S opening', 'resp_1s'),
+        ('ฝึกตอบ 1N opening', 'resp_1n')
+    ]
+    
+    for name, key in modes:
+        if st.button(name, use_container_width=True):
+            st.session_state.mode = key
+            st.session_state.mode_name = name
+            st.session_state.question_no = 1
+            st.session_state.score = 0
+            st.session_state.current_hand_data = generate_hand_data(key)
+            st.session_state.feedback = None
+            st.rerun()
             
-        pass_btn = widgets.Button(description='Pass', layout=widgets.Layout(width='75px', height='32px'), button_style='info')
-        pass_btn.on_click(lambda b: self.check_answer('Pass'))
-        rows.append(widgets.HBox([pass_btn]))
-        return widgets.VBox(rows)
+    if st.button("ออกจากระบบ"):
+        st.session_state.logged_in = False
+        st.rerun()
 
-    def handle_login(self, b):
-        uname = self.username_input.value.strip()
-        if not uname:
-            with self.login_output:
-                clear_output()
-                print("⚠️ กรุณากรอกชื่อผู้ใช้ก่อนเข้าสู่ระบบ")
-            return
-        self.current_user = uname
-        self.container.children = [self.menu_page]
-
-    def go_to_menu(self, b):
-        self.container.children = [self.menu_page]
-
-    def start_quiz(self, mode_key, mode_name):
-        self.current_mode = mode_key
-        self.current_mode_name = mode_name
-        self.current_score = 0
-        self.current_question = 1
-        
-        self.stats_label.value = f"<b>ผู้เล่น: {self.current_user} | หมวด: {self.current_mode_name}</b>"
-        self.container.children = [self.quiz_page]
-        self.load_new_hand(None)
-
-    def load_new_hand(self, b):
-        if self.current_question > 20:
-            with self.output_area:
-                clear_output(wait=False)
-                print("==================================================")
-                print(f"🎉 จบเซ็ตแบบฝึกหัด 20 ข้อแล้วครับ!")
-                print(f"🏆 คะแนนรวมที่คุณทำได้: {self.current_score} / 20 คะแนน")
-                print("==================================================")
-            with self.feedback_area:
-                clear_output(wait=False)
-            self.score_summary_label.value = f"<b>คะแนนรวม: {self.current_score} / 20</b>"
-            self.next_btn.description = 'จบเซ็ตแล้ว (เลือกเมนู)'
-            self.next_btn.on_click(self.go_to_menu)
-            return
-
-        self.next_btn.description = 'ข้อต่อไป (Next) ➡️'
-        self.next_btn.on_click(self.load_new_hand)
-
-        with self.feedback_area:
-            clear_output(wait=False)
+# 3. หน้า Quiz ทำแบบฝึกหัด
+else:
+    col_top1, col_top2 = st.columns([3, 1])
+    with col_top1:
+        st.markdown(f"**ผู้เล่น:** {st.session_state.username} | **หมวด:** {st.session_state.mode_name}")
+    with col_top2:
+        if st.button("⬅️ กลับหน้าเมนู"):
+            st.session_state.mode = None
+            st.rerun()
             
-        mode = self.current_mode
-        suits = ['S', 'H', 'D', 'C']
-        ranks = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
-        deck = [r + s for s in suits for r in ranks]
+    st.markdown("---")
+    
+    if st.session_state.question_no > 20:
+        st.success(f"🎉 จบเซ็ตแบบฝึกหัด 20 ข้อแล้วครับ! คะแนนรวม: {st.session_state.score} / 20 คะแนน")
+        if st.button("กลับไปหน้าเลือกหมวดหมู่"):
+            st.session_state.mode = None
+            st.rerun()
+    else:
+        hand_data = st.session_state.current_hand_data
+        suit_cards = hand_data['suit_cards']
         
-        while True:
-            hand = random.sample(deck, 13)
-            hcp, shape, counts, suit_cards = evaluate_hand(hand)
+        col_left, col_right = st.columns([1.2, 1])
+        
+        with col_left:
+            st.markdown(f"### ข้อที่ {st.session_state.question_no} จาก 20")
+            st.markdown(f"♠ **S:** {'  '.join(suit_cards['S'])}")
+            st.markdown(f"♥ **H:** {'  '.join(suit_cards['H'])}")
+            st.markdown(f"♦ **D:** {'  '.join(suit_cards['D'])}")
+            st.markdown(f"♣ **C:** {'  '.join(suit_cards['C'])}")
+            st.markdown(f"📊 **HCP:** {hand_data['hcp']} &nbsp;&nbsp;|&nbsp;&nbsp; **Shape:** {hand_data['shape'][0]}{hand_data['shape'][1]}{hand_data['shape'][2]}{hand_data['shape'][3]}")
             
-            if mode == 'opening':
-                bid, reason = logic_opening(hcp, shape, counts, suit_cards)
-                if bid == 'Pass': continue
-            elif mode == 'resp_1c':
-                bid, reason = logic_resp_1c(hcp, shape, counts, suit_cards)
-            elif mode == 'resp_1d':
-                bid, reason = logic_resp_1d(hcp, shape, counts, suit_cards)
-            elif mode == 'resp_1h':
-                bid, reason = logic_resp_1h(hcp, shape, counts, suit_cards)
-            elif mode == 'resp_1s':
-                bid, reason = logic_resp_1s(hcp, shape, counts, suit_cards)
-            elif mode == 'resp_1n':
-                bid, reason = logic_resp_1n(hcp, shape, counts, suit_cards)
-            break
+            st.markdown("#### เลือกคำตอบ Bidding:")
+            levels = ['1', '2', '3', '4', '5', '6', '7']
+            suits_list = ['C', 'D', 'H', 'S', 'N']
             
-        self.correct_bid = bid
-        self.reason = reason
-        
-        self.score_summary_label.value = f"<b>คะแนน: {self.current_score} / {self.current_question - 1}</b>"
-        
-        with self.output_area:
-            clear_output(wait=False)
-            print("==================================================")
-            print(f"  ข้อที่ {self.current_question} จาก 20 ข้อ")
-            print("==================================================")
-            print(f"♠ S:  {'  '.join(suit_cards['S'])}")
-            print(f"♥ H:  {'  '.join(suit_cards['H'])}")
-            print(f"♦ D:  {'  '.join(suit_cards['D'])}")
-            print(f"♣ C:  {'  '.join(suit_cards['C'])}")
-            print("--------------------------------------------------")
-            print(f"📊 HCP: {hcp}   |   ทรงไพ่ (Shape): {shape[0]}{shape[1]}{shape[2]}{shape[3]}")
-            print("==================================================")
-
-    def check_answer(self, user_bid):
-        if self.current_question > 20: return
-        
-        is_correct = (user_bid == self.correct_bid)
-        if is_correct:
-            self.current_score += 1
+            # สร้างปุ่มกดเลือกคำตอบ
+            for lvl in levels:
+                cols = st.columns(5)
+                for i, s in enumerate(suits_list):
+                    bid_str = lvl + s
+                    with cols[i]:
+                        if st.button(bid_str, key=f"btn_{lvl}_{s}", use_container_width=True):
+                            # ตรวจคำตอบ
+                            correct = (bid_str == hand_data['bid'])
+                            if correct:
+                                st.session_state.score += 1
+                                st.session_state.feedback = ("correct", bid_str, hand_data['reason'])
+                            else:
+                                st.session_state.feedback = ("wrong", bid_str, hand_data['bid'], hand_data['reason'])
+                            st.rerun()
             
-        with self.feedback_area:
-            clear_output(wait=False)
-            if is_correct:
-                print(f"✅ ถูกต้อง! คุณเลือกตอบ {user_bid}")
-            else:
-                print(f"❌ ผิด! คุณเลือกตอบ {user_bid} แต่คำตอบที่ถูกต้องคือ {self.correct_bid}")
-            print(f"💡 เหตุผล: {self.reason}")
+            if st.button("Pass", type="secondary", use_container_width=True):
+                correct = ("Pass" == hand_data['bid'])
+                if correct:
+                    st.session_state.score += 1
+                    st.session_state.feedback = ("correct", "Pass", hand_data['reason'])
+                else:
+                    st.session_state.feedback = ("wrong", "Pass", hand_data['bid'], hand_data['reason'])
+                st.rerun()
 
-        self.score_summary_label.value = f"<b>คะแนน: {self.current_score} / {self.current_question}</b>"
-        self.current_question += 1
-
-app = MasterBridgeQuizApp()
-display(app.container)
+        with col_right:
+            st.markdown(f"### คะแนน: {st.session_state.score} / {st.session_state.question_no - 1}")
+            st.markdown("---")
+            
+            if st.session_state.feedback:
+                fb = st.session_state.feedback
+                if fb[0] == "correct":
+                    st.success(f"✅ ถูกต้อง! คุณตอบ {fb[1]}\n\n💡 **เหตุผล:** {fb[2]}")
+                else:
+                    st.error(f"❌ ผิด! คุณตอบ {fb[1]} แต่ที่ถูกคือ **{fb[2]}**\n\n💡 **เหตุผล:** {fb[3]}")
+                
+                if st.button("ข้อต่อไป (Next) ➡️", type="primary", use_container_width=True):
+                    st.session_state.question_no += 1
+                    st.session_state.feedback = None
+                    if st.session_state.question_no <= 20:
+                        st.session_state.current_hand_data = generate_hand_data(st.session_state.mode)
+                    st.rerun()
