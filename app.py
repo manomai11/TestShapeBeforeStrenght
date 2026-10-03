@@ -138,21 +138,15 @@ def logic_resp_1n(hcp, shape, counts, suit_cards):
     if 11 <= hcp <= 15 and ((2 < s < 5) or (2 < h < 5)): return "3C", "3-card Major support"
     return "Pass", "Default Pass"
 
-# --- ปรับปรุงกฎ Response 1C และ 1D ตามกติกาใหม่ที่คุณสรุป ---
 def logic_resp_1c(hcp, shape, counts, suit_cards):
     s, h, d, c = shape
     if hcp <= 5: return "Pass", "0-5 HCP"
-    
-    # เช็ค Major 4+ ก่อนเสมอ (แม้ m จะยาวกว่า)
-    # Open 1C: ตอบ 1D = H4+, ตอบ 1H = S4+
     if h >= 4 and s >= 4:
         if s > h: return "1H", "H4S4, S > H"
         elif h > s: return "1D", "H4S4, H > S"
         else: return "1D", "H4S4 (Equal, show H via 1D)"
     if h >= 4: return "1D", "H4+ (Show H)"
     if s >= 4: return "1H", "S4+ (Show S)"
-    
-    # กรณีไม่มี Major 4 ใบ
     has_m55 = (d >= 5 and c >= 5)
     has_m6 = (d >= 6 or c >= 6)
     if 5 <= hcp <= 10 and has_m55: return "2S", "m55"
@@ -168,15 +162,12 @@ def logic_resp_1c(hcp, shape, counts, suit_cards):
 def logic_resp_1d(hcp, shape, counts, suit_cards):
     s, h, d, c = shape
     if hcp <= 5: return "Pass", "0-5 HCP"
-    
-    # Open 1D: ตอบ 1H = H4+, ตอบ 1S = S4+
     if h >= 4 and s >= 4:
         if s > h: return "1S", "H4S4, S > H"
         elif h > s: return "1H", "H4S4, H > S"
         else: return "1H", "H4S4 (Equal, show H via 1H)"
     if h >= 4: return "1H", "H4+ (Show H)"
     if s >= 4: return "1S", "S4+ (Show S)"
-    
     if hcp >= 13: return "1N", "13+ M<4"
     if 5 <= hcp <= 10 and c == 5 and d < 3: return "2C", "C=5"
     if 5 <= hcp <= 10 and c >= 6 and d < 4: return "2C", "C6+"
@@ -242,7 +233,6 @@ def logic_resp_1s(hcp, shape, counts, suit_cards):
     if hcp <= 9 and s >= 5: return "4S", "S5+"
     return "Pass", "Pass"
 
-# Streamlit Session States
 if 'logged_in' not in st.session_state: st.session_state.logged_in = False
 if 'username' not in st.session_state: st.session_state.username = ""
 if 'mode' not in st.session_state: st.session_state.mode = None
@@ -277,30 +267,28 @@ def generate_hand_data(mode):
         break
     return {'suit_cards': suit_cards, 'hcp': hcp, 'shape': shape, 'bid': bid, 'reason': reason}
 
-# 1. หน้า Login
 if not st.session_state.logged_in:
-    st.title("🃏 ระบบฝึกทักษะบริดจ์")
-    username = st.text_input("กรอกชื่อผู้ใช้ของคุณ:")
-    if st.button("เข้าสู่ระบบ", type="primary"):
+    st.title("🃏 Bridge Master Training")
+    username = st.text_input("Enter your username:")
+    if st.button("Login", type="primary"):
         if username.strip():
             st.session_state.username = username.strip()
             st.session_state.logged_in = True
             st.rerun()
         else:
-            st.warning("⚠️ กรุณากรอกชื่อก่อนครับ")
+            st.warning("⚠️ Please enter your username.")
 
-# 2. หน้า Menu เลือกหมวดหมู่
 elif st.session_state.mode is None:
-    st.title(f"ยินดีต้อนรับคุณ {st.session_state.username}")
-    st.subheader("📂 กรุณาเลือกหัวข้อแบบฝึกหัด (เซ็ตละ 20 ข้อ)")
+    st.title(f"Welcome, {st.session_state.username}")
+    st.subheader("📂 Select Practice Topic (20 Questions per Set)")
     
     modes = [
-        ('ฝึกเปิด (Opening)', 'opening'),
-        ('ฝึกตอบ 1C opening', 'resp_1c'),
-        ('ฝึกตอบ 1D opening', 'resp_1d'),
-        ('ฝึกตอบ 1H opening', 'resp_1h'),
-        ('ฝึกตอบ 1S opening', 'resp_1s'),
-        ('ฝึกตอบ 1N opening', 'resp_1n')
+        ('Practice Opening', 'opening'),
+        ('Practice Response to 1C', 'resp_1c'),
+        ('Practice Response to 1D', 'resp_1d'),
+        ('Practice Response to 1H', 'resp_1h'),
+        ('Practice Response to 1S', 'resp_1s'),
+        ('Practice Response to 1N', 'resp_1n')
     ]
     
     for name, key in modes:
@@ -313,44 +301,43 @@ elif st.session_state.mode is None:
             st.session_state.feedback = None
             st.rerun()
             
-    if st.button("ออกจากระบบ"):
+    if st.button("Logout"):
         st.session_state.logged_in = False
         st.rerun()
 
-# 3. หน้า Quiz ทำแบบฝึกหัด
 else:
     col_top1, col_top2 = st.columns([3, 1])
     with col_top1:
-        st.markdown(f"**ผู้เล่น:** {st.session_state.username} | **หมวด:** {st.session_state.mode_name}")
+        st.markdown(f"**Player:** {st.session_state.username} | **Mode:** {st.session_state.mode_name}")
     with col_top2:
-        if st.button("⬅️ กลับหน้าเมนู"):
+        if st.button("⬅️ Back to Menu"):
             st.session_state.mode = None
             st.rerun()
             
     st.markdown("---")
     
     if st.session_state.question_no > 20:
-        st.success(f"🎉 จบเซ็ตแบบฝึกหัด 20 ข้อแล้วครับ! คะแนนรวม: {st.session_state.score} / 20 คะแนน")
-        if st.button("กลับไปหน้าเลือกหมวดหมู่"):
+        st.success(f"🎉 Completed 20 questions! Total Score: {st.session_state.score} / 20")
+        if st.button("Back to Menu"):
             st.session_state.mode = None
             st.rerun()
     else:
         hand_data = st.session_state.current_hand_data
         suit_cards = hand_data['suit_cards']
         
-        # แสดงหัวข้อเตือนความจำเพื่อไม่ให้ผู้เล่นหลง
+        # ปรับข้อความเตือนความจำให้เป็นภาษาอังกฤษกระชับ ไม่ติดแท็ก HTML
         if st.session_state.mode == 'opening':
-            reminder_text = "Opener เปิด <b>[คุณกำลังฝึกเปิดไพ่]</b> — คุณถือไพ่นี้จะเลือกเปิดอะไร?"
+            reminder_text = "🎯 Opener Practice: What is your opening bid?"
         else:
-            op_suit = st.session_state.mode_name.replace('ฝึกตอบ ', '').replace(' opening', '')
-            reminder_text = f"Opener เปิด <b>{op_suit}</b> — คุณถือไพ่นี้จะ Response อะไร?"
+            op_suit = st.session_state.mode_name.replace('Practice Response to ', '')
+            reminder_text = f"🎯 Opener opened {op_suit} — What is your response?"
         
         st.info(reminder_text)
         
         col_left, col_right = st.columns([1.2, 1])
         
         with col_left:
-            st.markdown(f"### ข้อที่ {st.session_state.question_no} จาก 20")
+            st.markdown(f"### Question {st.session_state.question_no} / 20")
             st.markdown(f"♠ **S:** {'  '.join(suit_cards['S'])}")
             st.markdown(f"♥ **H:** {'  '.join(suit_cards['H'])}")
             st.markdown(f"♦ **D:** {'  '.join(suit_cards['D'])}")
@@ -359,9 +346,8 @@ else:
             
             st.markdown("---")
             
-            # Dynamic UI: ถ้ายังไม่ตอบ ให้แสดงปุ่ม Bidding / ถ้าตอบแล้ว ให้แสดงผลเฉลยแทนที่ตำแหน่งเดิม
             if st.session_state.feedback is None:
-                st.markdown("#### เลือกคำตอบ Bidding:")
+                st.markdown("#### Select your Bidding:")
                 levels = ['1', '2', '3', '4', '5', '6', '7']
                 suits_list = ['C', 'D', 'H', 'S', 'N']
                 
@@ -382,14 +368,13 @@ else:
                     st.session_state.feedback = ("correct" if correct else "wrong", "Pass", hand_data['bid'], hand_data['reason'])
                     st.rerun()
             else:
-                # แสดงผลเฉลยแทนที่ปุ่มกดเดิมทันที
                 fb = st.session_state.feedback
                 if fb[0] == "correct":
-                    st.success(f"✅ ถูกต้อง! คุณตอบ {fb[1]}\n\n💡 **เหตุผล:** {fb[3]}")
+                    st.success(f"✅ Correct! Your bid: {fb[1]}\n\n💡 **Reason:** {fb[3]}")
                 else:
-                    st.error(f"❌ ผิด! คุณตอบ {fb[1]} แต่ที่ถูกคือ **{fb[2]}**\n\n💡 **เหตุผล:** {fb[3]}")
+                    st.error(f"❌ Incorrect! Your bid: {fb[1]} | Correct bid: **{fb[2]}**\n\n💡 **Reason:** {fb[3]}")
                 
-                if st.button("ข้อต่อไป (Next) ➡️", type="primary", use_container_width=True):
+                if st.button("Next Question ➡️", type="primary", use_container_width=True):
                     st.session_state.question_no += 1
                     st.session_state.feedback = None
                     if st.session_state.question_no <= 20:
@@ -397,6 +382,6 @@ else:
                     st.rerun()
 
         with col_right:
-            st.markdown(f"### คะแนน: {st.session_state.score} / {st.session_state.question_no - 1}")
+            st.markdown(f"### Score: {st.session_state.score} / {st.session_state.question_no - 1}")
             st.markdown("---")
-            st.markdown("📌 **คำแนะนำ:**\n- เลือกตอบคำตอบที่ถูกต้องตามระบบ Bidding\n- ปุ่มกดจะสลับเป็นหน้าแสดงเฉลยและปุ่มไปข้อถัดไปอัตโนมัติ เพื่อความสะดวกในการเล่นครับ")
+            st.markdown("📌 **Tips:**\n- Select the correct bidding action.\n- The buttons will automatically switch to show explanations and the 'Next' button.")
