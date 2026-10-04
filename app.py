@@ -48,6 +48,15 @@ def has_second_suit_5plus(shape, primary_suit_idx):
             return True
     return False
 
+def has_bad_short_suit(suit_cards, shape):
+    # เช็คว่ามีชุดไพ่ความยาว 2 หรือ 3 ใบ ที่ไม่มี A, K, Q อยู่เลยหรือไม่ (ถือเป็นชุดแย่ xx หรือ xxx)
+    for suit_name, length in zip(['S', 'H', 'D', 'C'], shape):
+        if length in [2, 3]:
+            has_honor = any(card in ['A', 'K', 'Q'] for card in suit_cards[suit_name])
+            if not has_honor:
+                return True
+    return False
+
 def logic_opening(hcp, shape, counts, suit_cards):
     s, h, d, c = shape
     def is_solid(suit_name, suit_idx):
@@ -145,15 +154,15 @@ def logic_resp_1c(hcp, shape, counts, suit_cards):
 
     has_doubleton_honor = any(length == 2 and any(card in ['A', 'K', 'Q'] for card in suit_cards[suit_name]) 
                               for suit_name, length in zip(['S', 'H', 'D', 'C'], shape))
-    if hcp >= 13 and is_balanced(shape) and has_doubleton_honor:
-        return "1N", "13+ Balanced with Doubleton Honor"
+    if hcp >= 13 and is_balanced(shape) and has_doubleton_honor and not has_bad_short_suit(suit_cards, shape):
+        return "1N", "13+ Balanced with Good Holding"
 
     if h >= 4 and s >= 4:
         if s > h and (s >= 5 or hcp >= 5): return "1H", "H4S4, S > H"
         elif h > s and (h >= 5 or hcp >= 5): return "1D", "H4S4, H > S"
         elif hcp >= 5 or h >= 5: return "1D", "H4S4 (Equal, show H via 1D)"
             
-    if h >= 4 and (h >= 5 or hcp >= 5): return "1D", "H4+ (Show H)"
+    if h >= 4 and (h >= 5 or hcp >= 5): return "1H", "H4+ (Show H)"
     if s >= 4 and (s >= 5 or hcp >= 5): return "1H", "S4+ (Show S)"
 
     has_m55 = (d >= 5 and c >= 5)
@@ -174,8 +183,8 @@ def logic_resp_1d(hcp, shape, counts, suit_cards):
 
     has_doubleton_honor = any(length == 2 and any(card in ['A', 'K', 'Q'] for card in suit_cards[suit_name]) 
                               for suit_name, length in zip(['S', 'H', 'D', 'C'], shape))
-    if hcp >= 13 and is_balanced(shape) and has_doubleton_honor:
-        return "1N", "13+ Balanced with Doubleton Honor"
+    if hcp >= 13 and is_balanced(shape) and has_doubleton_honor and not has_bad_short_suit(suit_cards, shape):
+        return "1N", "13+ Balanced with Good Holding"
 
     if h >= 4 and s >= 4:
         if s > h and (s >= 5 or hcp >= 5): return "1S", "H4S4, S > H"
