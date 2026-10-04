@@ -128,27 +128,35 @@ def logic_resp_1n(hcp, shape, counts, suit_cards):
     has_M5 = (s >= 5 or h >= 5)
     has_m55 = (d >= 5 and c >= 5)
     has_M55 = (s >= 5 and h >= 5)
+    
     if hcp >= 11 and (s == 3 and h == 1 and ((d == 5 and c == 4) or (d == 4 and c == 5))): return "3H", "3154/3145"
     if hcp >= 11 and (s == 1 and h == 3 and ((d == 5 and c == 4) or (d == 4 and c == 5))): return "3S", "1354/1345"
-    if hcp <= 8 and s < 5 and h < 5 and d < 6 and c < 6 and not has_m55: return "Pass", "Pass"
     if 7 <= hcp <= 8 and (has_M55 or (has_M5 and (d >= 5 or c >= 5))): return "2C", "M55 or M5m5"
     if hcp == 9 and d < 6 and c < 6 and not has_m55: return "2C", "9 HCP"
     if hcp == 10 and s < 5 and h < 5 and d < 6 and c < 6 and not has_m55: return "2C", "10 HCP"
     if hcp >= 16 and s < 5 and h < 5 and d < 6 and c < 6 and not has_m55: return "2C", "16+ HCP"
     if 11 <= hcp <= 15 and ((2 < s < 5) or (2 < h < 5)): return "3C", "3-card Major support"
-    return "Pass", "Default Pass"
+    
+    return "Pass", "Default Pass (No other bids matched)"
 
 def logic_resp_1c(hcp, shape, counts, suit_cards):
     s, h, d, c = shape
     if hcp <= 5: return "Pass", "0-5 HCP"
+
+    has_doubleton_honor = any(length == 2 and any(card in ['A', 'K', 'Q'] for card in suit_cards[suit_name]) 
+                              for suit_name, length in zip(['S', 'H', 'D', 'C'], shape))
+    if hcp >= 13 and is_balanced(shape) and has_doubleton_honor:
+        return "1N", "13+ Balanced with Doubleton Honor"
+
     if h >= 4 and s >= 4:
-        if s > h: return "1H", "H4S4, S > H"
-        elif h > s: return "1D", "H4S4, H > S"
-        else: return "1D", "H4S4 (Equal, show H via 1D)"
-    if h >= 4: return "1D", "H4+ (Show H)"
-    if s >= 4: return "1H", "S4+ (Show S)"
+        if s > h and (s >= 5 or hcp >= 5): return "1H", "H4S4, S > H"
+        elif h > s and (h >= 5 or hcp >= 5): return "1D", "H4S4, H > S"
+        elif hcp >= 5 or h >= 5: return "1D", "H4S4 (Equal, show H via 1D)"
+            
+    if h >= 4 and (h >= 5 or hcp >= 5): return "1D", "H4+ (Show H)"
+    if s >= 4 and (s >= 5 or hcp >= 5): return "1H", "S4+ (Show S)"
+
     has_m55 = (d >= 5 and c >= 5)
-    has_m6 = (d >= 6 or c >= 6)
     if 5 <= hcp <= 10 and has_m55: return "2S", "m55"
     if 5 <= hcp <= 10 and c >= 6: return "3C", "C6+"
     if 0 <= hcp <= 10 and d >= 6: return "2C", "D6 no M4"
@@ -157,17 +165,26 @@ def logic_resp_1c(hcp, shape, counts, suit_cards):
     if 11 <= hcp <= 12 and is_balanced(shape): return "2H", "Balanced"
     if 5 <= hcp <= 10: return "1S", "M<4"
     if hcp >= 13: return "1N", "13+ M<4"
-    return "Pass", "Pass"
+
+    return "Pass", "Default Pass (No other bids matched)"
 
 def logic_resp_1d(hcp, shape, counts, suit_cards):
     s, h, d, c = shape
     if hcp <= 5: return "Pass", "0-5 HCP"
+
+    has_doubleton_honor = any(length == 2 and any(card in ['A', 'K', 'Q'] for card in suit_cards[suit_name]) 
+                              for suit_name, length in zip(['S', 'H', 'D', 'C'], shape))
+    if hcp >= 13 and is_balanced(shape) and has_doubleton_honor:
+        return "1N", "13+ Balanced with Doubleton Honor"
+
     if h >= 4 and s >= 4:
-        if s > h: return "1S", "H4S4, S > H"
-        elif h > s: return "1H", "H4S4, H > S"
-        else: return "1H", "H4S4 (Equal, show H via 1H)"
-    if h >= 4: return "1H", "H4+ (Show H)"
-    if s >= 4: return "1S", "S4+ (Show S)"
+        if s > h and (s >= 5 or hcp >= 5): return "1S", "H4S4, S > H"
+        elif h > s and (h >= 5 or hcp >= 5): return "1H", "H4S4, H > S"
+        elif hcp >= 5 or h >= 5: return "1H", "H4S4 (Equal, show H via 1H)"
+        
+    if h >= 4 and (h >= 5 or hcp >= 5): return "1H", "H4+ (Show H)"
+    if s >= 4 and (s >= 5 or hcp >= 5): return "1S", "S4+ (Show S)"
+    
     if hcp >= 13: return "1N", "13+ M<4"
     if 5 <= hcp <= 10 and c == 5 and d < 3: return "2C", "C=5"
     if 5 <= hcp <= 10 and c >= 6 and d < 4: return "2C", "C6+"
@@ -176,24 +193,26 @@ def logic_resp_1d(hcp, shape, counts, suit_cards):
     if 11 <= hcp <= 12 and c >= 5: return "2S", "C5+ Unbalanced"
     if 11 <= hcp <= 12 and d >= 4: return "3C", "D4+ Unbalanced"
     if 5 <= hcp <= 10 and d == 5: return "3D", "D=5"
-    return "Pass", "Pass"
+    
+    return "Pass", "Default Pass (No other bids matched)"
 
 def logic_resp_1h(hcp, shape, counts, suit_cards):
     s, h, d, c = shape
     def is_3433(shp): return sorted(shp, reverse=True) == [4, 3, 3, 3] and shp[1] == 4
     def has_shg(shp, mx=0): return any(l <= mx for l in shp)
+    
     if hcp >= 13 and h >= 4 and s < 2: return "3S", "H4+ S<2"
     if hcp >= 13 and h >= 4 and c < 2: return "3N", "H4+ C<2"
     if hcp >= 13 and h >= 4 and d < 2: return "4C", "H4+ D<2"
     if hcp >= 13 and h >= 4 and has_shg(shape, 0): return "3D", "Void"
     if hcp >= 13 and h == 3 and has_shg(shape, 1): return "2D", "H=3 Shortage"
     if hcp >= 13: return "2C", "13+ Any"
+    
     has_ace = any(r == 'A' for r in suit_cards['H'])
     if 4 <= hcp <= 5 and h == 4 and has_ace and not is_3433(shape): return "3H", "H=4 Ace"
     if hcp <= 5 and h == 4 and not is_3433(shape): return "3D", "H=4"
     if 11 <= hcp <= 12 and s >= 5 and h < 4: return "1N", "S5+"
     if 10 <= hcp <= 12 and h == 3: return "2D", "H=3"
-    if hcp <= 5 and h < 4: return "Pass", "Pass"
     if 5 <= hcp <= 12 and s < 5 and h < 3: return "1S", "S<5 H<3"
     if 5 <= hcp <= 10 and s == 5 and h < 3: return "1N", "S=5"
     if 5 <= hcp <= 10 and s >= 6 and h < 2: return "2S", "S>=6"
@@ -204,24 +223,26 @@ def logic_resp_1h(hcp, shape, counts, suit_cards):
     if 6 <= hcp <= 7 and h == 4 and not is_3433(shape): return "3H", "H=4"
     if 5 <= hcp <= 10 and h == 4 and has_shg(shape, 1): return "4H", "H=4 Shortage"
     if 5 <= hcp <= 10 and h >= 5: return "4H", "H5+"
-    return "Pass", "Pass"
+    
+    return "Pass", "Default Pass (No other bids matched)"
 
 def logic_resp_1s(hcp, shape, counts, suit_cards):
     s, h, d, c = shape
     def is_4333(shp): return sorted(shp, reverse=True) == [4, 3, 3, 3] and shp[0] == 4
     def has_shg(shp, mx=0): return any(l <= mx for l in shp)
+    
     if hcp >= 13 and s >= 4 and s == 1: return "3H", "S4+ S=1"
     if hcp >= 13 and s >= 4 and c == 1: return "3N", "S4+ C=1"
     if hcp >= 13 and s >= 4 and d == 1: return "4C", "S4+ D=1"
     if hcp >= 13 and s >= 4 and has_shg(shape, 0): return "3D", "Void"
     if hcp >= 13 and s == 3 and has_shg(shape, 1): return "2H", "S=3 Shortage"
     if hcp >= 13: return "2C", "13+ Any"
+    
     has_ace = any(r == 'A' for r in suit_cards['S'])
     if 4 <= hcp <= 5 and s == 4 and has_ace and not is_4333(shape): return "3S", "S=4 Ace"
     if hcp <= 5 and s == 4 and not is_4333(shape): return "3D", "S=4"
     if 11 <= hcp <= 12 and s < 3 and h < 5: return "1N", "S<3 H<5"
     if 10 <= hcp <= 12 and s == 3: return "2H", "S=3"
-    if hcp <= 5 and s < 4: return "Pass", "Pass"
     if 5 <= hcp <= 10 and s < 3 and h < 6: return "1N", "S<3 H<6"
     if 6 <= hcp <= 10 and h >= 6 and s < 3: return "2D", "H6+"
     if 11 <= hcp <= 12 and h >= 5 and s < 4: return "2D", "H5+"
@@ -231,7 +252,8 @@ def logic_resp_1s(hcp, shape, counts, suit_cards):
     if 6 <= hcp <= 7 and s == 4 and not is_4333(shape): return "3S", "S=4"
     if 5 <= hcp <= 9 and s == 4 and has_shg(shape, 1): return "4S", "S=4 Shortage"
     if hcp <= 9 and s >= 5: return "4S", "S5+"
-    return "Pass", "Pass"
+    
+    return "Pass", "Default Pass (No other bids matched)"
 
 if 'logged_in' not in st.session_state: st.session_state.logged_in = False
 if 'username' not in st.session_state: st.session_state.username = ""
@@ -325,7 +347,6 @@ else:
         hand_data = st.session_state.current_hand_data
         suit_cards = hand_data['suit_cards']
         
-        # ปรับข้อความเตือนความจำให้เป็นภาษาอังกฤษกระชับ ไม่ติดแท็ก HTML
         if st.session_state.mode == 'opening':
             reminder_text = "🎯 Opener Practice: What is your opening bid?"
         else:
@@ -350,23 +371,25 @@ else:
                 st.markdown("#### Select your Bidding:")
                 levels = ['1', '2', '3', '4', '5', '6', '7']
                 suits_list = ['C', 'D', 'H', 'S', 'N']
+                all_bids = [lvl + s for lvl in levels for s in suits_list] + ["Pass"]
                 
-                for lvl in levels:
-                    cols = st.columns(5)
-                    for i, s in enumerate(suits_list):
-                        bid_str = lvl + s
-                        with cols[i]:
-                            if st.button(bid_str, key=f"btn_{lvl}_{s}", use_container_width=True):
-                                correct = (bid_str == hand_data['bid'])
-                                if correct: st.session_state.score += 1
-                                st.session_state.feedback = ("correct" if correct else "wrong", bid_str, hand_data['bid'], hand_data['reason'])
-                                st.rerun()
-                
-                if st.button("Pass", type="secondary", use_container_width=True):
-                    correct = ("Pass" == hand_data['bid'])
-                    if correct: st.session_state.score += 1
-                    st.session_state.feedback = ("correct" if correct else "wrong", "Pass", hand_data['bid'], hand_data['reason'])
-                    st.rerun()
+                for i in range(0, len(all_bids), 5):
+                    row_bids = all_bids[i:i+5]
+                    cols = st.columns(len(row_bids))
+                    for j, bid_str in enumerate(row_bids):
+                        with cols[j]:
+                            if bid_str == "Pass":
+                                if st.button("Pass", key="btn_pass", use_container_width=True, type="secondary"):
+                                    correct = ("Pass" == hand_data['bid'])
+                                    if correct: st.session_state.score += 1
+                                    st.session_state.feedback = ("correct" if correct else "wrong", "Pass", hand_data['bid'], hand_data['reason'])
+                                    st.rerun()
+                            else:
+                                if st.button(bid_str, key=f"btn_{bid_str}", use_container_width=True):
+                                    correct = (bid_str == hand_data['bid'])
+                                    if correct: st.session_state.score += 1
+                                    st.session_state.feedback = ("correct" if correct else "wrong", bid_str, hand_data['bid'], hand_data['reason'])
+                                    st.rerun()
             else:
                 fb = st.session_state.feedback
                 if fb[0] == "correct":
@@ -382,6 +405,9 @@ else:
                     st.rerun()
 
         with col_right:
-            st.markdown(f"### Score: {st.session_state.score} / {st.session_state.question_no - 1}")
+            current_displayed_q = st.session_state.question_no if st.session_state.feedback is not None else st.session_state.question_no - 1
+            if current_displayed_q < 1: current_displayed_q = 0
+            
+            st.markdown(f"### Score: {st.session_state.score} / {current_displayed_q}")
             st.markdown("---")
             st.markdown("📌 **Tips:**\n- Select the correct bidding action.\n- The buttons will automatically switch to show explanations and the 'Next' button.")
