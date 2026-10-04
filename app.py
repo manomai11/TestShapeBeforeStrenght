@@ -1,40 +1,69 @@
 import streamlit as st
 import random
 
-# ตั้งค่าหน้าเว็บ
+# ตั้งค่าหน้าเว็บให้ชิดขอบและกว้างขึ้นเพื่อให้จัดเลย์เอาต์คล้าย BBO
 st.set_page_config(page_title="Bridge Bidding Trainer", page_icon="🃏", layout="centered")
 
-# --- CSS แต่งหน้าจอและปุ่มเลียนแบบสไตล์ BBO ---
+# --- CSS แต่งหน้าจอจำลอง BBO แท้ๆ ---
 st.markdown("""
 <style>
-.bridge-hand-container {
-    background-color: #064e3b;
-    color: #f8fafc;
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-    margin-bottom: 20px;
-    border: 2px solid #047857;
-}
-.suit-row {
-    font-size: 22px;
-    font-family: monospace;
-    margin: 10px 0;
-    font-weight: bold;
-}
-.red-suit {
-    color: #f87171;
-}
-.black-suit {
-    color: #f1f5f9;
-}
-.bbo-box {
-    background-color: #0f172a;
+.bbo-table {
+    background-color: #0f5132;
     padding: 15px;
-    border-radius: 10px;
-    border: 1px solid #334155;
+    border-radius: 12px;
+    border: 3px solid #198754;
+    color: white;
     margin-bottom: 15px;
 }
+.bbo-header-box {
+    background-color: #212529;
+    color: #ffc107;
+    padding: 8px 12px;
+    border-radius: 6px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 14px;
+    border: 1px solid #495057;
+}
+.bbo-score-box {
+    background-color: #000000;
+    color: #ffffff;
+    padding: 6px;
+    border-radius: 6px;
+    text-align: center;
+    font-family: monospace;
+    font-size: 13px;
+    border: 1px solid #6c757d;
+}
+.bbo-bidding-panel {
+    background-color: #e9ecef;
+    padding: 10px;
+    border-radius: 8px;
+    border: 2px solid #ced4da;
+    margin-bottom: 10px;
+}
+.bridge-hand-box {
+    background-color: #198754;
+    border: 2px solid #ffffff;
+    border-radius: 8px;
+    padding: 12px;
+    color: white;
+    font-family: monospace;
+    font-size: 18px;
+    font-weight: bold;
+}
+.player-tag {
+    background-color: #ffc107;
+    color: #000;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    display: inline-block;
+    margin-top: 5px;
+}
+.suit-red { color: #dc3545; }
+.suit-black { color: #ffffff; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -55,14 +84,10 @@ if "selected_bid" not in st.session_state:
     st.session_state.selected_bid = None
 if "current_question" not in st.session_state:
     st.session_state.current_question = None
-# ตัวแปรจำ 2 สเต็ปสำหรับเลียนแบบ BBO (เลือกระดับ -> เลือกดอก)
-if "bbo_level" not in st.session_state:
-    st.session_state.bbo_level = None
 
 # --- ฟังก์ชันสุ่มไพ่และสร้างโจทย์ ---
 def generate_question(topic):
     hcp = random.randint(0, 16)
-    
     suits = [random.randint(0, 6), random.randint(0, 6), random.randint(0, 6), random.randint(0, 6)]
     while sum(suits) != 13 or max(suits) > 7:
         suits = [random.randint(0, 5), random.randint(0, 5), random.randint(0, 5), random.randint(0, 5)]
@@ -138,46 +163,58 @@ elif st.session_state.step == "menu":
             st.session_state.q_index = 0
             st.session_state.score = 0
             st.session_state.answered = False
-            st.session_state.bbo_level = None
             st.session_state.current_question = generate_question(key)
             st.session_state.step = "quiz"
             st.rerun()
 
-# --- 3. หน้า Quiz (สไตล์ BBO สำหรับมือถือ) ---
+# --- 3. หน้า Quiz จำลองหน้าจอ BBO แท้ๆ ---
 elif st.session_state.step == "quiz":
-    st.markdown(f"### 📌 Topic: `{st.session_state.topic}`")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.write(f"👤 **Player:** {st.session_state.username}")
-    with col2:
-        st.write(f"📊 **Q:** {st.session_state.q_index + 1}/20 | ⭐ **Score:** {st.session_state.score}")
-    
-    # ปุ่มกลับหน้าเมนูกลางคัน
-    if st.button("🏠 Exit to Menu", type="secondary"):
-        st.session_state.step = "menu"
-        st.rerun()
-
-    st.divider()
-
     q = st.session_state.current_question
 
-    # แสดงไพ่จำลองหน้าจอโต๊ะบริดจ์ BBO
-    st.markdown(f"""
-    <div class="bridge-hand-container">
-        <div style="font-size: 13px; color: #cbd5e1; margin-bottom: 8px;">YOUR HAND (HCP: {q['hcp']} | Shape: {q['shape']})</div>
-        <div class="suit-row black-suit">♠ {q['s_cards']}</div>
-        <div class="suit-row red-suit">♥ {q['h_cards']}</div>
-        <div class="suit-row red-suit">♦ {q['d_cards']}</div>
-        <div class="suit-row black-suit">♣ {q['c_cards']}</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # ส่วนรับคำตอบจำลองแบบ BBO (ไม่ยาวรกหน้าจอ)
-    if not st.session_state.answered:
-        st.markdown('<div class="bbo-box">', unsafe_allow_html=True)
-        st.write("👉 **Bidding Box (Select your bid):**")
+    # แถวบนสุด: จัดวางตามตำแหน่ง A, B, C, D ที่คุณต้องการ
+    col_a, col_b, col_c, col_d = st.columns([1, 1.2, 1, 2.5])
+    
+    with col_a:
+        # A = ปุ่ม Exit / Menu (ไอคอนสามขีดจำลอง)
+        if st.button("≡ Menu", use_container_width=True):
+            st.session_state.step = "menu"
+            st.rerun()
+            
+    with col_b:
+        # B = คะแนน / IMPs
+        st.markdown(f"""
+        <div class="bbo-score-box">
+            Score<br><b>{st.session_state.score} pts</b>
+        </div>
+        """, unsafe_allow_html=True)
         
-        # ปุ่ม Pass แยกต่างหากด้านบน
+    with col_c:
+        # C = ข้อที่
+        st.markdown(f"""
+        <div class="bbo-score-box">
+            Question<br><b>{st.session_state.q_index + 1} / 20</b>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    with col_d:
+        # D = Topic
+        st.markdown(f"""
+        <div class="bbo-header-box">
+            {st.session_state.topic}
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.write("")
+
+    # พื้นที่จำลองโต๊ะบิดดิ้ง (BBO Table Style)
+    st.markdown('<div class="bbo-table">', unsafe_allow_html=True)
+
+    # E = Bidding Box (อยู่เหนือรูปไพ่ และอยู่ขวาของโซนซ้ายมือ)
+    if not st.session_state.answered:
+        st.markdown('<div class="bbo-bidding-panel">', unsafe_allow_html=True)
+        st.markdown("<span style='color:black; font-weight:bold; font-size:13px;'>Bidding Box:</span>", unsafe_allow_html=True)
+        
+        # ปุ่ม Pass แถวแรก
         if st.button("Pass", use_container_width=True, type="primary"):
             st.session_state.selected_bid = "Pass"
             st.session_state.answered = True
@@ -185,69 +222,67 @@ elif st.session_state.step == "quiz":
                 st.session_state.score += 1
             st.rerun()
 
-        st.write("---")
-
-        # ขั้นที่ 1: เลือกระดับ (1 ถึง 7)
-        st.write("1. Select Level:")
-        level_cols = st.columns(7)
+        # แถวเลือกระดับ 1 ถึง 7 แบบเรียงยาวเหมือน BBO จริง
+        st.markdown("<span style='color:black; font-size:12px;'>Select Level:</span>", unsafe_allow_html=True)
+        lvl_cols = st.columns(7)
+        chosen_level = None
         for lvl in range(1, 8):
-            with level_cols[lvl-1]:
-                if st.button(str(lvl), key=f"lvl_{lvl}", use_container_width=True):
-                    st.session_state.bbo_level = lvl
-                    st.rerun()
+            with lvl_cols[lvl-1]:
+                if st.button(str(lvl), key=f"bbo_lvl_{lvl}", use_container_width=True):
+                    st.session_state.temp_level = lvl
 
-        # ขั้นที่ 2: เลือกดอก (เมื่อเลือกระดับแล้ว จะแสดงปุ่มดอกขึ้นมาให้เลือก)
-        if st.session_state.bbo_level is not None:
-            lvl = st.session_state.bbo_level
-            st.success(f"Selected Level: **{lvl}**. Now select suit:")
-            
-            suit_cols = st.columns(5)
-            suits_data = [("♣", "C"), ("♦", "D"), ("♥", "H"), ("♠", "S"), ("NT", "NT")]
-            
-            for i, (symbol, code) in enumerate(suits_data):
-                with suit_cols[i]:
-                    bid_display = f"{lvl}{symbol}"
-                    internal_bid = f"{lvl}{code}"
-                    if st.button(bid_display, key=f"suit_{code}", use_container_width=True):
-                        st.session_state.selected_bid = internal_bid
-                        st.session_state.answered = True
-                        if internal_bid == q["correct_bid"]:
-                            st.session_state.score += 1
-                        st.session_state.bbo_level = None
-                        st.rerun()
-                        
+        # ดึงค่า level ที่เลือกไว้
+        active_level = st.session_state.get("temp_level", 1)
+        st.markdown(f"<span style='color:black; font-size:12px;'>Level selected: <b>{active_level}</b>. Choose suit:</span>", unsafe_allow_html=True)
+        
+        # แถวเลือกดอก (♣, ♦, ♥, ♠, NT)
+        suit_cols = st.columns(5)
+        suits_data = [("♣", "C"), ("♦", "D"), ("♥", "H"), ("♠", "S"), ("NT", "NT")]
+        for i, (symbol, code) in enumerate(suits_data):
+            with suit_cols[i]:
+                bid_code = f"{active_level}{code}"
+                if st.button(f"{active_level}{symbol}", key=f"bbo_suit_{code}", use_container_width=True):
+                    st.session_state.selected_bid = bid_code
+                    st.session_state.answered = True
+                    if bid_code == q["correct_bid"]:
+                        st.session_state.score += 1
+                    st.rerun()
+                    
         st.markdown('</div>', unsafe_allow_html=True)
     else:
-        # แสดงผลลัพธ์และเฉลย
+        # แสดงผลลัพธ์การตอบ
         selected = st.session_state.selected_bid
         correct = q["correct_bid"]
-
         if selected == correct:
-            st.success(f"✅ **Correct!** Your answer: {selected}")
+            st.success(f"✅ Correct! Your bid: {selected}")
         else:
-            st.error(f"❌ **Incorrect!** Your answer: {selected} | Correct answer: {correct}")
-
-        st.markdown(f"💡 **Explanation:** {q['explanation']}")
+            st.error(f"❌ Incorrect! Your bid: {selected} | Correct: {correct}")
+        st.markdown(f"<span style='color:white;'>💡 Explanation: {q['explanation']}</span>", unsafe_allow_html=True)
         
-        st.divider()
-
-        col_next, col_menu = st.columns(2)
-        with col_next:
-            if st.button("Next Question ➔", use_container_width=True, type="primary"):
-                if st.session_state.q_index + 1 < 20:
-                    st.session_state.q_index += 1
-                    st.session_state.answered = False
-                    st.session_state.selected_bid = None
-                    st.session_state.bbo_level = None
-                    st.session_state.current_question = generate_question(st.session_state.topic)
-                    st.rerun()
-                else:
-                    st.session_state.step = "result"
-                    st.rerun()
-        with col_menu:
-            if st.button("🏠 Back to Menu", use_container_width=True):
-                st.session_state.step = "menu"
+        if st.button("Next Question ➔", use_container_width=True, type="primary"):
+            if st.session_state.q_index + 1 < 20:
+                st.session_state.q_index += 1
+                st.session_state.answered = False
+                st.session_state.selected_bid = None
+                st.session_state.current_question = generate_question(st.session_state.topic)
                 st.rerun()
+            else:
+                st.session_state.step = "result"
+                st.rerun()
+
+    # รูปไพ่ในมือ และชื่อผู้เล่นอยู่ข้างล่างตามสไตล์ BBO
+    st.markdown(f"""
+    <div class="bridge-hand-box">
+        <div style="font-size: 11px; color: #a3e635; margin-bottom: 5px;">HCP: {q['hcp']} | Shape: {q['shape']}</div>
+        <div class="suit-black">♠ {q['s_cards']}</div>
+        <div class="suit-red">♥ {q['h_cards']}</div>
+        <div class="suit-red">♦ {q['d_cards']}</div>
+        <div class="suit-black">♣ {q['c_cards']}</div>
+    </div>
+    <div class="player-tag">S: {st.session_state.username}</div>
+    """, unsafe_allow_html=True)
+
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # --- 4. หน้าสรุปผลคะแนน ---
 elif st.session_state.step == "result":
@@ -255,9 +290,7 @@ elif st.session_state.step == "result":
     st.balloons()
     
     st.subheader(f"Great job, {st.session_state.username}!")
-    st.write(f"Your final score in **{st.session_state.topic}** is:")
-    
-    st.metric(label="Total Score", value=f"{st.session_state.score} / 20")
+    st.metric(label="Final Score", value=f"{st.session_state.score} / 20")
     
     col_a, col_b = st.columns(2)
     with col_a:
@@ -265,7 +298,6 @@ elif st.session_state.step == "result":
             st.session_state.q_index = 0
             st.session_state.score = 0
             st.session_state.answered = False
-            st.session_state.bbo_level = None
             st.session_state.current_question = generate_question(st.session_state.topic)
             st.session_state.step = "quiz"
             st.rerun()
