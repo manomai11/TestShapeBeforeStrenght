@@ -4,6 +4,32 @@ import random
 # ตั้งค่าหน้าเว็บ
 st.set_page_config(page_title="Bridge Bidding Trainer", page_icon="🃏", layout="centered")
 
+# --- CSS แต่งหน้าไพ่ให้สวยงามเหมือนไพ่จริง ---
+st.markdown("""
+<style>
+.bridge-hand-container {
+    background-color: #0f172a;
+    color: #f8fafc;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    margin-bottom: 20px;
+}
+.suit-row {
+    font-size: 20px;
+    font-family: monospace;
+    margin: 8px 0;
+    font-weight: bold;
+}
+.red-suit {
+    color: #ef4444;
+}
+.black-suit {
+    color: #e2e8f0;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # --- ฟังก์ชันจัดการสถานะ Session State ---
 if "step" not in st.session_state:
     st.session_state.step = "login"
@@ -22,12 +48,11 @@ if "selected_bid" not in st.session_state:
 if "current_question" not in st.session_state:
     st.session_state.current_question = None
 
-# --- ฟังก์ชันสุ่มไพ่และสร้างโจทย์จำลองตามหัวข้อ ---
+# --- ฟังก์ชันสุ่มไพ่และสร้างโจทย์ ---
 def generate_question(topic):
-    # สุ่ม HCP 0 ถึง 16
     hcp = random.randint(0, 16)
     
-    # สุ่มแจกแจงทรงไพ่ (Shape) ให้รวมกันได้ 13 ใบ
+    # สุ่มแจกแจงทรงไพ่ (Shape) รวมให้ได้ 13 ใบ
     suits = [random.randint(0, 6), random.randint(0, 6), random.randint(0, 6), random.randint(0, 6)]
     while sum(suits) != 13 or max(suits) > 7:
         suits = [random.randint(0, 5), random.randint(0, 5), random.randint(0, 5), random.randint(0, 5)]
@@ -38,35 +63,28 @@ def generate_question(topic):
     s, h, d, c = suits
     shape_str = f"{s}{h}{d}{c}"
     
-    # จำลองการเลือกคำตอบและปุ่มที่อนุญาตตามหัวข้อ
-    all_bids = ["Pass", "1♣", "1♦", "1♥", "1♠", "1NT", "2♣", "2♦", "2♥", "2♠", "2NT", "3♣", "3♦", "3♥", "3♠", "3NT"]
-    
-    # กำหนดโจทย์คร่าวๆ ตามหัวข้อและเงื่อนไข
+    # กำหนดคำตอบที่ถูกต้องตามเงื่อนไขจำลองเบื้องต้น
     if hcp <= 5:
         correct = "Pass"
     elif hcp >= 13:
         correct = "1NT" if max([s, h, d, c]) < 4 else ("1♥" if h >= s else "1♠")
     else:
         correct = "2♣" if c >= 5 else "1NT"
-        
-    # สุ่มปุ่มที่อนุญาตให้แสดง (รวมตัวที่ถูกและตัวหลอก)
-    allowed = [correct, "Pass", "1NT"]
-    if "1" in topic or "Response" in topic:
-        allowed.extend(["1♣", "1♦", "1♥", "1♠"])
-    else:
-        allowed.extend(["2♣", "2♦", "2♥", "2♠"])
-        
-    allowed = list(set(allowed))
-    random.shuffle(allowed)
 
-    # จำลองหน้าไพ่
-    cards_display = f"♠ {''.join(random.choices('AKQJT98765432', k=s))}  ♥ {''.join(random.choices('AKQJT98765432', k=h))}  ♦ {''.join(random.choices('AKQJT98765432', k=d))}  ♣ {''.join(random.choices('AKQJT98765432', k=c))}"
+    # สุ่มหน้าไพ่จริง 13 ใบแยกตาม Suit
+    ranks = ['A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2']
+    s_cards = " ".join(sorted(random.choices(ranks, k=s), key=lambda x: "AKQJT98765432".index(x)))
+    h_cards = " ".join(sorted(random.choices(ranks, k=h), key=lambda x: "AKQJT98765432".index(x)))
+    d_cards = " ".join(sorted(random.choices(ranks, k=d), key=lambda x: "AKQJT98765432".index(x)))
+    c_cards = " ".join(sorted(random.choices(ranks, k=c), key=lambda x: "AKQJT98765432".index(x)))
 
     return {
-        "cards": cards_display,
+        "s_cards": s_cards if s_cards else "-",
+        "h_cards": h_cards if h_cards else "-",
+        "d_cards": d_cards if d_cards else "-",
+        "c_cards": c_cards if c_cards else "-",
         "hcp": hcp,
         "shape": shape_str,
-        "allowed_bids": allowed,
         "correct_bid": correct,
         "explanation": f"Based on HCP ({hcp}) and Shape ({shape_str}), the correct system response is {correct}."
     }
@@ -118,7 +136,6 @@ elif st.session_state.step == "menu":
 
 # --- 3. หน้า Quiz (20 ข้อ) ---
 elif st.session_state.step == "quiz":
-    # แถบแสดงสถานะด้านบนกันลืม
     st.markdown(f"### 📌 Topic: `{st.session_state.topic}`")
     col1, col2 = st.columns(2)
     with col1:
@@ -130,26 +147,47 @@ elif st.session_state.step == "quiz":
 
     q = st.session_state.current_question
 
-    # แสดงโจทย์ไพ่
-    st.info(f"**Your Hand:**\n\n### `{q['cards']}`")
-    st.write(f"🔍 **HCP:** {q['hcp']}  |  📏 **Shape:** {q['shape']}")
+    # แสดงไพ่สไตล์การ์ดจริงสวยงาม
+    st.markdown(f"""
+    <div class="bridge-hand-container">
+        <div style="font-size: 14px; color: #94a3b8; margin-bottom: 10px;">YOUR HAND (HCP: {q['hcp']} | Shape: {q['shape']})</div>
+        <div class="suit-row black-suit">♠ {q['s_cards']}</div>
+        <div class="suit-row red-suit">♥ {q['h_cards']}</div>
+        <div class="suit-row red-suit">♦ {q['d_cards']}</div>
+        <div class="suit-row black-suit">♣ {q['c_cards']}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    # ส่วนเลือกคำตอบ
+    # ส่วนเลือกคำตอบ (แสดงปุ่มบิดทั้งหมดครบถ้วนถึง 7N)
     if not st.session_state.answered:
         st.write("👉 **Select your bid:**")
         
-        # สร้างปุ่มเฉพาะบิดที่อนุญาต (ซ่อนตัวที่ผิดกติกา)
-        cols = st.columns(4)
-        for i, bid in enumerate(q["allowed_bids"]):
-            with cols[i % 4]:
-                if st.button(bid, key=f"bid_{bid}", use_container_width=True):
-                    st.session_state.selected_bid = bid
-                    st.session_state.answered = True
-                    if bid == q["correct_bid"]:
-                        st.session_state.score += 1
-                    st.rerun()
+        # ปุ่มพิเศษ Pass
+        if st.button("Pass", use_container_width=True):
+            st.session_state.selected_bid = "Pass"
+            st.session_state.answered = True
+            if "Pass" == q["correct_bid"]:
+                st.session_state.score += 1
+            st.rerun()
+
+        # สร้างตารางปุ่มบิด ระดับ 1 ถึง 7
+        suits_symbol = ["♣", "♦", "♥", "♠", "NT"]
+        for level in range(1, 8):
+            cols = st.columns(5)
+            for i, suit_char in enumerate(suits_symbol):
+                bid_text = f"{level}{suit_char}"
+                # แปลงสัญลักษณ์สตรีมลิตให้ตรงกับระบบหลังบ้าน
+                internal_bid = f"{level}{'C' if suit_char=='♣' else 'D' if suit_char=='♦' else 'H' if suit_char=='♥' else 'S' if suit_char=='♠' else 'NT'}"
+                
+                with cols[i]:
+                    if st.button(bid_text, key=f"bid_{level}_{suit_char}", use_container_width=True):
+                        st.session_state.selected_bid = internal_bid
+                        st.session_state.answered = True
+                        if internal_bid == q["correct_bid"]:
+                            st.session_state.score += 1
+                        st.rerun()
     else:
-        # แสดงผลลัพธ์และคำอธิบายเมื่อตอบแล้ว
+        # แสดงผลลัพธ์และเฉลย
         selected = st.session_state.selected_bid
         correct = q["correct_bid"]
 
@@ -162,7 +200,6 @@ elif st.session_state.step == "quiz":
         
         st.divider()
 
-        # ปุ่มไปข้อถัดไป
         if st.button("Next Question ➔", use_container_width=True):
             if st.session_state.q_index + 1 < 20:
                 st.session_state.q_index += 1
