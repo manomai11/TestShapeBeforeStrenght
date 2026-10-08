@@ -21,62 +21,79 @@ def calculate_hcp(hand):
                 hcp += values[rank]
     return hcp
 
-def generate_cards_from_shape(shape_str):
+# ฟังก์ชันสุ่มแจกไพ่แบบสำรับจริง (ไม่มีไพ่ซ้ำในมือ)
+def generate_unique_hand():
     ranks = ["A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2"]
-    lengths = [int(x) for x in shape_str]
-    suit_keys = ["♠", "♥", "♦", "♣"]
-    deck = [r+s for s in ['s','h','d','c'] for r in ranks]
-    random.shuffle(deck)
+    suits = ['s', 'h', 'd', 'c']
+    deck = [r+s for s in suits for r in ranks]
     
-    hand = {"♠": [], "♥": [], "♦": [], "♣": []}
-    available_cards = deck.copy()
-    for idx, slen in enumerate(lengths):
-        s_name = suit_keys[idx]
-        chosen = available_cards[:slen]
-        available_cards = available_cards[slen:]
-        hand[s_name] = sorted(chosen, key=lambda x: ranks.index(x[0]))
-    return hand
-
-def generate_random_hand():
     while True:
-        s = random.randint(0, 5)
-        h = random.randint(0, 5 - s)
-        d = random.randint(0, 13 - s - h)
-        c = 13 - s - h - d
-        if max(s, h, d, c) <= 7:
-            shape_str = f"{s}{h}{d}{c}"
-            break
+        random.shuffle(deck)
+        # สุ่มความยาว Shape ให้ผลรวมเป็น 13
+        s_len = random.randint(1, 6)
+        h_len = random.randint(1, 6)
+        d_len = random.randint(1, 6)
+        c_len = 13 - (s_len + h_len + d_len)
+        
+        if 0 <= c_len <= 7:
+            lengths = {"♠": s_len, "♥": h_len, "♦": d_len, "♣": c_len}
+            hand = {"♠": [], "♥": [], "♦": [], "♣": []}
             
-    cards = generate_cards_from_shape(shape_str)
-    hcp = calculate_hcp(cards)
-    actual_shape = f"{len(cards['♠'])}{len(cards['♥'])}{len(cards['♦'])}{len(cards['♣']) }"
-    return hcp, actual_shape.strip(), cards
+            deck_copy = deck.copy()
+            valid = True
+            for suit, slen in lengths.items():
+                if slen > 0:
+                    cards = [deck_copy.pop(0) for _ in range(slen)]
+                    # เรียงลำดับแต้มจากใหญ่ไปเล็ก
+                    hand[suit] = sorted(cards, key=lambda x: ranks.index(x[0]))
+            
+            if valid:
+                shape_str = f"{len(hand['♠'])}{len(hand['♥'])}{len(hand['♦'])}{len(hand['♣'])}"
+                hcp = calculate_hcp(hand)
+                return hcp, shape_str, hand
+
+# ฟังก์ชันประเมินคำตอบพร้อมเหตุผล Rule
+def evaluate_answer(mode, hcp, shape, hand):
+    s, h, d, c = int(shape[0]), int(shape[1]), int(shape[2]), int(shape[3])
+    balanced = shape in BALANCED_SHAPES
+    
+    # ตัวอย่างการตรวจสอบตาม Rule ของคุณ (สามารถนำฟังก์ชันสมบูรณ์ที่คุณเขียนมาใส่แทนตรงนี้ได้เลย)
+    if mode == "resp_1n":
+        # ตัวอย่าง: ตอบตามกฎ Response to 1N
+        if hcp >= 8 and (s >= 4 or h >= 4):
+            return "2C", "Rule: Stayman (8+ HCP with 4+ Major)"
+        elif hcp <= 7:
+            return "PASS", "Rule: Weak hand (0-7 HCP), pass 1NT"
+        else:
+            return "2N", "Rule: Invitational without 4-card major"
+            
+    elif mode == "resp_1c":
+        if hcp >= 6 and s >= 4 and s >= h:
+            return "1H", "Rule: Showing Spades with 6+ HCP"
+        elif hcp >= 13:
+            return "3C", "Rule: Limit raise or strong minor support"
+        else:
+            return "1D", "Rule: Standard response structure"
+            
+    # ค่าเริ่มต้นพื้นฐาน
+    return "1N", "Rule: Standard Bidding Evaluation"
 
 def generate_practice_questions(mode, total=20):
     questions = []
     seen = set()
     while len(questions) < total:
-        hcp, shape, cards = generate_random_hand()
-        is_bal = shape in BALANCED_SHAPES
+        hcp, shape, cards = generate_unique_hand()
+        ans, rule_desc = evaluate_answer(mode, hcp, shape, cards)
         
-        # ตัวอย่างการประเมินคำตอบตาม Rule เบื้องต้น
-        if mode == "resp_1c":
-            ans = "1D" if hcp >= 6 else "PASS"
-        elif mode == "resp_1d":
-            ans = "1H" if hcp >= 6 else "PASS"
-        elif mode == "resp_1h":
-            ans = "1S" if hcp >= 6 else "1N"
-        else:
-            ans = "1N"
-            
         key = f"{hcp}_{shape}"
         if key not in seen:
             seen.add(key)
             questions.append({
                 "hcp": hcp,
                 "shape": shape,
-                "balanced": is_bal,
+                "balanced": shape in BALANCED_SHAPES,
                 "cards": cards,
-                "correct_answer": ans
+                "correct_answer": ans,
+                "rule_description": rule_desc
             })
     return questions
