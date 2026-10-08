@@ -1,5 +1,9 @@
 import streamlit as st
 
+# ==========================================
+# CONFIG
+# ==========================================
+
 st.set_page_config(
     page_title="Shape Before Strength",
     page_icon="♠",
@@ -7,17 +11,25 @@ st.set_page_config(
 )
 
 # ==========================================
-# SESSION
+# SESSION STATE
 # ==========================================
 
-if "page" not in st.session_state:
-    st.session_state.page = "login"
+defaults = {
+    "page": "login",
+    "player_name": "",
+    "opening_score": 0,
+    "opening_question": 1,
+    "show_result": False,
+    "user_answer": "",
+    "correct_answer": "1S",
+}
 
-if "player_name" not in st.session_state:
-    st.session_state.player_name = ""
+for k, v in defaults.items():
+    if k not in st.session_state:
+        st.session_state[k] = v
 
 # ==========================================
-# LOGIN PAGE
+# LOGIN
 # ==========================================
 
 if st.session_state.page == "login":
@@ -41,7 +53,7 @@ if st.session_state.page == "login":
 
 ระบบนี้เน้น
 
-✅ วิเคราะห์ Shape ของมือก่อนแต้ม
+✅ วิเคราะห์ Shape ก่อนแต้ม
 
 ✅ ใช้การบิดแบบ Transfer
 
@@ -49,7 +61,7 @@ if st.session_state.page == "login":
 
 ✅ หา Fit อย่างมีประสิทธิภาพ
 
-✅ ฝึกผ่านโจทย์จริงและสถานการณ์จริง
+✅ ฝึกผ่านโจทย์จริง
 
 ---
 
@@ -63,25 +75,9 @@ if st.session_state.page == "login":
 
 ✅ ดูประวัติการฝึกย้อนหลัง
 
-✅ เปรียบเทียบผลของแต่ละ Session
+✅ เปรียบเทียบผลแต่ละ Session
 
 ✅ ทบทวนข้อผิดพลาดที่พบบ่อย
-
----
-
-เป้าหมายของระบบนี้ไม่ใช่การท่องจำคำตอบ
-
-แต่เพื่อช่วยให้ผู้เล่นเข้าใจ
-
-• Shape
-
-• Fit
-
-• Distribution
-
-• Judgement
-
-• Philosophy ของระบบ Shape Before Strength
         """)
 
     with right:
@@ -92,7 +88,7 @@ if st.session_state.page == "login":
             "ชื่อผู้เล่น"
         )
 
-        remember_me = st.checkbox(
+        st.checkbox(
             "จดจำการเข้าสู่ระบบ",
             value=True
         )
@@ -175,22 +171,20 @@ elif st.session_state.page == "menu":
 
     st.divider()
 
-    st.subheader("System Notes")
-
     st.info("""
 Opening
 
-• 11-13 Balanced = 1C
+11-13 Balanced = 1C
 
-• 14-16 Balanced = 1NT
+14-16 Balanced = 1NT
 
-• 17-19 Balanced (No M5) = 1C
+17-19 Balanced No M5 = 1C
 
-• 20-22 Balanced = 2NT
+20-22 Balanced = 2NT
 """)
 
 # ==========================================
-# OPENING PAGE
+# OPENING QUIZ
 # ==========================================
 
 elif st.session_state.page == "opening":
@@ -201,10 +195,127 @@ elif st.session_state.page == "opening":
         st.session_state.page = "menu"
         st.rerun()
 
+    st.divider()
+
     st.write(
-        "Opening Quiz จะถูกเพิ่มในขั้นตอนถัดไป"
+        f"Question {st.session_state.opening_question} / 20"
     )
 
-    st.success(
-        "ระบบพร้อมแล้ว ✅"
+    st.write(
+        f"Score : {st.session_state.opening_score}"
     )
+
+    st.divider()
+
+    if not st.session_state.show_result:
+
+        st.markdown("""
+## Hand
+
+♠ AQ852
+
+♥ K73
+
+♦ Q42
+
+♣ J3
+""")
+
+        st.write("What is your opening bid?")
+
+        bids = [
+            "PASS",
+            "1C","1D","1H","1S","1N",
+            "2C","2D","2H","2S","2N",
+            "3C","3D","3H","3S","3N",
+            "4C","4D","4H","4S"
+        ]
+
+        choice = st.selectbox(
+            "Choose Bid",
+            bids
+        )
+
+        if st.button("Submit Bid"):
+
+            st.session_state.user_answer = choice
+
+            if choice == st.session_state.correct_answer:
+
+                st.session_state.result = "✅ Correct"
+
+                st.session_state.opening_score += 1
+
+            else:
+
+                st.session_state.result = "❌ Incorrect"
+
+            st.session_state.show_result = True
+
+            st.rerun()
+
+    else:
+
+        st.markdown(
+            f"## {st.session_state.result}"
+        )
+
+        st.write(
+            f"Your Answer : {st.session_state.user_answer}"
+        )
+
+        st.write(
+            f"Correct Answer : {st.session_state.correct_answer}"
+        )
+
+        st.info("""
+HCP = 13
+
+Shape = 5332
+
+Opening Bid = 1S
+""")
+
+        if st.button("Next Question"):
+
+            st.session_state.opening_question += 1
+            st.session_state.show_result = False
+
+            if st.session_state.opening_question > 20:
+                st.session_state.page = "summary"
+
+            st.rerun()
+
+# ==========================================
+# SUMMARY
+# ==========================================
+
+elif st.session_state.page == "summary":
+
+    st.title("Quiz Complete")
+
+    st.write(
+        f"Player : {st.session_state.player_name}"
+    )
+
+    st.write(
+        f"Score : {st.session_state.opening_score} / 20"
+    )
+
+    percent = (
+        st.session_state.opening_score / 20
+    ) * 100
+
+    st.write(
+        f"Accuracy : {percent:.0f}%"
+    )
+
+    if st.button("Back To Menu"):
+
+        st.session_state.page = "menu"
+
+        st.session_state.opening_score = 0
+        st.session_state.opening_question = 1
+        st.session_state.show_result = False
+
+        st.rerun()
