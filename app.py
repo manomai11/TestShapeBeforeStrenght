@@ -6,9 +6,9 @@ st.set_page_config(
     layout="wide"
 )
 
-# ----------------------------------
+# ==========================================
 # SESSION
-# ----------------------------------
+# ==========================================
 
 if "page" not in st.session_state:
     st.session_state.page = "login"
@@ -16,9 +16,9 @@ if "page" not in st.session_state:
 if "player_name" not in st.session_state:
     st.session_state.player_name = ""
 
-# ----------------------------------
+# ==========================================
 # LOGIN PAGE
-# ----------------------------------
+# ==========================================
 
 if st.session_state.page == "login":
 
@@ -28,62 +28,61 @@ if st.session_state.page == "login":
 
         st.title("♠ Shape Before Strength")
 
-        st.subheader(
-            "ระบบประมูลบริดจ์ที่ยึด Shape ก่อนแต้ม"
-        )
+        st.markdown("""
+### A Modern Low-Information Transfer Club System
 
-        st.markdown(
-            """
-            ### Learn • Practice • Improve
+### Learn • Practice • Improve
+        """)
 
-            เรียนรู้และฝึกประมูลไพ่บริดจ์ตามระบบ
-            **Shape Before Strength**
+        st.markdown("""
+เรียนรู้และฝึกประมูลไพ่บริดจ์ตามระบบ
 
-            ระบบนี้เน้น
+**Shape Before Strength**
 
-            ✅ วิเคราะห์ Shape ของมือก่อนแต้ม
+ระบบนี้เน้น
 
-            ✅ ใช้การบิดแบบ Transfer
+✅ วิเคราะห์ Shape ของมือก่อนแต้ม
 
-            ✅ เปิดเผยข้อมูลให้น้อยที่สุด
+✅ ใช้การบิดแบบ Transfer
 
-            ✅ หา Fit อย่างมีประสิทธิภาพ
+✅ เปิดเผยข้อมูลให้น้อยที่สุด
 
-            ✅ ฝึกผ่านโจทย์จริงและสถานการณ์จริง
+✅ หา Fit อย่างมีประสิทธิภาพ
 
-            ---
+✅ ฝึกผ่านโจทย์จริงและสถานการณ์จริง
 
-            ### หลังเข้าสู่ระบบ คุณจะสามารถ
+---
 
-            ✅ ฝึก Opening Bid
+### หลังเข้าสู่ระบบ คุณจะสามารถ
 
-            ✅ ฝึก Response และ Rebid
+✅ ฝึก Opening Bid
 
-            ✅ ดูความแม่นยำของตนเอง
+✅ ฝึก Response และ Rebid
 
-            ✅ ดูประวัติการฝึกย้อนหลัง
+✅ ดูสถิติความแม่นยำ
 
-            ✅ เปรียบเทียบผลแต่ละ Session
+✅ ดูประวัติการฝึกย้อนหลัง
 
-            ✅ ทบทวนข้อผิดพลาดที่พบบ่อย
+✅ เปรียบเทียบผลของแต่ละ Session
 
-            ---
+✅ ทบทวนข้อผิดพลาดที่พบบ่อย
 
-            เป้าหมายของระบบนี้ไม่ใช่การท่องจำคำตอบ
+---
 
-            แต่เพื่อช่วยให้ผู้เล่นเข้าใจ
+เป้าหมายของระบบนี้ไม่ใช่การท่องจำคำตอบ
 
-            • Shape
+แต่เพื่อช่วยให้ผู้เล่นเข้าใจ
 
-            • Fit
+• Shape
 
-            • Distribution
+• Fit
 
-            • Judgement
+• Distribution
 
-            • Philosophy ของระบบ Shape Before Strength
-            """
-        )
+• Judgement
+
+• Philosophy ของระบบ Shape Before Strength
+        """)
 
     with right:
 
@@ -99,7 +98,7 @@ if st.session_state.page == "login":
         )
 
         if st.button(
-            "เริ่มฝึก",
+            "🚀 เริ่มฝึก",
             use_container_width=True
         ):
 
@@ -112,13 +111,21 @@ if st.session_state.page == "login":
 
         st.markdown("---")
 
-        st.caption(
-            "Shape Before Strength Training System"
-        )
+        st.markdown("""
+### ตัวอย่างสถิติ
 
-# ----------------------------------
+🏆 จำนวน Session : 127
+
+✅ Opening Accuracy : 88%
+
+✅ Response Accuracy : 79%
+
+✅ Best Score : 20 / 20
+        """)
+
+# ==========================================
 # MENU
-# ----------------------------------
+# ==========================================
 
 elif st.session_state.page == "menu":
 
@@ -132,10 +139,12 @@ elif st.session_state.page == "menu":
 
     with col1:
 
-        st.button(
+        if st.button(
             "Opening Practice",
             use_container_width=True
-        )
+        ):
+            st.session_state.page = "opening"
+            st.rerun()
 
         st.button(
             "Response 1C",
@@ -168,16 +177,35 @@ elif st.session_state.page == "menu":
 
     st.subheader("System Notes")
 
-    st.info(
-        """
-        Opening
+    st.info("""
+Opening
 
-        • 11-13 Balanced = 1C
+• 11-13 Balanced = 1C
 
-        • 14-16 Balanced = 1NT
+• 14-16 Balanced = 1NT
 
-        • 17-19 Balanced (No M5) = 1C
+• 17-19 Balanced (No M5) = 1C
 
-        • 20-22 Balanced = 2NT
-        """
+• 20-22 Balanced = 2NT
+""")
+
+# ==========================================
+# OPENING PAGE
+# ==========================================
+
+elif st.session_state.page == "opening":
+
+    st.title("Opening Practice")
+
+    if st.button("⬅ กลับเมนู"):
+        st.session_state.page = "menu"
+        st.rerun()
+
+    st.write(
+        "Opening Quiz จะถูกเพิ่มในขั้นตอนถัดไป"
     )
+
+    st.success(
+        "ระบบพร้อมแล้ว ✅"
+    )
+`
