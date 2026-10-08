@@ -409,7 +409,28 @@ def response_1nt(hcp, shape):
         return "2C"
 
     return "PASS"
+# ==========================================
+# RESPONSE 1MAJOR
+# ==========================================
 
+def response_1major(*args, **kwargs):
+    return "TBD"
+
+
+# ==========================================
+# RESPONSE 1D
+# ==========================================
+
+def response_1d(*args, **kwargs):
+    return "TBD"
+
+
+# ==========================================
+# RESPONSE 1C
+# ==========================================
+
+def response_1c(*args, **kwargs):
+    return "TBD"
 
 # ==========================================
 # PLACEHOLDERS
