@@ -91,7 +91,6 @@ elif st.session_state.page == "practice":
         "resp_1n": "Response to 1N: Partner opened 1N, what is your bid?",
     }
 
-    # A: หัวข้อบอกว่าแบบฝึกเรื่องอะไร
     st.markdown(f"### 🏆 {mode_titles.get(st.session_state.practice_mode)}")
     st.markdown("---")
 
@@ -100,12 +99,11 @@ elif st.session_state.page == "practice":
     hcp = q_data["hcp"]
     shape = q_data["shape"]
     correct_answer = q_data["correct_answer"]
+    rule_desc = q_data["rule_description"]
 
-    # จัดเลย์เอาต์ 2 คอลัมน์ซ้าย-ขวา ให้เนื้อหากระชับจบในหน้าจอเดียว
     col_left, col_right = st.columns([1, 2])
 
     with col_left:
-        # B: ปุ่มกลับหน้าหลัก
         if st.button("◀ Back to Menu"):
             st.session_state.page = "menu"
             st.rerun()
@@ -114,22 +112,19 @@ elif st.session_state.page == "practice":
         st.markdown(f"**Score:** {st.session_state.score}")
         st.markdown(f"👤 **Player:** {st.session_state.player_name}")
         st.markdown("---")
-        
-        # แสดง Shape เรียงตามลำดับ S > H > D > C และ HCP ที่ถูกต้องตรงกันแน่นอน
         st.markdown(f"**Shape:** `{shape}` (S-H-D-C)")
         st.markdown(f"**HCP:** `{hcp}`")
 
     with col_right:
-        # E: แสดงภารกิจ หรือผลลัพธ์การตรวจคำตอบ
         if not st.session_state.answered:
             st.info(f"💡 **Mission:** {mode_titles.get(st.session_state.practice_mode)}")
         else:
             if "✅" in st.session_state.result:
-                st.success(f"**{st.session_state.result}** | Your: {st.session_state.user_answer} | Correct: {correct_answer}")
+                st.success(f"**{st.session_state.result}** | Your: {st.session_state.user_answer} | Correct: **{correct_answer}**\n\n📖 *{rule_desc}*")
             else:
-                st.error(f"**{st.session_state.result}** | Your: {st.session_state.user_answer} | Correct: {correct_answer}")
+                st.error(f"**{st.session_state.result}** | Your: {st.session_state.user_answer} | Correct: **{correct_answer}**\n\n📖 *{rule_desc}*")
 
-        # F: แสดงรูปไพ่สไตล์ BBO
+        # แสดงหน้าไพ่ (ดึงค่าจากไพ่จริงแบบไม่ซ้ำ)
         st.markdown("##### Your Hand (South)")
         s_text = " ".join([c[0] for c in cards["♠"]]) or "-"
         h_text = " ".join([c[0] for c in cards["♥"]]) or "-"
@@ -147,7 +142,6 @@ elif st.session_state.page == "practice":
 
         st.markdown("---")
 
-        # Bidding Box หรือปุ่ม Next Question
         if not st.session_state.answered:
             st.markdown("#### Bidding Box")
             if st.button("PASS", key="btn_pass"):
