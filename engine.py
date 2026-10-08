@@ -11,6 +11,10 @@ BALANCED_SHAPES = {
     "3325","3235","2335"
 }
 
+SPECIAL_D4C5 = {
+    "4045", "0445", "3145", "1345", "2245"
+}
+
 def calculate_hcp(hand):
     hcp = 0
     values = {"A": 4, "K": 3, "Q": 2, "J": 1}
@@ -21,7 +25,7 @@ def calculate_hcp(hand):
                 hcp += values[rank]
     return hcp
 
-# ฟังก์ชันสุ่มแจกไพ่แบบสำรับจริง (ไม่มีไพ่ซ้ำในมือ)
+# สุ่มไพ่จากสำรับมาตรฐาน 52 ใบจริง (ไม่มีทางซ้ำกัน)
 def generate_unique_hand():
     ranks = ["A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2"]
     suits = ['s', 'h', 'd', 'c']
@@ -29,7 +33,7 @@ def generate_unique_hand():
     
     while True:
         random.shuffle(deck)
-        # สุ่มความยาว Shape ให้ผลรวมเป็น 13
+        # สุ่มความยาวให้รวมกันได้ 13 ใบ
         s_len = random.randint(1, 6)
         h_len = random.randint(1, 6)
         d_len = random.randint(1, 6)
@@ -38,45 +42,74 @@ def generate_unique_hand():
         if 0 <= c_len <= 7:
             lengths = {"♠": s_len, "♥": h_len, "♦": d_len, "♣": c_len}
             hand = {"♠": [], "♥": [], "♦": [], "♣": []}
-            
             deck_copy = deck.copy()
-            valid = True
+            
             for suit, slen in lengths.items():
                 if slen > 0:
                     cards = [deck_copy.pop(0) for _ in range(slen)]
-                    # เรียงลำดับแต้มจากใหญ่ไปเล็ก
                     hand[suit] = sorted(cards, key=lambda x: ranks.index(x[0]))
             
-            if valid:
-                shape_str = f"{len(hand['♠'])}{len(hand['♥'])}{len(hand['♦'])}{len(hand['♣'])}"
-                hcp = calculate_hcp(hand)
-                return hcp, shape_str, hand
+            shape_str = f"{len(hand['♠'])}{len(hand['♥'])}{len(hand['♦'])}{len(hand['♣'])}"
+            hcp = calculate_hcp(hand)
+            return hcp, shape_str, hand
 
-# ฟังก์ชันประเมินคำตอบพร้อมเหตุผล Rule
-def evaluate_answer(mode, hcp, shape, hand):
+# ==========================================
+# รวมกฎการประมูลทั้งหมดของคุณ (Opening & Responses)
+# ==========================================
+
+def response_1c(hcp, shape, balanced=False):
     s, h, d, c = int(shape[0]), int(shape[1]), int(shape[2]), int(shape[3])
+    if hcp >= 13 and balanced and (s == 4 or h == 4):
+        return "1N", "13+ HCP, Balanced with 4-card Major -> Bid 1N"
+    if h >= 4 and ((h == 4 and s == 4) or h > s):
+        return "1D", "Showing Hearts (Transfer style)"
+    if s >= 4 and not (s == 4 and h == 4) and s >= h:
+        return "1H", "Showing Spades"
+    if 6 <= hcp <= 10 and d >= 6:
+        return "2C", "6+ Diamonds with invitational values"
+    if hcp >= 6 and s < 4 and h < 4 and d < 6 and c < 6:
+        return "1S", "Standard minor response"
+    return "PASS", "Standard Pass rule"
+
+def response_1d(hcp, shape, balanced=False, bad_suit=False):
+    s, h, d, c = int(shape[0]), int(shape[1]), int(shape[2]), int(shape[3])
+    if hcp >= 13 and s < 3 and h < 3:
+        return "1N", "13+ HCP with no 3-card Major -> 1N"
+    if hcp >= 13 and balanced and not bad_suit and (s == 4 or h == 4):
+        return "1N", "13+ HCP Balanced with 4-card Major"
+    if 6 <= hcp <= 10 and d >= 5:
+        return "3D", "6-10 HCP with 5+ Diamonds Support"
+    if hcp >= 6 and s >= 4 and s >= h:
+        return "1S", "Showing Spades (4+ cards)"
+    if hcp >= 6 and h >= 4 and h > s:
+        return "1H", "Showing Hearts (4+ cards)"
+    return "PASS", "Pass based on point range"
+
+def evaluate_answer(mode, hcp, shape, hand):
     balanced = shape in BALANCED_SHAPES
-    
-    # ตัวอย่างการตรวจสอบตาม Rule ของคุณ (สามารถนำฟังก์ชันสมบูรณ์ที่คุณเขียนมาใส่แทนตรงนี้ได้เลย)
-    if mode == "resp_1n":
-        # ตัวอย่าง: ตอบตามกฎ Response to 1N
-        if hcp >= 8 and (s >= 4 or h >= 4):
-            return "2C", "Rule: Stayman (8+ HCP with 4+ Major)"
-        elif hcp <= 7:
-            return "PASS", "Rule: Weak hand (0-7 HCP), pass 1NT"
+    s, h, d, c = int(shape[0]), int(shape[1]), int(shape[2]), int(shape[3])
+
+    if mode == "resp_1c":
+        ans, rule = response_1c(hcp, shape, balanced)
+    elif mode == "resp_1d":
+        ans, rule = response_1d(hcp, shape, balanced)
+    elif mode == "opening":
+        if hcp >= 12 and (s >= 5 or h >= 5 or d >= 3 or c >= 3):
+            ans = "1H" if h >= s and h >= 5 else ("1S" if s >= 5 else ("1D" if d >= c else "1C"))
+            rule = "Standard Opening Bid based on HCP & Longest Suit"
         else:
-            return "2N", "Rule: Invitational without 4-card major"
-            
-    elif mode == "resp_1c":
-        if hcp >= 6 and s >= 4 and s >= h:
-            return "1H", "Rule: Showing Spades with 6+ HCP"
-        elif hcp >= 13:
-            return "3C", "Rule: Limit raise or strong minor support"
+            ans = "PASS"
+            rule = "Insufficient HCP to open (< 12 HCP)"
+    else:
+        # สำหรับโหมด 1H, 1S, 1N อื่นๆ
+        if hcp >= 6:
+            ans = "2C"
+            rule = f"Standard response to {mode.upper()} with {hcp} HCP"
         else:
-            return "1D", "Rule: Standard response structure"
+            ans = "PASS"
+            rule = "Weak hand, Pass"
             
-    # ค่าเริ่มต้นพื้นฐาน
-    return "1N", "Rule: Standard Bidding Evaluation"
+    return ans, rule
 
 def generate_practice_questions(mode, total=20):
     questions = []
