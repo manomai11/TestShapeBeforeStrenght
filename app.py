@@ -3,13 +3,12 @@ import engine
 
 st.set_page_config(page_title="Shape Before Strength", layout="wide")
 
-# Styling จำลองหน้าจอ BBO และกล่องไพ่
 st.markdown("""
 <style>
 .bbo-card-box {
     background-color: #113822;
-    padding: 15px;
-    border-radius: 8px;
+    padding: 12px;
+    border-radius: 6px;
     border: 2px solid #2d6a4f;
     color: white;
     font-size: 20px;
@@ -80,7 +79,7 @@ elif st.session_state.page == "menu":
                 st.session_state.level_selected = None
                 st.rerun()
 
-# ================= PRACTICE SCREEN (BBO Layout) =================
+# ================= PRACTICE SCREEN =================
 elif st.session_state.page == "practice":
 
     mode_titles = {
@@ -92,45 +91,46 @@ elif st.session_state.page == "practice":
         "resp_1n": "Response to 1N: Partner opened 1N, what is your bid?",
     }
 
-    # A: หัวข้อบอกว่าแบบฝึกเรื่องอะไร (อยู่ด้านบนสุด)
-    st.markdown(f"## 🏆 {mode_titles.get(st.session_state.practice_mode)}")
+    # A: หัวข้อบอกว่าแบบฝึกเรื่องอะไร
+    st.markdown(f"### 🏆 {mode_titles.get(st.session_state.practice_mode)}")
     st.markdown("---")
 
     q_data = st.session_state.questions_list[st.session_state.question - 1]
     cards = q_data["cards"]
     hcp = q_data["hcp"]
+    shape = q_data["shape"]
     correct_answer = q_data["correct_answer"]
 
-    # แบ่งเลย์เอาต์หลัก ซ้าย (เมนูควบคุม/คะแนน) - ขวา (โต๊ะไพ่และ Bidding Box สไตล์ BBO)
-    col_left, col_right = st.columns([1, 3])
+    # จัดเลย์เอาต์ 2 คอลัมน์ซ้าย-ขวา ให้เนื้อหากระชับจบในหน้าจอเดียว
+    col_left, col_right = st.columns([1, 2])
 
     with col_left:
         # B: ปุ่มกลับหน้าหลัก
-        if st.button("◀ Back to Menu", use_container_width=True):
+        if st.button("◀ Back to Menu"):
             st.session_state.page = "menu"
             st.rerun()
         
-        st.markdown("")
-        # C: คะแนนรวม / ข้อที่ทำ & D: เลขที่ข้อโจทย์ปัจจุบัน
         st.markdown(f"**Question:** {st.session_state.question} / 20")
         st.markdown(f"**Score:** {st.session_state.score}")
-        st.markdown("")
-        # G: ชื่อผู้เล่น
         st.markdown(f"👤 **Player:** {st.session_state.player_name}")
+        st.markdown("---")
+        
+        # แสดง Shape เรียงตามลำดับ S > H > D > C และ HCP ที่ถูกต้องตรงกันแน่นอน
+        st.markdown(f"**Shape:** `{shape}` (S-H-D-C)")
+        st.markdown(f"**HCP:** `{hcp}`")
 
     with col_right:
-        # E: บอกภารกิจ / โจทย์ หรือแสดงผลลัพธ์คำตอบเมื่อตอบแล้ว
+        # E: แสดงภารกิจ หรือผลลัพธ์การตรวจคำตอบ
         if not st.session_state.answered:
-            st.info(f"💡 **Mission:** {mode_titles.get(st.session_state.practice_mode)} (HCP: {hcp})")
+            st.info(f"💡 **Mission:** {mode_titles.get(st.session_state.practice_mode)}")
         else:
             if "✅" in st.session_state.result:
-                st.success(f"### {st.session_state.result} | Your Answer: {st.session_state.user_answer} | Correct: {correct_answer}")
+                st.success(f"**{st.session_state.result}** | Your: {st.session_state.user_answer} | Correct: {correct_answer}")
             else:
-                st.error(f"### {st.session_state.result} | Your Answer: {st.session_state.user_answer} | Correct: {correct_answer}")
+                st.error(f"**{st.session_state.result}** | Your: {st.session_state.user_answer} | Correct: {correct_answer}")
 
-        # F: แสดงหน้าไพ่สไตล์ BBO
+        # F: แสดงรูปไพ่สไตล์ BBO
         st.markdown("##### Your Hand (South)")
-        
         s_text = " ".join([c[0] for c in cards["♠"]]) or "-"
         h_text = " ".join([c[0] for c in cards["♥"]]) or "-"
         d_text = " ".join([c[0] for c in cards["♦"]]) or "-"
@@ -143,12 +143,11 @@ elif st.session_state.page == "practice":
         <span class="suit-d">♦</span> {d_text}<br>
         <span class="suit-c">♣</span> {c_text}
         </div>
-        <p style="margin-top:5px; font-size:14px; color:gray;">HCP: <b>{hcp}</b></p>
         """, unsafe_allow_html=True)
 
         st.markdown("---")
 
-        # ส่วน Bidding Box (ซ่อนตอนตอบแล้ว และแสดงปุ่ม Next Question แทน)
+        # Bidding Box หรือปุ่ม Next Question
         if not st.session_state.answered:
             st.markdown("#### Bidding Box")
             if st.button("PASS", key="btn_pass"):
@@ -161,8 +160,7 @@ elif st.session_state.page == "practice":
                 st.session_state.answered = True
                 st.rerun()
 
-            st.write("Select Level:")
-            lvl_cols = st.columns([1, 1, 1, 1, 1, 1, 1, 5])
+            lvl_cols = st.columns(7)
             for i in range(1, 8):
                 with lvl_cols[i - 1]:
                     if st.button(str(i), key=f"lvl_{i}"):
@@ -170,12 +168,11 @@ elif st.session_state.page == "practice":
 
             if st.session_state.level_selected:
                 level = st.session_state.level_selected
-                st.markdown(f"**Level:** {level}")
                 suit_cols = st.columns(5)
                 suit_map = {"C": "♣", "D": "♦", "H": "♥", "S": "♠", "N": "NT"}
                 for idx, (key, symbol) in enumerate(suit_map.items()):
                     with suit_cols[idx]:
-                        if st.button(symbol, key=f"suit_{level}_{key}"):
+                        if st.button(f"{level}{symbol}", key=f"suit_{level}_{key}"):
                             bid = f"{level}{key}"
                             st.session_state.user_answer = bid
                             if bid == correct_answer:
@@ -186,7 +183,6 @@ elif st.session_state.page == "practice":
                             st.session_state.answered = True
                             st.rerun()
         else:
-            # พอกดตอบแล้ว ปุ่ม Bidding Box จะหายไป แทนที่ด้วยปุ่ม Next Question เพื่อสลับไปข้อใหม่ทันที
             if st.session_state.question < 20:
                 if st.button("▶ Next Question", type="primary"):
                     st.session_state.answered = False
