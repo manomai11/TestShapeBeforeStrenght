@@ -1,36 +1,32 @@
 import streamlit as st
 
-# ==========================================
-# CONFIG
-# ==========================================
-
 st.set_page_config(
     page_title="Shape Before Strength",
     page_icon="♠",
     layout="wide"
 )
 
-# ==========================================
-# SESSION STATE
-# ==========================================
+# =====================================================
+# SESSION
+# =====================================================
 
 defaults = {
     "page": "login",
     "player_name": "",
-    "opening_score": 0,
-    "opening_question": 1,
-    "show_result": False,
+    "score": 0,
+    "question": 1,
+    "answered": False,
+    "result": "",
     "user_answer": "",
-    "correct_answer": "1S",
 }
 
 for k, v in defaults.items():
     if k not in st.session_state:
         st.session_state[k] = v
 
-# ==========================================
+# =====================================================
 # LOGIN
-# ==========================================
+# =====================================================
 
 if st.session_state.page == "login":
 
@@ -44,14 +40,12 @@ if st.session_state.page == "login":
 ### A Modern Low-Information Transfer Club System
 
 ### Learn • Practice • Improve
-        """)
+""")
 
         st.markdown("""
 เรียนรู้และฝึกประมูลไพ่บริดจ์ตามระบบ
 
 **Shape Before Strength**
-
-ระบบนี้เน้น
 
 ✅ วิเคราะห์ Shape ก่อนแต้ม
 
@@ -62,66 +56,25 @@ if st.session_state.page == "login":
 ✅ หา Fit อย่างมีประสิทธิภาพ
 
 ✅ ฝึกผ่านโจทย์จริง
-
----
-
-### หลังเข้าสู่ระบบ คุณจะสามารถ
-
-✅ ฝึก Opening Bid
-
-✅ ฝึก Response และ Rebid
-
-✅ ดูสถิติความแม่นยำ
-
-✅ ดูประวัติการฝึกย้อนหลัง
-
-✅ เปรียบเทียบผลแต่ละ Session
-
-✅ ทบทวนข้อผิดพลาดที่พบบ่อย
-        """)
+""")
 
     with right:
 
         st.subheader("เข้าสู่ระบบ")
 
-        player_name = st.text_input(
-            "ชื่อผู้เล่น"
-        )
+        name = st.text_input("ชื่อผู้เล่น")
 
-        st.checkbox(
-            "จดจำการเข้าสู่ระบบ",
-            value=True
-        )
+        if st.button("🚀 เริ่มฝึก", use_container_width=True):
 
-        if st.button(
-            "🚀 เริ่มฝึก",
-            use_container_width=True
-        ):
+            if name.strip():
 
-            if player_name.strip():
-
-                st.session_state.player_name = player_name
+                st.session_state.player_name = name
                 st.session_state.page = "menu"
-
                 st.rerun()
 
-        st.markdown("---")
-
-        st.markdown("""
-### ตัวอย่างสถิติ
-
-🏆 จำนวน Session : 127
-
-✅ Opening Accuracy : 88%
-
-✅ Response Accuracy : 79%
-
-✅ Best Score : 20 / 20
-        """)
-
-# ==========================================
+# =====================================================
 # MENU
-# ==========================================
+# =====================================================
 
 elif st.session_state.page == "menu":
 
@@ -169,23 +122,9 @@ elif st.session_state.page == "menu":
             use_container_width=True
         )
 
-    st.divider()
-
-    st.info("""
-Opening
-
-11-13 Balanced = 1C
-
-14-16 Balanced = 1NT
-
-17-19 Balanced No M5 = 1C
-
-20-22 Balanced = 2NT
-""")
-
-# ==========================================
+# =====================================================
 # OPENING QUIZ
-# ==========================================
+# =====================================================
 
 elif st.session_state.page == "opening":
 
@@ -197,17 +136,35 @@ elif st.session_state.page == "opening":
 
     st.divider()
 
-    st.write(
-        f"Question {st.session_state.opening_question} / 20"
-    )
+    c1, c2 = st.columns([1,1])
 
-    st.write(
-        f"Score : {st.session_state.opening_score}"
-    )
+    with c1:
+
+        st.write(
+            f"Question : {st.session_state.question} / 20"
+        )
+
+    with c2:
+
+        st.write(
+            f"Score : {st.session_state.score}"
+        )
 
     st.divider()
 
-    if not st.session_state.show_result:
+    # -----------------------------------
+    # DEMO HAND
+    # -----------------------------------
+
+    hcp = 13
+    shape = "5332"
+    correct_answer = "1C"
+
+    # -----------------------------------
+    # QUESTION SCREEN
+    # -----------------------------------
+
+    if not st.session_state.answered:
 
         st.markdown("""
 ## Hand
@@ -221,13 +178,19 @@ elif st.session_state.page == "opening":
 ♣ J3
 """)
 
-        st.write("What is your opening bid?")
+        st.write(
+            "What is your opening bid?"
+        )
 
         bids = [
             "PASS",
+
             "1C","1D","1H","1S","1N",
+
             "2C","2D","2H","2S","2N",
+
             "3C","3D","3H","3S","3N",
+
             "4C","4D","4H","4S"
         ]
 
@@ -240,19 +203,23 @@ elif st.session_state.page == "opening":
 
             st.session_state.user_answer = choice
 
-            if choice == st.session_state.correct_answer:
+            if choice == correct_answer:
 
                 st.session_state.result = "✅ Correct"
 
-                st.session_state.opening_score += 1
+                st.session_state.score += 1
 
             else:
 
                 st.session_state.result = "❌ Incorrect"
 
-            st.session_state.show_result = True
+            st.session_state.answered = True
 
             st.rerun()
+
+    # -----------------------------------
+    # RESULT SCREEN
+    # -----------------------------------
 
     else:
 
@@ -265,30 +232,33 @@ elif st.session_state.page == "opening":
         )
 
         st.write(
-            f"Correct Answer : {st.session_state.correct_answer}"
+            f"Correct Answer : {correct_answer}"
         )
 
-        st.info("""
-HCP = 13
+        st.info(
+f"""
+HCP = {hcp}
 
-Shape = 5332
+Shape = {shape}
 
-Opening Bid = 1S
-""")
+Opening Bid = {correct_answer}
+"""
+        )
 
         if st.button("Next Question"):
 
-            st.session_state.opening_question += 1
-            st.session_state.show_result = False
+            st.session_state.question += 1
+            st.session_state.answered = False
 
-            if st.session_state.opening_question > 20:
+            if st.session_state.question > 20:
+
                 st.session_state.page = "summary"
 
             st.rerun()
 
-# ==========================================
+# =====================================================
 # SUMMARY
-# ==========================================
+# =====================================================
 
 elif st.session_state.page == "summary":
 
@@ -299,23 +269,22 @@ elif st.session_state.page == "summary":
     )
 
     st.write(
-        f"Score : {st.session_state.opening_score} / 20"
+        f"Score : {st.session_state.score} / 20"
     )
 
-    percent = (
-        st.session_state.opening_score / 20
+    accuracy = (
+        st.session_state.score / 20
     ) * 100
 
     st.write(
-        f"Accuracy : {percent:.0f}%"
+        f"Accuracy : {accuracy:.0f}%"
     )
 
     if st.button("Back To Menu"):
 
         st.session_state.page = "menu"
-
-        st.session_state.opening_score = 0
-        st.session_state.opening_question = 1
-        st.session_state.show_result = False
+        st.session_state.question = 1
+        st.session_state.score = 0
+        st.session_state.answered = False
 
         st.rerun()
