@@ -224,3 +224,22 @@ def evaluate_answer(mode, hcp, shape, hand):
     balanced = shape in BALANCED_SHAPES
     if mode == "opening":
         return opening_bid(hcp, shape, hand, balanced)
+def generate_practice_questions(mode, total=20):
+    questions = []
+    seen = set()
+    while len(questions) < total:
+        hcp, shape, cards = generate_unique_hand()
+        ans, rule_desc = evaluate_answer(mode, hcp, shape, cards)
+        
+        key = f"{hcp}_{shape}"
+        if key not in seen:
+            seen.add(key)
+            questions.append({
+                "hcp": hcp,
+                "shape": shape,
+                "balanced": shape in BALANCED_SHAPES,
+                "cards": cards,
+                "correct_answer": ans,
+                "rule_description": rule_desc
+            })
+    return questions
