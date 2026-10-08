@@ -1,4 +1,5 @@
 import streamlit as st
+import engine
 
 # ==================================================
 # CONFIG
@@ -11,7 +12,7 @@ st.set_page_config(
 )
 
 # ==================================================
-# SESSION
+# SESSION STATE
 # ==================================================
 
 defaults = {
@@ -26,116 +27,37 @@ defaults = {
 }
 
 for k, v in defaults.items():
-
     if k not in st.session_state:
         st.session_state[k] = v
 
 # ==================================================
-# LOGIN
+# LOGIN PAGE
 # ==================================================
 
 if st.session_state.page == "login":
-
-    left, right = st.columns([3, 2])
-
-    with left:
-
-        st.title("♠ Shape Before Strength")
-
-        st.markdown("""
-### A Modern Low-Information Transfer Club System
-
-### Learn • Practice • Improve
-""")
-
-        st.markdown("""
-เรียนรู้และฝึกประมูลไพ่บริดจ์ตามระบบ
-
-**Shape Before Strength**
-
-✅ วิเคราะห์ Shape ก่อนแต้ม
-
-✅ ใช้การบิดแบบ Transfer
-
-✅ เปิดเผยข้อมูลให้น้อยที่สุด
-
-✅ หา Fit อย่างมีประสิทธิภาพ
-
-✅ ฝึกผ่านโจทย์จริง
-""")
-
-    with right:
-
-        st.subheader("เข้าสู่ระบบ")
-
-        with st.form("login_form"):
-
-            player_name = st.text_input(
-                "ชื่อผู้เล่น"
-            )
-
-            submitted = st.form_submit_button(
-                "🚀 เริ่มฝึก"
-            )
-
-            if submitted:
-
-                if player_name.strip():
-
-                    st.session_state.player_name = player_name
-                    st.session_state.page = "menu"
-
-                    st.rerun()
+    st.title("♠ Shape Before Strength")
+    st.subheader("Bridge Bidding Practice App")
+    
+    name_input = st.text_input("Enter your name to start:")
+    if st.button("Start Practice"):
+        if name_input.strip() != "":
+            st.session_state.player_name = name_input
+            st.session_state.page = "menu"
+            st.rerun()
+        else:
+            st.warning("Please enter your name first.")
 
 # ==================================================
-# MENU
+# MENU PAGE
 # ==================================================
 
 elif st.session_state.page == "menu":
-
-    st.title(
-        f"ยินดีต้อนรับ {st.session_state.player_name}"
-    )
-
-    st.subheader("เลือกหัวข้อฝึก")
-
-    c1, c2 = st.columns(2)
-
-    with c1:
-
-        if st.button(
-            "Opening Practice",
-            use_container_width=True
-        ):
-            st.session_state.page = "opening"
-            st.rerun()
-
-        st.button(
-            "Response 1C",
-            use_container_width=True
-        )
-
-        st.button(
-            "Response 1D",
-            use_container_width=True
-        )
-
-    with c2:
-
-        st.button(
-            "Response 1H",
-            use_container_width=True
-        )
-
-        st.button(
-            "Response 1S",
-            use_container_width=True
-        )
-
-        st.button(
-            "Response 1NT",
-            use_container_width=True
-        )
+    st.title(f"Welcome, {st.session_state.player_name}!")
+    st.subheader("Select Practice Mode")
+    
+    if st.button("Opening Practice (1D Response)"):
+        st.session_state.page = "opening"
+        st.rerun()
 
 # ==================================================
 # OPENING PRACTICE
@@ -143,157 +65,113 @@ elif st.session_state.page == "menu":
 
 elif st.session_state.page == "opening":
 
-    st.title("Opening Practice")
+    # ใช้หัวข้อกระชับ เพื่อไม่ให้กินพื้นที่แนวตั้ง
+    st.markdown("### Opening & Response Practice")
 
-    if st.button("⬅ กลับเมนู"):
+    col_top1, col_top2, col_top3 = st.columns([2, 6, 2])
+    with col_top1:
+        if st.button("◀ กลับเมนู"):
+            st.session_state.page = "menu"
+            st.rerun()
+    with col_top2:
+        st.write(f"**Question:** {st.session_state.question} / 20")
+    with col_top3:
+        st.write(f"**Score:** {st.session_state.score}")
 
-        st.session_state.page = "menu"
-        st.rerun()
+    st.markdown("---")
 
-    st.divider()
-
-    c1, c2 = st.columns(2)
-
-    with c1:
-
-        st.write(
-            f"Question : {st.session_state.question} / 20"
-        )
-
-    with c2:
-
-        st.write(
-            f"Score : {st.session_state.score}"
-        )
-
-    st.divider()
-
-    # ----------------------------------
-    # DEMO HAND
-    # ----------------------------------
-
+    # --------------------------------------------------
+    # DEMO DATA
+    # --------------------------------------------------
     hcp = 13
     shape = "5332"
+    is_bal = shape in engine.BALANCED_SHAPES
+    correct_answer = engine.response_1d(hcp=hcp, shape=shape, balanced=is_bal)
 
-    correct_answer = "1C"
+    # --------------------------------------------------
+    # LAYOUT แบ่งซ้าย (ไพ่และข้อมูล) - ขวา (Bidding Box)
+    # --------------------------------------------------
+    col_left, col_right = st.columns([1, 1])
 
-    # ----------------------------------
-    # HAND
-    # ----------------------------------
+    with col_left:
+        st.markdown("#### Your Hand")
+        st.markdown(
+            """
+            <div style="font-size:28px; line-height:1.6">
+            ♠ AQ852<br>
+            ♥ K73<br>
+            ♦ Q42<br>
+            ♣ J3
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        st.text(f"HCP : {hcp}  |  Shape : {shape}")
 
-    st.markdown(
-        """
-<div style="font-size:36px; line-height:1.8">
-
-♠ AQ852<br>
-
-♥ K73<br>
-
-♦ Q42<br>
-
-♣ J3
-
-</div>
-""",
-        unsafe_allow_html=True
-    )
-
-    st.write(
-        f"HCP : {hcp}"
-    )
-
-    st.write(
-        f"Shape : {shape}"
-    )
-
-    st.divider()
-
-    # ----------------------------------
-    # QUESTION
-    # ----------------------------------
-
-    if not st.session_state.answered:
-
+    with col_right:
         st.subheader("Bidding Box")
 
-        if st.button("PASS"):
+        if not st.session_state.answered:
+            # ปุ่ม PASS ขนาดกะทัดรัด
+            if st.button("PASS", key="btn_pass"):
+                st.session_state.user_answer = "PASS"
+                if st.session_state.user_answer == correct_answer:
+                    st.session_state.result = "✅ Correct"
+                    st.session_state.score += 1
+                else:
+                    st.session_state.result = "❌ Incorrect"
+                st.session_state.answered = True
+                st.rerun()
 
-            st.session_state.user_answer = "PASS"
+            st.write("Select Level:")
+            
+            # บีบพื้นที่ปุ่ม 1-7 ให้ยาวไม่เกินช่วงสั้นๆ (ใช้สัดส่วนคอลัมน์แคบลง)
+            lvl_cols = st.columns([1, 1, 1, 1, 1, 1, 1, 5])
+            for i in range(1, 8):
+                with lvl_cols[i - 1]:
+                    if st.button(str(i), key=f"lvl_{i}"):
+                        st.session_state.level_selected = i
 
-            if (
-                st.session_state.user_answer
-                ==
-                correct_answer
-            ):
-                st.session_state.result = "✅ Correct"
-                st.session_state.score += 1
-            else:
-                st.session_state.result = "❌ Incorrect"
+            # --------------------------------------------------
+            # SHOW SUITS (เมื่อเลือก Level แล้วจะแสดงขึ้นมาทันทีในกรอบเดิม)
+            # --------------------------------------------------
+            if st.session_state.level_selected:
+                level = st.session_state.level_selected
+                st.markdown(f"**Level:** {level}")
 
-            st.session_state.answered = True
-            st.rerun()
+                suit_cols = st.columns(5)
+                suit_map = {
+                    "C": "♣",
+                    "D": "♦",
+                    "H": "♥",
+                    "S": "♠",
+                    "N": "NT",
+                }
 
-        st.markdown("---")
+                for idx, (key, symbol) in enumerate(suit_map.items()):
+                    with suit_cols[idx]:
+                        if st.button(symbol, key=f"suit_{level}_{key}"):
+                            bid = f"{level}{key}"
+                            st.session_state.user_answer = bid
 
-        cols = st.columns(7)
+                            if bid == correct_answer:
+                                st.session_state.result = "✅ Correct"
+                                st.session_state.score += 1
+                            else:
+                                st.session_state.result = "❌ Incorrect"
 
-        for i in range(1, 8):
+                            st.session_state.answered = True
+                            st.rerun()
+        else:
+            # แสดงผลลัพธ์
+            st.markdown(f"### {st.session_state.result}")
+            st.write(f"**Your Answer:** {st.session_state.user_answer}")
+            st.write(f"**Correct Answer:** {correct_answer}")
 
-            with cols[i - 1]:
-
-                if st.button(
-                    str(i)
-                ):
-                    st.session_state.level_selected = i
-
-        # -----------------------------
-        # SHOW SUITS
-        # -----------------------------
-
-        if st.session_state.level_selected:
-
-            level = st.session_state.level_selected
-
-            st.write(
-                f"Level Selected : {level}"
-            )
-
-            c1, c2, c3, c4, c5 = st.columns(5)
-
-            suit_map = {
-                "C": "♣",
-                "D": "♦",
-                "H": "♥",
-                "S": "♠",
-                "N": "NT",
-            }
-
-            for key, col in zip(
-                suit_map.keys(),
-                [c1, c2, c3, c4, c5]
-            ):
-
-                with col:
-
-                    if st.button(
-                        suit_map[key],
-                        key=f"{level}{key}"
-                    ):
-
-                        bid = f"{level}{key}"
-
-                        st.session_state.user_answer = bid
-
-                        if bid == correct_answer:
-
-                            st.session_state.result = (
-                                "✅ Correct"
-                            )
-
-                            st.session_state.score += 1
-
-                        else:
-
-                            st.session_state.result = (
-                                "❌ Incorrect"
-                            )
+            if st.button("Next Question"):
+                st.session_state.answered = False
+                st.session_state.user_answer = ""
+                st.session_state.result = ""
+                st.session_state.level_selected = None
+                st.session_state.question += 1
+                st.rerun()
