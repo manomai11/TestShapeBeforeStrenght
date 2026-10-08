@@ -229,7 +229,13 @@ def generate_practice_questions(mode, total=20):
     seen = set()
     while len(questions) < total:
         hcp, shape, cards = generate_unique_hand()
-        ans, rule_desc = evaluate_answer(mode, hcp, shape, cards)
+        
+        # ป้องกันกรณีบางฟังก์ชัน return ค่าเดียวหรือสองค่า
+        result = evaluate_answer(mode, hcp, shape, cards)
+        if isinstance(result, tuple):
+            ans, rule_desc = result
+        else:
+            ans, rule_desc = result, "Rule Match"
         
         key = f"{hcp}_{shape}"
         if key not in seen:
