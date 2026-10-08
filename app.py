@@ -6,15 +6,15 @@ st.set_page_config(
     layout="wide"
 )
 
-# =====================================================
+# ==================================================
 # SESSION
-# =====================================================
+# ==================================================
 
 defaults = {
     "page": "login",
     "player_name": "",
-    "score": 0,
     "question": 1,
+    "score": 0,
     "answered": False,
     "result": "",
     "user_answer": "",
@@ -24,9 +24,9 @@ for k, v in defaults.items():
     if k not in st.session_state:
         st.session_state[k] = v
 
-# =====================================================
+# ==================================================
 # LOGIN
-# =====================================================
+# ==================================================
 
 if st.session_state.page == "login":
 
@@ -56,6 +56,20 @@ if st.session_state.page == "login":
 ✅ หา Fit อย่างมีประสิทธิภาพ
 
 ✅ ฝึกผ่านโจทย์จริง
+
+---
+
+### หลังเข้าสู่ระบบ
+
+✅ ฝึก Opening
+
+✅ ฝึก Response
+
+✅ ดูคะแนนย้อนหลัง
+
+✅ เปรียบเทียบผลแต่ละ Session
+
+✅ ทบทวนข้อผิดพลาด
 """)
 
     with right:
@@ -64,17 +78,21 @@ if st.session_state.page == "login":
 
         name = st.text_input("ชื่อผู้เล่น")
 
-        if st.button("🚀 เริ่มฝึก", use_container_width=True):
+        if st.button(
+            "🚀 เริ่มฝึก",
+            use_container_width=True
+        ):
 
             if name.strip():
 
                 st.session_state.player_name = name
                 st.session_state.page = "menu"
+
                 st.rerun()
 
-# =====================================================
+# ==================================================
 # MENU
-# =====================================================
+# ==================================================
 
 elif st.session_state.page == "menu":
 
@@ -122,51 +140,44 @@ elif st.session_state.page == "menu":
             use_container_width=True
         )
 
-# =====================================================
+# ==================================================
 # OPENING QUIZ
-# =====================================================
+# ==================================================
 
 elif st.session_state.page == "opening":
 
     st.title("Opening Practice")
 
     if st.button("⬅ กลับเมนู"):
+
         st.session_state.page = "menu"
         st.rerun()
 
     st.divider()
 
-    c1, c2 = st.columns([1,1])
+    c1, c2 = st.columns(2)
 
     with c1:
-
         st.write(
             f"Question : {st.session_state.question} / 20"
         )
 
     with c2:
-
         st.write(
             f"Score : {st.session_state.score}"
         )
 
     st.divider()
 
-    # -----------------------------------
+    # ----------------------------------
     # DEMO HAND
-    # -----------------------------------
+    # ----------------------------------
 
     hcp = 13
     shape = "5332"
     correct_answer = "1C"
 
-    # -----------------------------------
-    # QUESTION SCREEN
-    # -----------------------------------
-
-    if not st.session_state.answered:
-
-        st.markdown("""
+    st.markdown("""
 ## Hand
 
 ♠ AQ852
@@ -178,9 +189,27 @@ elif st.session_state.page == "opening":
 ♣ J3
 """)
 
+    st.write(
+        f"HCP : {hcp}"
+    )
+
+    st.write(
+        f"Shape : {shape}"
+    )
+
+    st.divider()
+
+    # ----------------------------------
+    # QUESTION
+    # ----------------------------------
+
+    if not st.session_state.answered:
+
         st.write(
             "What is your opening bid?"
         )
+
+        cols = st.columns(5)
 
         bids = [
             "PASS",
@@ -194,32 +223,61 @@ elif st.session_state.page == "opening":
             "4C","4D","4H","4S"
         ]
 
-        choice = st.selectbox(
-            "Choose Bid",
-            bids
+        if "temp_bid" not in st.session_state:
+            st.session_state.temp_bid = None
+
+        for i, bid in enumerate(bids):
+
+            col = cols[i % 5]
+
+            with col:
+
+                if st.button(
+                    bid,
+                    key=f"bid_{bid}"
+                ):
+                    st.session_state.temp_bid = bid
+
+        st.write(
+            f"Selected Bid : {st.session_state.temp_bid}"
         )
 
-        if st.button("Submit Bid"):
+        if st.session_state.temp_bid:
 
-            st.session_state.user_answer = choice
+            if st.button(
+                "Submit Bid",
+                use_container_width=True
+            ):
 
-            if choice == correct_answer:
+                st.session_state.user_answer = (
+                    st.session_state.temp_bid
+                )
 
-                st.session_state.result = "✅ Correct"
+                if (
+                    st.session_state.user_answer
+                    ==
+                    correct_answer
+                ):
 
-                st.session_state.score += 1
+                    st.session_state.result = (
+                        "✅ Correct"
+                    )
 
-            else:
+                    st.session_state.score += 1
 
-                st.session_state.result = "❌ Incorrect"
+                else:
 
-            st.session_state.answered = True
+                    st.session_state.result = (
+                        "❌ Incorrect"
+                    )
 
-            st.rerun()
+                st.session_state.answered = True
 
-    # -----------------------------------
-    # RESULT SCREEN
-    # -----------------------------------
+                st.rerun()
+
+    # ----------------------------------
+    # RESULT
+    # ----------------------------------
 
     else:
 
@@ -235,20 +293,23 @@ elif st.session_state.page == "opening":
             f"Correct Answer : {correct_answer}"
         )
 
-        st.info(
-f"""
-HCP = {hcp}
+        st.info("""
+11-13 Balanced
 
-Shape = {shape}
+Shape = 5332
 
-Opening Bid = {correct_answer}
-"""
-        )
+Opening = 1C
+""")
 
-        if st.button("Next Question"):
+        if st.button(
+            "Next Question",
+            use_container_width=True
+        ):
 
             st.session_state.question += 1
+
             st.session_state.answered = False
+            st.session_state.temp_bid = None
 
             if st.session_state.question > 20:
 
@@ -256,9 +317,9 @@ Opening Bid = {correct_answer}
 
             st.rerun()
 
-# =====================================================
+# ==================================================
 # SUMMARY
-# =====================================================
+# ==================================================
 
 elif st.session_state.page == "summary":
 
@@ -272,17 +333,20 @@ elif st.session_state.page == "summary":
         f"Score : {st.session_state.score} / 20"
     )
 
-    accuracy = (
+    pct = (
         st.session_state.score / 20
     ) * 100
 
     st.write(
-        f"Accuracy : {accuracy:.0f}%"
+        f"Accuracy : {pct:.0f}%"
     )
 
-    if st.button("Back To Menu"):
+    if st.button(
+        "Back To Menu"
+    ):
 
         st.session_state.page = "menu"
+
         st.session_state.question = 1
         st.session_state.score = 0
         st.session_state.answered = False
