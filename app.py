@@ -1,5 +1,9 @@
 import streamlit as st
 
+# ==================================================
+# CONFIG
+# ==================================================
+
 st.set_page_config(
     page_title="Shape Before Strength",
     page_icon="♠",
@@ -18,9 +22,11 @@ defaults = {
     "answered": False,
     "result": "",
     "user_answer": "",
+    "temp_bid": None
 }
 
 for k, v in defaults.items():
+
     if k not in st.session_state:
         st.session_state[k] = v
 
@@ -61,22 +67,31 @@ if st.session_state.page == "login":
 
 ### หลังเข้าสู่ระบบ
 
-✅ ฝึก Opening
+✅ ฝึก Opening Bid
 
-✅ ฝึก Response
+✅ ฝึก Response และ Rebid
 
-✅ ดูคะแนนย้อนหลัง
+✅ ดูสถิติความแม่นยำ
+
+✅ ดูประวัติการฝึกย้อนหลัง
 
 ✅ เปรียบเทียบผลแต่ละ Session
 
-✅ ทบทวนข้อผิดพลาด
+✅ ทบทวนข้อผิดพลาดที่พบบ่อย
 """)
 
     with right:
 
         st.subheader("เข้าสู่ระบบ")
 
-        name = st.text_input("ชื่อผู้เล่น")
+        name = st.text_input(
+            "ชื่อผู้เล่น"
+        )
+
+        st.checkbox(
+            "จดจำการเข้าสู่ระบบ",
+            value=True
+        )
 
         if st.button(
             "🚀 เริ่มฝึก",
@@ -141,7 +156,7 @@ elif st.session_state.page == "menu":
         )
 
 # ==================================================
-# OPENING QUIZ
+# OPENING PRACTICE
 # ==================================================
 
 elif st.session_state.page == "opening":
@@ -158,24 +173,31 @@ elif st.session_state.page == "opening":
     c1, c2 = st.columns(2)
 
     with c1:
+
         st.write(
             f"Question : {st.session_state.question} / 20"
         )
 
     with c2:
+
         st.write(
             f"Score : {st.session_state.score}"
         )
 
     st.divider()
 
-    # ----------------------------------
+    # =====================================
     # DEMO HAND
-    # ----------------------------------
+    # =====================================
 
     hcp = 13
     shape = "5332"
+
     correct_answer = "1C"
+
+    # =====================================
+    # HAND
+    # =====================================
 
     st.markdown("""
 ## Hand
@@ -199,9 +221,9 @@ elif st.session_state.page == "opening":
 
     st.divider()
 
-    # ----------------------------------
-    # QUESTION
-    # ----------------------------------
+    # =====================================
+    # QUESTION MODE
+    # =====================================
 
     if not st.session_state.answered:
 
@@ -209,26 +231,23 @@ elif st.session_state.page == "opening":
             "What is your opening bid?"
         )
 
+        bids = ["PASS"]
+
+        for level in range(1, 8):
+
+            bids.extend([
+                f"{level}C",
+                f"{level}D",
+                f"{level}H",
+                f"{level}S",
+                f"{level}N",
+            ])
+
         cols = st.columns(5)
 
-        bids = [
-            "PASS",
+        for index, bid in enumerate(bids):
 
-            "1C","1D","1H","1S","1N",
-
-            "2C","2D","2H","2S","2N",
-
-            "3C","3D","3H","3S","3N",
-
-            "4C","4D","4H","4S"
-        ]
-
-        if "temp_bid" not in st.session_state:
-            st.session_state.temp_bid = None
-
-        for i, bid in enumerate(bids):
-
-            col = cols[i % 5]
+            col = cols[index % 5]
 
             with col:
 
@@ -237,6 +256,8 @@ elif st.session_state.page == "opening":
                     key=f"bid_{bid}"
                 ):
                     st.session_state.temp_bid = bid
+
+        st.divider()
 
         st.write(
             f"Selected Bid : {st.session_state.temp_bid}"
@@ -275,9 +296,9 @@ elif st.session_state.page == "opening":
 
                 st.rerun()
 
-    # ----------------------------------
-    # RESULT
-    # ----------------------------------
+    # =====================================
+    # RESULT MODE
+    # =====================================
 
     else:
 
@@ -293,13 +314,17 @@ elif st.session_state.page == "opening":
             f"Correct Answer : {correct_answer}"
         )
 
-        st.info("""
+        st.info(
+f"""
+HCP = {hcp}
+
+Shape = {shape}
+
 11-13 Balanced
 
-Shape = 5332
-
-Opening = 1C
-""")
+Open 1C
+"""
+        )
 
         if st.button(
             "Next Question",
@@ -330,15 +355,19 @@ elif st.session_state.page == "summary":
     )
 
     st.write(
-        f"Score : {st.session_state.score} / 20"
+        f"Correct : {st.session_state.score}"
     )
 
-    pct = (
+    st.write(
+        f"Wrong : {20 - st.session_state.score}"
+    )
+
+    accuracy = (
         st.session_state.score / 20
     ) * 100
 
     st.write(
-        f"Accuracy : {pct:.0f}%"
+        f"Accuracy : {accuracy:.0f}%"
     )
 
     if st.button(
@@ -350,5 +379,6 @@ elif st.session_state.page == "summary":
         st.session_state.question = 1
         st.session_state.score = 0
         st.session_state.answered = False
+        st.session_state.temp_bid = None
 
         st.rerun()
