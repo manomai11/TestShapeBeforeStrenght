@@ -22,7 +22,7 @@ defaults = {
     "answered": False,
     "result": "",
     "user_answer": "",
-    "temp_bid": None
+    "level_selected": None,
 }
 
 for k, v in defaults.items():
@@ -62,48 +62,30 @@ if st.session_state.page == "login":
 ✅ หา Fit อย่างมีประสิทธิภาพ
 
 ✅ ฝึกผ่านโจทย์จริง
-
----
-
-### หลังเข้าสู่ระบบ
-
-✅ ฝึก Opening Bid
-
-✅ ฝึก Response และ Rebid
-
-✅ ดูสถิติความแม่นยำ
-
-✅ ดูประวัติการฝึกย้อนหลัง
-
-✅ เปรียบเทียบผลแต่ละ Session
-
-✅ ทบทวนข้อผิดพลาดที่พบบ่อย
 """)
 
     with right:
 
         st.subheader("เข้าสู่ระบบ")
 
-        name = st.text_input(
-            "ชื่อผู้เล่น"
-        )
+        with st.form("login_form"):
 
-        st.checkbox(
-            "จดจำการเข้าสู่ระบบ",
-            value=True
-        )
+            player_name = st.text_input(
+                "ชื่อผู้เล่น"
+            )
 
-        if st.button(
-            "🚀 เริ่มฝึก",
-            use_container_width=True
-        ):
+            submitted = st.form_submit_button(
+                "🚀 เริ่มฝึก"
+            )
 
-            if name.strip():
+            if submitted:
 
-                st.session_state.player_name = name
-                st.session_state.page = "menu"
+                if player_name.strip():
 
-                st.rerun()
+                    st.session_state.player_name = player_name
+                    st.session_state.page = "menu"
+
+                    st.rerun()
 
 # ==================================================
 # MENU
@@ -117,9 +99,9 @@ elif st.session_state.page == "menu":
 
     st.subheader("เลือกหัวข้อฝึก")
 
-    col1, col2 = st.columns(2)
+    c1, c2 = st.columns(2)
 
-    with col1:
+    with c1:
 
         if st.button(
             "Opening Practice",
@@ -138,7 +120,7 @@ elif st.session_state.page == "menu":
             use_container_width=True
         )
 
-    with col2:
+    with c2:
 
         st.button(
             "Response 1H",
@@ -186,30 +168,35 @@ elif st.session_state.page == "opening":
 
     st.divider()
 
-    # =====================================
+    # ----------------------------------
     # DEMO HAND
-    # =====================================
+    # ----------------------------------
 
     hcp = 13
     shape = "5332"
 
     correct_answer = "1C"
 
-    # =====================================
+    # ----------------------------------
     # HAND
-    # =====================================
+    # ----------------------------------
 
-    st.markdown("""
-## Hand
+    st.markdown(
+        """
+<div style="font-size:36px; line-height:1.8">
 
-♠ AQ852
+♠ AQ852<br>
 
-♥ K73
+♥ K73<br>
 
-♦ Q42
+♦ Q42<br>
 
 ♣ J3
-""")
+
+</div>
+""",
+        unsafe_allow_html=True
+    )
 
     st.write(
         f"HCP : {hcp}"
@@ -221,164 +208,91 @@ elif st.session_state.page == "opening":
 
     st.divider()
 
-    # =====================================
-    # QUESTION MODE
-    # =====================================
+    # ----------------------------------
+    # QUESTION
+    # ----------------------------------
 
     if not st.session_state.answered:
 
-        st.write(
-            "What is your opening bid?"
-        )
+        st.subheader("Bidding Box")
 
-        bids = ["PASS"]
+        if st.button("PASS"):
 
-        for level in range(1, 8):
+            st.session_state.user_answer = "PASS"
 
-            bids.extend([
-                f"{level}C",
-                f"{level}D",
-                f"{level}H",
-                f"{level}S",
-                f"{level}N",
-            ])
-
-        cols = st.columns(5)
-
-        for index, bid in enumerate(bids):
-
-            col = cols[index % 5]
-
-            with col:
-
-                if st.button(
-                    bid,
-                    key=f"bid_{bid}"
-                ):
-                    st.session_state.temp_bid = bid
-
-        st.divider()
-
-        st.write(
-            f"Selected Bid : {st.session_state.temp_bid}"
-        )
-
-        if st.session_state.temp_bid:
-
-            if st.button(
-                "Submit Bid",
-                use_container_width=True
+            if (
+                st.session_state.user_answer
+                ==
+                correct_answer
             ):
+                st.session_state.result = "✅ Correct"
+                st.session_state.score += 1
+            else:
+                st.session_state.result = "❌ Incorrect"
 
-                st.session_state.user_answer = (
-                    st.session_state.temp_bid
-                )
-
-                if (
-                    st.session_state.user_answer
-                    ==
-                    correct_answer
-                ):
-
-                    st.session_state.result = (
-                        "✅ Correct"
-                    )
-
-                    st.session_state.score += 1
-
-                else:
-
-                    st.session_state.result = (
-                        "❌ Incorrect"
-                    )
-
-                st.session_state.answered = True
-
-                st.rerun()
-
-    # =====================================
-    # RESULT MODE
-    # =====================================
-
-    else:
-
-        st.markdown(
-            f"## {st.session_state.result}"
-        )
-
-        st.write(
-            f"Your Answer : {st.session_state.user_answer}"
-        )
-
-        st.write(
-            f"Correct Answer : {correct_answer}"
-        )
-
-        st.info(
-f"""
-HCP = {hcp}
-
-Shape = {shape}
-
-11-13 Balanced
-
-Open 1C
-"""
-        )
-
-        if st.button(
-            "Next Question",
-            use_container_width=True
-        ):
-
-            st.session_state.question += 1
-
-            st.session_state.answered = False
-            st.session_state.temp_bid = None
-
-            if st.session_state.question > 20:
-
-                st.session_state.page = "summary"
-
+            st.session_state.answered = True
             st.rerun()
 
-# ==================================================
-# SUMMARY
-# ==================================================
+        st.markdown("---")
 
-elif st.session_state.page == "summary":
+        cols = st.columns(7)
 
-    st.title("Quiz Complete")
+        for i in range(1, 8):
 
-    st.write(
-        f"Player : {st.session_state.player_name}"
-    )
+            with cols[i - 1]:
 
-    st.write(
-        f"Correct : {st.session_state.score}"
-    )
+                if st.button(
+                    str(i)
+                ):
+                    st.session_state.level_selected = i
 
-    st.write(
-        f"Wrong : {20 - st.session_state.score}"
-    )
+        # -----------------------------
+        # SHOW SUITS
+        # -----------------------------
 
-    accuracy = (
-        st.session_state.score / 20
-    ) * 100
+        if st.session_state.level_selected:
 
-    st.write(
-        f"Accuracy : {accuracy:.0f}%"
-    )
+            level = st.session_state.level_selected
 
-    if st.button(
-        "Back To Menu"
-    ):
+            st.write(
+                f"Level Selected : {level}"
+            )
 
-        st.session_state.page = "menu"
+            c1, c2, c3, c4, c5 = st.columns(5)
 
-        st.session_state.question = 1
-        st.session_state.score = 0
-        st.session_state.answered = False
-        st.session_state.temp_bid = None
+            suit_map = {
+                "C": "♣",
+                "D": "♦",
+                "H": "♥",
+                "S": "♠",
+                "N": "NT",
+            }
 
-        st.rerun()
+            for key, col in zip(
+                suit_map.keys(),
+                [c1, c2, c3, c4, c5]
+            ):
+
+                with col:
+
+                    if st.button(
+                        suit_map[key],
+                        key=f"{level}{key}"
+                    ):
+
+                        bid = f"{level}{key}"
+
+                        st.session_state.user_answer = bid
+
+                        if bid == correct_answer:
+
+                            st.session_state.result = (
+                                "✅ Correct"
+                            )
+
+                            st.session_state.score += 1
+
+                        else:
+
+                            st.session_state.result = (
+                                "❌ Incorrect"
