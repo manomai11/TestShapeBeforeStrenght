@@ -11,59 +11,67 @@ BALANCED_SHAPES = {
     "3325","3235","2335"
 }
 
-# ฟังก์ชันจำลองสุ่มแจกหน้าไพ่ตาม Shape และ HCP
+def calculate_hcp(hand):
+    hcp = 0
+    values = {"A": 4, "K": 3, "Q": 2, "J": 1}
+    for suit in hand:
+        for card in hand[suit]:
+            rank = card[0]
+            if rank in values:
+                hcp += values[rank]
+    return hcp
+
 def generate_cards_from_shape(shape_str):
     ranks = ["A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2"]
-    # สุ่มแจกไพ่ตามความยาวแต่ละชุด (♠, ♥, ♦, ♣)
     lengths = [int(x) for x in shape_str]
-    suits = ["♠", "♥", "♦", "♣"]
+    suit_keys = ["♠", "♥", "♦", "♣"]
     deck = [r+s for s in ['s','h','d','c'] for r in ranks]
     random.shuffle(deck)
     
     hand = {"♠": [], "♥": [], "♦": [], "♣": []}
-    suit_keys = ["♠", "♥", "♦", "♣"]
-    
-    # จัดกลุ่มไพ่จำลองตามความยาว Shape
     available_cards = deck.copy()
     for idx, slen in enumerate(lengths):
         s_name = suit_keys[idx]
         chosen = available_cards[:slen]
         available_cards = available_cards[slen:]
-        # เรียงลำดับแต้มคร่าวๆ
         hand[s_name] = sorted(chosen, key=lambda x: ranks.index(x[0]))
     return hand
 
 def generate_random_hand():
     while True:
-        s = random.randint(0, 6)
-        h = random.randint(0, 6 - s)
+        s = random.randint(0, 5)
+        h = random.randint(0, 5 - s)
         d = random.randint(0, 13 - s - h)
         c = 13 - s - h - d
         if max(s, h, d, c) <= 7:
-            shape = f"{s}{h}{d}{c}"
+            shape_str = f"{s}{h}{d}{c}"
             break
-    hcp = random.randint(0, 22)
-    return hcp, shape
+            
+    cards = generate_cards_from_shape(shape_str)
+    hcp = calculate_hcp(cards)
+    actual_shape = f"{len(cards['♠'])}{len(cards['♥'])}{len(cards['♦'])}{len(cards['♣']) }"
+    return hcp, actual_shape.strip(), cards
 
 def generate_practice_questions(mode, total=20):
     questions = []
     seen = set()
     while len(questions) < total:
-        hcp, shape = generate_random_hand()
+        hcp, shape, cards = generate_random_hand()
         is_bal = shape in BALANCED_SHAPES
         
-        # กำหนดคำตอบตาม Mode
+        # ตัวอย่างการประเมินคำตอบตาม Rule เบื้องต้น
         if mode == "resp_1c":
             ans = "1D" if hcp >= 6 else "PASS"
         elif mode == "resp_1d":
             ans = "1H" if hcp >= 6 else "PASS"
+        elif mode == "resp_1h":
+            ans = "1S" if hcp >= 6 else "1N"
         else:
             ans = "1N"
             
         key = f"{hcp}_{shape}"
         if key not in seen:
             seen.add(key)
-            cards = generate_cards_from_shape(shape)
             questions.append({
                 "hcp": hcp,
                 "shape": shape,
