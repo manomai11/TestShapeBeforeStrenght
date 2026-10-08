@@ -208,4 +208,3 @@ elif st.session_state.page == "opening":
     st.success(
         "ระบบพร้อมแล้ว ✅"
     )
-`
