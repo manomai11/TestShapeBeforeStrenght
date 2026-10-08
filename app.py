@@ -296,3 +296,4 @@ elif st.session_state.page == "opening":
 
                             st.session_state.result = (
                                 "❌ Incorrect"
+                            )
