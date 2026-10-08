@@ -3,6 +3,7 @@ import engine
 
 st.set_page_config(page_title="Shape Before Strength", layout="wide")
 
+# ปรับสไตล์ CSS ให้ปุ่มใน Bidding Box ชิดติดกันกระชับ และกล่องไพ่สวยงาม
 st.markdown("""
 <style>
 .bbo-card-box {
@@ -79,7 +80,7 @@ elif st.session_state.page == "menu":
                 st.session_state.level_selected = None
                 st.rerun()
 
-# ================= PRACTICE SCREEN =================
+# ================= PRACTICE SCREEN (3 ZONES LAYOUT) =================
 elif st.session_state.page == "practice":
 
     mode_titles = {
@@ -91,6 +92,7 @@ elif st.session_state.page == "practice":
         "resp_1n": "Response to 1N: Partner opened 1N, what is your bid?",
     }
 
+    # หัวข้อ A อยู่ด้านบนสุด
     st.markdown(f"### 🏆 {mode_titles.get(st.session_state.practice_mode)}")
     st.markdown("---")
 
@@ -101,21 +103,29 @@ elif st.session_state.page == "practice":
     correct_answer = q_data["correct_answer"]
     rule_desc = q_data["rule_description"]
 
-    col_left, col_right = st.columns([1, 2])
+    # แบ่งหน้าจอออกเป็น 3 โซน (Zone A, B, C)
+    zone_a, zone_b, zone_c = st.columns([1, 2, 1])
 
-    with col_left:
-        if st.button("◀ Back to Menu"):
+    # -----------------------------------------
+    # ZONE A: เมนูควบคุม, คะแนน, และข้อมูล Shape/HCP
+    # -----------------------------------------
+    with zone_a:
+        if st.button("◀ Back to Menu", use_container_width=True):
             st.session_state.page = "menu"
             st.rerun()
         
+        st.markdown("")
         st.markdown(f"**Question:** {st.session_state.question} / 20")
         st.markdown(f"**Score:** {st.session_state.score}")
         st.markdown(f"👤 **Player:** {st.session_state.player_name}")
         st.markdown("---")
-        st.markdown(f"**Shape:** `{shape}` (S-H-D-C)")
+        st.markdown(f"**Shape:** `{shape}`")
         st.markdown(f"**HCP:** `{hcp}`")
 
-    with col_right:
+    # -----------------------------------------
+    # ZONE B: โต๊ะไพ่, Mission, และ Bidding Box แบบปุ่มชิดติดกัน
+    # -----------------------------------------
+    with zone_b:
         if not st.session_state.answered:
             st.info(f"💡 **Mission:** {mode_titles.get(st.session_state.practice_mode)}")
         else:
@@ -124,7 +134,7 @@ elif st.session_state.page == "practice":
             else:
                 st.error(f"**{st.session_state.result}** | Your: {st.session_state.user_answer} | Correct: **{correct_answer}**\n\n📖 *{rule_desc}*")
 
-        # แสดงหน้าไพ่ (ดึงค่าจากไพ่จริงแบบไม่ซ้ำ)
+        # แสดงสำรับไพ่
         st.markdown("##### Your Hand (South)")
         s_text = " ".join([c[0] for c in cards["♠"]]) or "-"
         h_text = " ".join([c[0] for c in cards["♥"]]) or "-"
@@ -142,9 +152,10 @@ elif st.session_state.page == "practice":
 
         st.markdown("---")
 
+        # Bidding Box (ปรับปุ่มให้ชิดติดกัน ไม่เว้นช่องว่างยาว)
         if not st.session_state.answered:
             st.markdown("#### Bidding Box")
-            if st.button("PASS", key="btn_pass"):
+            if st.button("PASS", key="btn_pass", use_container_width=True):
                 st.session_state.user_answer = "PASS"
                 if st.session_state.user_answer == correct_answer:
                     st.session_state.result = "✅ Correct"
@@ -154,19 +165,23 @@ elif st.session_state.page == "practice":
                 st.session_state.answered = True
                 st.rerun()
 
+            st.write("Select Level:")
+            # ใช้คอลัมน์แคบติดกัน 7 ช่องสำหรับเลข 1-7
             lvl_cols = st.columns(7)
             for i in range(1, 8):
                 with lvl_cols[i - 1]:
-                    if st.button(str(i), key=f"lvl_{i}"):
+                    if st.button(str(i), key=f"lvl_{i}", use_container_width=True):
                         st.session_state.level_selected = i
 
             if st.session_state.level_selected:
                 level = st.session_state.level_selected
+                st.markdown(f"**Level:** {level}")
+                # คอลัมน์ 5 ช่องชิดติดกันสำหรับดอกและ NT
                 suit_cols = st.columns(5)
                 suit_map = {"C": "♣", "D": "♦", "H": "♥", "S": "♠", "N": "NT"}
                 for idx, (key, symbol) in enumerate(suit_map.items()):
                     with suit_cols[idx]:
-                        if st.button(f"{level}{symbol}", key=f"suit_{level}_{key}"):
+                        if st.button(symbol, key=f"suit_{level}_{key}", use_container_width=True):
                             bid = f"{level}{key}"
                             st.session_state.user_answer = bid
                             if bid == correct_answer:
@@ -178,7 +193,7 @@ elif st.session_state.page == "practice":
                             st.rerun()
         else:
             if st.session_state.question < 20:
-                if st.button("▶ Next Question", type="primary"):
+                if st.button("▶ Next Question", type="primary", use_container_width=True):
                     st.session_state.answered = False
                     st.session_state.user_answer = ""
                     st.session_state.result = ""
@@ -187,6 +202,15 @@ elif st.session_state.page == "practice":
                     st.rerun()
             else:
                 st.success(f"🎉 Practice Completed! Final Score: {st.session_state.score} / 20")
-                if st.button("Back to Menu"):
+                if st.button("Back to Menu", use_container_width=True):
                     st.session_state.page = "menu"
                     st.rerun()
+
+    # -----------------------------------------
+    # ZONE C: พื้นที่ว่างสำรอง (สำหรับใส่วิเคราะห์เพิ่มเติม, สถิติ, หรือบันทึกย่อในอนาคต)
+    # -----------------------------------------
+    with zone_c:
+        st.markdown("##### 📌 Notes & Stats")
+        st.info("โซนนี้เตรียมไว้สำหรับใส่ข้อมูลสถิติ หรือคำใบ้กฎเพิ่มเติมในอนาคตครับ")
+        st.markdown(f"**Mode:** `{st.session_state.practice_mode}`")
+        st.markdown(f"**Balanced:** `{q_data['balanced']}`")
