@@ -23,11 +23,15 @@ def calculate_hcp(hand):
 
 def generate_unique_hand():
     ranks = ["A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2"]
-    suits = ['s', 'h', 'd', 'c']
-    deck = [r+s for s in suits for r in ranks]
+    suits = ['♠', '♥', '♦', '♣']
+    deck = [r + s for s in suits for r in ranks]
     
     while True:
         random.shuffle(deck)
+        # สุ่มแบ่งไพ่ 13 ใบให้ครบ 4 ชุดโดยไม่ให้ซ้ำกัน
+        hand_cards = {"♠": [], "♥": [], "♦": [], "♣": []}
+        
+        # แจกไพ่แบบสุ่มความยาวแต่รวมกันได้ 13 ใบเป๊ะ
         s_len = random.randint(1, 9)
         h_len = random.randint(1, 9)
         d_len = random.randint(1, 9)
@@ -35,17 +39,36 @@ def generate_unique_hand():
         
         if 0 <= c_len <= 9:
             lengths = {"♠": s_len, "♥": h_len, "♦": d_len, "♣": c_len}
-            hand = {"♠": [], "♥": [], "♦": [], "♣": []}
             deck_copy = deck.copy()
-            
+            valid = True
             for suit, slen in lengths.items():
                 if slen > 0:
                     cards = [deck_copy.pop(0) for _ in range(slen)]
-                    hand[suit] = sorted(cards, key=lambda x: ranks.index(x[0]))
+                    hand_cards[suit] = sorted(cards, key=lambda x: ranks.index(x[0]))
             
-            shape_str = f"{len(hand['♠'])}{len(hand['♥'])}{len(hand['♦'])}{len(hand['♣'])}"
-            hcp = calculate_hcp(hand)
-            return hcp, shape_str, hand
+            # ตรวจสอบความถูกต้องว่าไพ่ครบ 13 ใบและไม่มีใบซ้ำ
+            all_cards = [c for suit in hand_cards.values() for c in suit]
+            if len(all_cards) == 13 and len(set(all_cards)) == 13:
+                shape_str = f"{len(hand_cards['♠'])}{len(hand_cards['♥'])}{len(hand_cards['♦'])}{len(hand_cards['♣'])}"
+                
+                # แปลงรูปแบบให้ match กับระบบเช็คค่าไพ่ (ตัดสัญลักษณ์ชุดออกเหลือแค่ตัวอักษร rank สำหรับเช็คเงื่อนไข หรือใช้ตามโครงสร้างเดิม)
+                cleaned_hand = {
+                    "♠": [c[0] for c in hand_cards["♠"]],
+                    "♥": [c[0] for c in hand_cards["♥"]],
+                    "♦": [c[0] for c in hand_cards["♦"]],
+                    "♣": [c[0] for c in hand_cards["♣"]]
+                }
+                
+                # เก็บแบบแสดงผลเต็มใบไว้โชว์หน้าเว็บ (ถ้าตัวแปร cards หน้าเว็บต้องการแบบมีดอกด้วย)
+                display_hand = {
+                    "♠": hand_cards["♠"],
+                    "♥": hand_cards["♥"],
+                    "♦": hand_cards["♦"],
+                    "♣": hand_cards["♣"]
+                }
+                
+                hcp = calculate_hcp(cleaned_hand)
+                return hcp, shape_str, display_hand
 
 def has_honor(card_list, honors):
     return any(c[0] in honors for c in card_list)
