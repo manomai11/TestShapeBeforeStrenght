@@ -11,57 +11,64 @@ BALANCED_SHAPES = {
     "3325","3235","2335"
 }
 
-SPECIAL_D4C5 = {
-    "4045", "0445", "3145", "1345", "2245"
-}
+# ฟังก์ชันจำลองสุ่มแจกหน้าไพ่ตาม Shape และ HCP
+def generate_cards_from_shape(shape_str):
+    ranks = ["A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2"]
+    # สุ่มแจกไพ่ตามความยาวแต่ละชุด (♠, ♥, ♦, ♣)
+    lengths = [int(x) for x in shape_str]
+    suits = ["♠", "♥", "♦", "♣"]
+    deck = [r+s for s in ['s','h','d','c'] for r in ranks]
+    random.shuffle(deck)
+    
+    hand = {"♠": [], "♥": [], "♦": [], "♣": []}
+    suit_keys = ["♠", "♥", "♦", "♣"]
+    
+    # จัดกลุ่มไพ่จำลองตามความยาว Shape
+    available_cards = deck.copy()
+    for idx, slen in enumerate(lengths):
+        s_name = suit_keys[idx]
+        chosen = available_cards[:slen]
+        available_cards = available_cards[slen:]
+        # เรียงลำดับแต้มคร่าวๆ
+        hand[s_name] = sorted(chosen, key=lambda x: ranks.index(x[0]))
+    return hand
 
-# ฟังก์ชันสุ่มแจกไพ่ 1 มือ (จำลอง HCP และ Shape 4 ตัวรวมกันได้ 13)
 def generate_random_hand():
-    # สุ่ม Shape ให้ผลรวมความยาวไพ่เท่ากับ 13
     while True:
-        s = random.randint(0, 7)
-        h = random.randint(0, 7 - s)
+        s = random.randint(0, 6)
+        h = random.randint(0, 6 - s)
         d = random.randint(0, 13 - s - h)
         c = 13 - s - h - d
-        if max(s, h, d, c) <= 9: # ป้องกันแจกไพ่กองเดียวเกินจริง
+        if max(s, h, d, c) <= 7:
             shape = f"{s}{h}{d}{c}"
             break
-            
-    # สุ่ม HCP ตั้งแต่ 0 ถึง 25
-    hcp = random.randint(0, 25)
+    hcp = random.randint(0, 22)
     return hcp, shape
 
-# สร้างโจทย์ 20 ข้อที่ไม่ซ้ำกันสำหรับแต่ละโหมด
 def generate_practice_questions(mode, total=20):
     questions = []
     seen = set()
-    
     while len(questions) < total:
         hcp, shape = generate_random_hand()
         is_bal = shape in BALANCED_SHAPES
         
-        # หาคำตอบที่ถูกต้องตาม Mode ที่เลือก
+        # กำหนดคำตอบตาม Mode
         if mode == "resp_1c":
-            ans = response_1c(hcp, shape, balanced=is_bal)
+            ans = "1D" if hcp >= 6 else "PASS"
         elif mode == "resp_1d":
-            ans = response_1d(hcp, shape, balanced=is_bal)
-        elif mode == "opening":
-            # ตัวอย่างเปิด (สามารถปรับเรียกฟังก์ชัน Opening ของคุณได้)
-            ans = "1C" if hcp >= 12 else "PASS"
+            ans = "1H" if hcp >= 6 else "PASS"
         else:
             ans = "1N"
             
-        # กรองเอาเฉพาะมือที่มีคำตอบสมเหตุสมผล หรือสุ่มได้หลากหลาย
         key = f"{hcp}_{shape}"
         if key not in seen:
             seen.add(key)
+            cards = generate_cards_from_shape(shape)
             questions.append({
                 "hcp": hcp,
                 "shape": shape,
                 "balanced": is_bal,
+                "cards": cards,
                 "correct_answer": ans
             })
-            
     return questions
-
-# (ฟังก์ชัน response_1c และ response_1d ที่มีอยู่เดิมของคุณ ใส่ไว้ที่นี่เช่นเดิม)
