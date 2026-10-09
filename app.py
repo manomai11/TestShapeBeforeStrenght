@@ -397,7 +397,7 @@ elif st.session_state.page in [
                     with suit_cols[i]:
                         final_bid = f"{current_level}{s_code}"
                         if st.button(label, use_container_width=True, key=f"suit_{s_code}_{st.session_state.question}"):
-                            process_answer(final_bid, correct_answer)
+                            process_answer(final_bid, correct_answer[0])
         else:
             st.markdown(f"### {st.session_state.result}")
             st.write(f"**ตอบ:** `{st.session_state.user_answer}` | **ที่ถูก:** `{correct_answer[0]}`")
@@ -405,7 +405,7 @@ elif st.session_state.page in [
             with st.expander("💡 เหตุผลและหลักการประมูล", expanded=True):
                 st.markdown(f"""
                 - **แต้มรวม (HCP):** {hcp} แต้ม | **Shape:** {shape}
-                - อิงตามกฎ Core Engine และลำดับความสำคัญ (Shape Before Strength) คำตอบคือ **{correct_answer[1]}**
+                - เหตุผล (Shape Before Strength) คำตอบคือ **{correct_answer[1]}**
                 """)
 
             if st.session_state.question < 20:
