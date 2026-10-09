@@ -260,7 +260,7 @@ def response_1nt(hcp, shape):
         if h >= 5 and s == 4:
             return "2C","GF 10+ M5+ and oM4"
 
-    # 8-9 M55 / M5m5,"Transfer H weak or GF or m55"
+    # 8-9 M55 / M5m5
 
     if 8 <= hcp <= 9:
 
@@ -356,13 +356,13 @@ def response_1nt(hcp, shape):
     # 3C
 
     if 13 <= hcap <= 15 and (s >= 3 or h >= 3) and m < 6:
-    return "3C", "ASk M with no M5 not interest slam"
+    return "3C","ASk M with no M5 not interest slam"
 
 elif 11 <= hcap <= 12 and (s >= 3 or h >= 3) and m < 7:
-    return "3C", "ASk M with no M5 not interest slam"
+    return "3C","ASk M with no M5 not interest slam"
 
 elif hcap == 10 and (s >= 3 or h >= 3) and m == 6:
-    return "3C", "ASk M with no M5 not interest slam"
+    return "3C","ASk M with no M5 not interest slam"
 
 # D route
 
@@ -510,7 +510,7 @@ def response_1major(
             6 <= hcp <= 9
             and trump >= 5
         ):
-            return "4H" if opening == "1H" else "4S","Non Force M4+"
+            return ("4H" if opening == "1H" else "4S"),"Non Force M4+"
 
         # Rule 10
         # 6-9 M4+ with short
@@ -519,7 +519,7 @@ def response_1major(
             6 <= hcp <= 9
             and has_short
         ):
-            return "4H" if opening == "1H" else "4S","Non Force M4+ "
+            return ("4H" if opening == "1H" else "4S"),"Non Force M4+ "
 
         # Rule 11
         # 4-7 M4 not 4333 and has Ace
@@ -529,7 +529,7 @@ def response_1major(
             and shape != "4333"
             and has_ace
         ):
-            return "3H" if opening == "1H" else "3S","Blocking M4+ 4-7 hcp  ถ้ามี4-5แต้มต้องมีเอ"
+            return ("3H" if opening == "1H" else "3S"),"Blocking M4+ 4-7 hcp  ถ้ามี4-5แต้มต้องมีเอ"
 
         # Rule 12
         # 0-5 M4 not 4333
@@ -545,7 +545,7 @@ def response_1major(
         if shape == "4333":
 
             if hcp >= 5:
-                return "2H" if opening == "1H" else "2S","constructive raised"
+                return ("2H" if opening == "1H" else "2S"),"constructive raised"
 
             return "PASS","no good bid"
 
