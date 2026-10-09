@@ -172,18 +172,18 @@ def opening_bid(hcp, shape):
         if 17 <= hcp <= 19:
 
             if s >= 5:
-                return "1S"
+                return "1S","11+ S5"
 
             if h >= 5:
-                return "1H"
+                return "1H","11+ H5"
 
-            return "1C"
+            return "1C","big NT 17-19 no M5 open 1C"
 
         if 14 <= hcp <= 16:
-            return "1N"
+            return "1N","strong NT 14-16 open 1N"
 
         if 11 <= hcp <= 13:
-            return "1C"
+            return "1C","weak NT 11-13 open 1C"
 
     # ----------------------------
     # MAJORS
@@ -209,10 +209,10 @@ def opening_bid(hcp, shape):
     # ----------------------------
 
     if 11 <= hcp <= 20 and shape in ["1444", "4144", "4441"]:
-        return "1D"
+        return "1D","11+ D4+ unbalanced"
 
     if 11 <= hcp <= 20 and shape == "4414":
-        return "1C"
+        return "1C","11+ C4+ unbalanced"
     # ----------------------------
     # SPECIAL D4C5
     # ----------------------------
@@ -220,10 +220,10 @@ def opening_bid(hcp, shape):
     if shape in SPECIAL_D4C5:
 
         if 11 <= hcp <= 15:
-            return "1D"
+            return "1D","11+ D4+ unbalanced"
 
         if hcp >= 16:
-            return "1C"
+            return "1C","11-15 D4C5 เปิด 1D เตรียมรีบิด 2C"
 
     # ----------------------------
     # LONGER MINOR
@@ -232,11 +232,11 @@ def opening_bid(hcp, shape):
     if 11 <= hcp <= 20:
 
         if c > d:
-            return "1C"
+            return "1C","11+ C4+ unbalanced"
 
-        return "1D"
+        return "1D","11+ D4+ unbalanced"
 
-    return "PASS"
+    return "PASS","0-10 no good bid"
 
 
 # ==========================================
