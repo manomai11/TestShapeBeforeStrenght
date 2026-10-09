@@ -165,7 +165,7 @@ elif st.session_state.page == "menu":
 
         st.rerun()
 
-     if st.button(
+    if st.button(
          "Response 1NT",
         use_container_width=True
     ):
