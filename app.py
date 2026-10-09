@@ -71,7 +71,9 @@ if st.session_state.page == "login":
 
         with st.form("login_form"):
 
-            name = st.text_input("ชื่อผู้เล่น")
+            name = st.text_input(
+                "ชื่อผู้เล่น"
+            )
 
             submitted = st.form_submit_button(
                 "🚀 เริ่มฝึก"
@@ -146,10 +148,6 @@ elif st.session_state.page == "menu":
 
 elif st.session_state.page == "opening":
 
-    # ----------------------------------
-    # DEMO QUESTION
-    # ----------------------------------
-
     hcp = 13
     shape = "5332"
 
@@ -160,9 +158,9 @@ elif st.session_state.page == "opening":
 
     left, middle, right = st.columns([1, 3, 1])
 
-    # ----------------------------------
+    # =================================================
     # LEFT
-    # ----------------------------------
+    # =================================================
 
     with left:
 
@@ -171,24 +169,21 @@ elif st.session_state.page == "opening":
             st.rerun()
 
         st.markdown("### Score")
-
         st.write(st.session_state.score)
 
         st.markdown("### Question")
-
         st.write(
-            f"{st.session_state.question} / 20"
+            f"{st.session_state.question}/20"
         )
 
         st.markdown("### Player")
-
         st.write(
             st.session_state.player_name
         )
 
-    # ----------------------------------
+    # =================================================
     # CENTER
-    # ----------------------------------
+    # =================================================
 
     with middle:
 
@@ -196,10 +191,9 @@ elif st.session_state.page == "opening":
 
         st.write("You Open")
 
-        # ไพ่
         st.markdown(
             """
-<div style="font-size:24px;line-height:1.4">
+<div style="font-size:24px; line-height:1.3">
 
 ♠ AQ852<br>
 ♥ K73<br>
@@ -213,19 +207,24 @@ elif st.session_state.page == "opening":
 
         st.divider()
 
-        # ------------------------------
+        # =============================================
         # QUESTION MODE
-        # ------------------------------
+        # =============================================
 
         if not st.session_state.answered:
 
             st.subheader("Bidding Box")
 
-            top = st.columns(
+            bid_cols = st.columns(
                 [2,1,1,1,1,1,1,1,2]
             )
 
-            if top[1].button("PASS"):
+            # PASS
+
+            if bid_cols[1].button(
+                "PASS",
+                key="pass_btn"
+            ):
 
                 bid = "PASS"
 
@@ -234,6 +233,7 @@ elif st.session_state.page == "opening":
                 if bid == correct_answer:
 
                     st.session_state.result = "✅ Correct"
+
                     st.session_state.score += 1
 
                 else:
@@ -241,19 +241,20 @@ elif st.session_state.page == "opening":
                     st.session_state.result = "❌ Incorrect"
 
                 st.session_state.answered = True
+
                 st.rerun()
 
-            lv_cols = st.columns(
-                [2,1,1,1,1,1,1,1,2]
-            )
+            # LEVELS
 
             for level in range(1, 8):
 
-                if lv_cols[level].button(
+                if bid_cols[level + 1].button(
                     str(level),
-                    key=f"lvl_{level}"
+                    key=f"level_{level}"
                 ):
                     st.session_state.level_selected = level
+
+            # SUITS
 
             if st.session_state.level_selected:
 
@@ -266,10 +267,144 @@ elif st.session_state.page == "opening":
                 )
 
                 suit_map = {
-                        "C": "♣",
-                        "D": "♦",
-                        "H": "♥",
-                        "S": "♠",
-                        "N": "NT"
+                    "C": "♣",
+                    "D": "♦",
+                    "H": "♥",
+                    "S": "♠",
+                    "N": "NT"
                 }
-                    
+
+                positions = [1,2,3,4,5]
+
+                for key, pos in zip(
+                    suit_map.keys(),
+                    positions
+                ):
+
+                    if suit_cols[pos].button(
+                        suit_map[key],
+                        key=f"{level}_{key}"
+                    ):
+
+                        bid = f"{level}{key}"
+
+                        st.session_state.user_answer = bid
+
+                        if bid == correct_answer:
+
+                            st.session_state.result = "✅ Correct"
+
+                            st.session_state.score += 1
+
+                        else:
+
+                            st.session_state.result = "❌ Incorrect"
+
+                        st.session_state.answered = True
+
+                        st.rerun()
+
+        # =============================================
+        # RESULT MODE
+        # =============================================
+
+        else:
+
+            st.markdown(
+                f"## {st.session_state.result}"
+            )
+
+            st.write(
+                f"Your Answer : {st.session_state.user_answer}"
+            )
+
+            st.write(
+                f"Correct Answer : {correct_answer}"
+            )
+
+            st.info(
+f"""
+HCP = {hcp}
+
+Shape = {shape}
+
+Opening = {correct_answer}
+"""
+            )
+
+            if st.button(
+                "Next Question",
+                use_container_width=True
+            ):
+
+                st.session_state.question += 1
+
+                st.session_state.answered = False
+                st.session_state.level_selected = None
+
+                if (
+                    st.session_state.question > 20
+                ):
+                    st.session_state.page = "summary"
+
+                st.rerun()
+
+    # =================================================
+    # RIGHT
+    # =================================================
+
+    with right:
+
+        st.subheader("Opening Notes")
+
+        st.info(
+"""
+11-13 Balanced → 1C
+
+14-16 Balanced → 1NT
+
+17-19 Balanced
+No M5 → 1C
+
+20-22 Balanced → 2NT
+"""
+        )
+
+# =====================================================
+# SUMMARY
+# =====================================================
+
+elif st.session_state.page == "summary":
+
+    st.title("Quiz Complete")
+
+    st.write(
+        f"Player : {st.session_state.player_name}"
+    )
+
+    st.write(
+        f"Correct : {st.session_state.score}"
+    )
+
+    st.write(
+        f"Wrong : {20 - st.session_state.score}"
+    )
+
+    pct = (
+        st.session_state.score / 20
+    ) * 100
+
+    st.write(
+        f"Accuracy : {pct:.0f}%"
+    )
+
+    if st.button("Back To Menu"):
+
+        st.session_state.page = "menu"
+
+        st.session_state.question = 1
+        st.session_state.score = 0
+        st.session_state.answered = False
+        st.session_state.level_selected = None
+
+        st.rerun()
