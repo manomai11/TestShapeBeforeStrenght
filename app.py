@@ -8,7 +8,48 @@ from engine import (
     response_1d,
     response_1c,
 )
+import streamlit as st
 
+# ตั้งค่าหน้าจอเล็กน้อย (ถ้ายังไม่มี)
+# st.set_page_config(page_title="Bridge Master", page_icon="♠️", layout="centered")
+
+# ใช้ Container ตกแต่งกรอบให้ดูสะอาดตา
+with st.container():
+    st.markdown("<h1 style='text-align: center; color: #1E3A8A;'>♠️ Bridge Master Engine</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; font-size: 1.1rem; color: #4B5563;'>ยกระดับการประมูลไพ่สากลด้วยระบบตรรกะอัจฉริยะ ฝึกฝนตามกฎจริง แม่นยำทุกสถานการณ์</p>", unsafe_allow_html=True)
+    
+    st.divider()
+
+    # ส่วนรับข้อมูลผู้ใช้ (Login / Enter Name)
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.subheader("ยินดีต้อนรับผู้เล่น")
+        username = st.text_input("กรอกชื่อของคุณเพื่อเริ่มต้น:", placeholder="เช่น Player_01", key="input_username")
+        
+        # เลือกระดับความยากหรือโหมดเริ่มต้น (ถ้ามี)
+        mode = st.selectbox("เลือกโหมดการฝึกซ้อม:", ["Opening Bids", "Response 1NT", "Advanced Relay"])
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        # ปุ่มกดเข้าสู่ระบบ / เริ่มต้นใช้งาน
+        if st.button("🚀 เข้าสู่สนามประมูล", use_container_width=True):
+            if username.strip() != "":
+                st.session_state.logged_in = True
+                st.session_state.username = username
+                st.session_state.page = "opening"  # หรือหน้าแรกของเกม
+                st.rerun()
+            else:
+                st.warning("⚠️ กรุณากรอกชื่อก่อนเข้าสู่ระบบครับ")
+
+    # ฟีเจอร์ย่อยด้านล่างดึงดูดสายตา
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.markdown("🎯 **Core Engine**<br><span style='font-size: 0.9rem; color: #6B7280;'>ประมวลผลแม่นยำตามกฎ 5 ข้อหลัก</span>", unsafe_allow_html=True)
+    with c2:
+        st.markdown("📊 **Instant Feedback**<br><span style='font-size: 0.9ynth;'>ตรวจคำตอบทันที รู้ผลไว เข้าใจง่าย</span>", unsafe_allow_html=True)
+    with c3:
+        st.markdown("⚡ **Shape First**<br><span style='font-size: 0.9rem; color: #6B7280;'>ฝึกมองทรงไพ่ก่อนนับแต้มจริง</span>", unsafe_allow_html=True)
 # ==================================================
 # CARD ENGINE
 # ==================================================
