@@ -377,7 +377,7 @@ f"""
 
             st.session_state.user_answer = user_choice
 
-            if choice == correct_answer:
+            if user_choice == correct_answer:
 
                 st.session_state.result = "✅ Correct"
 
