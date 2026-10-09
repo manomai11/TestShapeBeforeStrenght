@@ -155,6 +155,43 @@ def start_new_practice(page_name):
     st.session_state.current_hand_data = get_next_question_data(page_name)
     st.rerun()
 
+# ฟังก์ชันแจกจ่ายคำคม/เพลงที่แตกต่างกันตามโหมด
+def get_cheat_code_quote(mode):
+    quotes = {
+        "opening": [
+            "🎵 *'ก้าวแรกสำคัญที่สุด เปิดให้ถูกทรง ไพ่ในมือจะนำทาง'*",
+            "💡 **Opening Wisdom:** เสียงแรกที่เปล่งออกไป คือเข็มทิศนำทางของคู่หู",
+            "🔥 'อย่ากลัวที่จะเปิด เมื่อทรงไพ่ในมือคุณกระซิบว่าพร้อม'"
+        ],
+        "response_1nt": [
+            "🎵 *'1NT คือความนิ่งสงบ สยบความเคลื่อนไหวทั้งหมดบนโต๊ะ'*",
+            "💡 **1NT Rule:** สมดุลคือหัวใจ ไร้ความโลภคือชัยชนะ",
+            "🔥 'เมื่อ partner เปิด 1NT โลกทั้งใบก็อยู่ในกำมือ'"
+        ],
+        "response_1c": [
+            "🎵 *'Club เล็กๆ แต่พลังยิ่งใหญ่ จุดประกายความหวัง'*",
+            "💡 **1C Mindset:** ก้าวเล็กที่มั่น and safe คือทางสู่เกมนิรันดร์",
+            "🔥 'คลับที่เรียบง่าย ซ่อนเร้นพลังมหาศาลไว้เสมอ'"
+        ],
+        "response_1d": [
+            "🎵 *'Diamond เพชรเม็ดงามที่รอการเจียระไน'*",
+            "💡 **1D Focus:** อดทนรอจังหวะ ค้นหา Fit ให้เจอ",
+            "🔥 'เพชรแท้ดูที่ทรง ไม่ใช่แค่แสงสะท้อนของแต้ม'"
+        ],
+        "response_1h": [
+            "🎵 *'Hearts หัวใจแห่งเกมบริดจ์ รักใครให้บอก Spades หรือ Hearts'*",
+            "💡 **Major First:** หัวใจสำคัญคือการปกป้องแต้มสูงสุด",
+            "🔥 'เมื่อใจตรงกัน (Fit) เกมไหนก็ไม่หวั่น'"
+        ],
+        "response_1s": [
+            "🎵 *'Spades เจ้าแห่งโพดำ สูงสุดย่อมเป็นราชา'*",
+            "💡 **King of Suits:** โพดำคือเกียรติยศและอำนาจการตัดสินใจ",
+            "🔥 'เหนือกว่าด้วยทรง เหนือชั้นด้วยโพดำ'"
+        ]
+    }
+    mode_quotes = quotes.get(mode, ["🎵 *'Bridge is an art of logic'*"])
+    return random.choice(mode_quotes)
+
 
 # ==================================================
 # 1. LOGIN SCREEN
@@ -268,7 +305,6 @@ elif st.session_state.page in [
     }
     current_topic_name = titles.get(st.session_state.page, "Bridge Practice")
 
-    # จัดเลย์เอาต์ 3 ส่วนตามตารางออกแบบ (ปรับช่องว่างให้กระชับขึ้น)
     col_q1, col_q2, col_q3 = st.columns([1, 2.8, 1.2])
 
     # ----------------------------------
@@ -284,14 +320,12 @@ elif st.session_state.page in [
         st.metric(label="ข้อปัจจุบัน", value=f"{st.session_state.question} / 20")
 
     # ----------------------------------
-    # QUIZ SECTION 2: พื้นที่ตรงกลาง (ไพ่ใหญ่ชัดเจน + Bidding Box กรองปุ่ม)
+    # QUIZ SECTION 2: พื้นที่ตรงกลาง
     # ----------------------------------
     with col_q2:
-        # ใช้หัวข้อสั้นลงเพื่อประหยัดพื้นที่ด้านบน
         st.markdown(f"### 📚 {current_topic_name} (ผู้เล่น: {st.session_state.player_name})")
         st.markdown("---")
 
-        # A: ขยายไพ่ให้ใหญ่และชัดเจน ไม่มีตัวหนังสือ Spades รบกวนสายตา
         s_str = " ".join(hand["S"]) if hand["S"] else "-"
         h_str = " ".join(hand["H"]) if hand["H"] else "-"
         d_str = " ".join(hand["D"]) if hand["D"] else "-"
@@ -319,15 +353,9 @@ elif st.session_state.page in [
             if level_key not in st.session_state:
                 st.session_state[level_key] = None
 
-            # C: กรองซ่อนปุ่มบิดที่ต่ำเกินไปตามโหมด หรือซ่อนปุ่มที่ไม่จำเป็นออกเพื่อความสะอาด
-            page_mode = st.session_state.page
             allowed_levels = ["1", "2", "3", "4", "5", "6", "7"]
             
-            # ตัวอย่างการกรองเบื้องต้น (เช่น Response 1NT ขั้นต่ำมักเริ่มที่ระดับ 2 หรือตามกฎ)
-            # คุณสามารถปรับแก้เงื่อนไขตรงนี้เพิ่มเติมได้ตามต้องการครับ
-            
-            # แถวเลือกเลเวล (1-7) รวมกับปุ่มพิเศษ PASS ในแถวเดียวกันเพื่อประหยัดพื้นที่
-            cols_box = st.columns(8) # PASS + 1ถึง7
+            cols_box = st.columns(8)
             
             with cols_box[0]:
                 if st.button("PASS", use_container_width=True, key=f"pass_{st.session_state.question}"):
@@ -357,7 +385,6 @@ elif st.session_state.page in [
                         if st.button(label, use_container_width=True, key=f"suit_{s_code}_{st.session_state.question}"):
                             process_answer(final_bid, correct_answer)
         else:
-            # หลังกดตอบ: แสดงผลลัพธ์และปุ่มข้อต่อไปแบบไม่ตกหน้าจอ
             st.markdown(f"### {st.session_state.result}")
             st.write(f"**ตอบ:** `{st.session_state.user_answer}` | **ที่ถูก:** `{correct_answer}`")
             
@@ -380,21 +407,15 @@ elif st.session_state.page in [
                     st.rerun()
 
     # ----------------------------------
-    # QUIZ SECTION 3: ฝั่งขวา (Cheat Code ใส่คำคม/เพลงตามที่คุณขอ)
+    # QUIZ SECTION 3: ฝั่งขวา (Cheat Code / สุ่มคำคมประจำหมวด)
     # ----------------------------------
     with col_q3:
         st.markdown("### 📌 Cheat Code")
         st.markdown("*(มุมมองและแรงบันดาลใจ)*")
         
-        # B: ใส่คำคมหรือท่อนเพลงตามที่คุณต้องการ (คุณแก้ไขข้อความตรงนี้เองได้ง่ายๆ เลยครับ)
-        st.info("""
-        🎵 **Song of the Day:**
-        > "Shape before strength, 
-        > Play the card with heart,
-        > Bridge is an art."
-        
-        💡 *Tip: มองทรงไพ่ให้ออก ก่อนตัดสินใจนับแต้มในมือ!*
-        """)
+        # เรียกใช้ฟังก์ชันสุ่มคำคมตามหมวดหมู่ปัจจุบัน
+        current_quote = get_cheat_code_quote(st.session_state.page)
+        st.info(current_quote)
 
 
 # ==================================================
