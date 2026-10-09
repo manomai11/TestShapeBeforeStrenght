@@ -210,10 +210,10 @@ def opening_bid(hcp, shape):
     # 4441 FAMILY
     # ----------------------------
 
-    if shape in ["1444", "4144", "4441"]:
+    if 11 <= hcp <= 20 and shape in ["1444", "4144", "4441"]:
         return "1D"
 
-    if shape == "4414":
+    if 11 <= hcp <= 20 and shape == "4414":
         return "1C"
 
     # ----------------------------
