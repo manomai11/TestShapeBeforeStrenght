@@ -373,7 +373,7 @@ elif st.session_state.page in [
             
             with cols_box[0]:
                 if st.button("PASS", use_container_width=True, key=f"pass_{st.session_state.question}"):
-                    process_answer("PASS", correct_answer)
+                    process_answer("PASS", correct_answer[0])
             
             for idx, lvl in enumerate(allowed_levels):
                 with cols_box[idx + 1]:
