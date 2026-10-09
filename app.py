@@ -403,7 +403,7 @@ Shape = {shape}
 
 Opening = {correct_answer}
 """
-            
+            )            
             if st.button("Next Question", use_container_width=True):
         
                 st.session_state.question += 1
