@@ -75,16 +75,16 @@ def opening_bid(hcp, shape):
     if 5 <= hcp <= 10:
 
         if s >= 8 and h <= 4 and d <= 4 and c <= 4:
-            return "4S"
+            return "4S","มีแต้ม 5-10 และมีไพ่ Spade 8 ใบขึ้นไป (4 Level Preempt)"
 
         if h >= 8 and s <= 4 and d <= 4 and c <= 4:
-            return "4H"
+            return "4H","มีแต้ม 5-10 และมีไพ่ Heart 8 ใบขึ้นไป (4 Level Preempt)"
 
         if d >= 8 and s <= 4 and h <= 4 and c <= 4:
-            return "4D"
+            return "4D","มีแต้ม 5-10 และมีไพ่ Diamond 8 ใบขึ้นไป (4 Level Preempt)"
 
         if c >= 8 and s <= 4 and h <= 4 and d <= 4:
-            return "4C"
+            return "4C","มีแต้ม 5-10 และมีไพ่ Club 8 ใบขึ้นไป (4 Level Preempt)"
 
     # ----------------------------
     # 3 LEVEL PREEMPT
