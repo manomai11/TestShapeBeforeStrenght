@@ -198,10 +198,7 @@ def get_cheat_code_quote(mode):
 # ==================================================
 
 if st.session_state.page == "login":
-left, right = st.columns([3, 2])
-    col1, col2, col3 = st.columns([1.5, 1.2, 0.8])
-
-    
+    left, right = st.columns([3, 2])
 
     with left:
 
@@ -229,24 +226,22 @@ left, right = st.columns([3, 2])
 ✅ ฝึกผ่านโจทย์จริง
 """)
 
-    with col2:
-        st.markdown("### เริ่มต้นใช้งาน")
-        st.write("กรอกชื่อเพื่อเข้าสู่สนามฝึกซ้อม")
+    with right:
+         st.markdown("### เริ่มต้นใช้งาน")
+         st.write("กรอกชื่อเพื่อเข้าสู่สนามฝึกซ้อม")
         
-        with st.form("login_form"):
-            name = st.text_input("ชื่อของคุณ:", placeholder="เช่น Player_01")
-            submitted = st.form_submit_button("เข้าสู่หน้าเลือกแบบฝึกหัด", use_container_width=True)
+         with st.form("login_form"):
+             name = st.text_input("ชื่อของคุณ:", placeholder="เช่น Player_01")
+             submitted = st.form_submit_button("เข้าสู่หน้าเลือกแบบฝึกหัด", use_container_width=True)
             
-            if submitted:
-                if name.strip() != "":
-                    st.session_state.player_name = name
-                    st.session_state.page = "menu"
-                    st.rerun()
-                else:
-                    st.warning("⚠️ กรุณากรอกชื่อก่อนครับ")
+             if submitted:
+                 if name.strip() != "":
+                     st.session_state.player_name = name
+                     st.session_state.page = "menu"
+                     st.rerun()
+                 else:
+                     st.warning("⚠️ กรุณากรอกชื่อก่อนครับ")
 
-    with col3:
-        st.write("")
 
 
 # ==================================================
