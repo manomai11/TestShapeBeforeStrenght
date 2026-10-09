@@ -200,7 +200,7 @@ def get_cheat_code_quote(mode):
 if st.session_state.page == "login":
     col1, col2, col3 = st.columns([1.5, 1.2, 0.8])
 
- left, right = st.columns([3, 2])
+    left, right = st.columns([3, 2])
 
     with left:
 
