@@ -404,8 +404,7 @@ Shape = {shape}
 
 Opening = {correct_answer}
 """
-            )
-
+            
             if st.button(
                 "Next Question",
                 use_container_width=True
@@ -415,7 +414,7 @@ Opening = {correct_answer}
 
                 st.session_state.answered = False
                 st.session_state.level_selected = None
-                st.session_state.current_question = none                 )
+                st.session_state.current_question = None                 )
                 if st.session_state.question > 20
                    st.session_state.page = "summary"
 
