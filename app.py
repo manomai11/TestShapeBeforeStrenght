@@ -222,12 +222,12 @@ elif st.session_state.page == "opening":
             OPENING_QUESTIONS
         )
 
-hcp, shape = st.session_state.current_question
+    hcp, shape = st.session_state.current_question
 
-correct_answer = opening_bid(
-    hcp,
-    shape
-)
+    correct_answer = opening_bid(
+        hcp,
+        shape
+    )
 
     left, middle, right = st.columns([1, 3, 1])
 
