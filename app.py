@@ -1,11 +1,17 @@
 import streamlit as st
 import random
 
-from engine import opening_bid
+from engine import (
+    opening_bid,
+    response_1nt,
+    response_1major,
+    response_1d,
+    response_1c,
+)
 
-# =====================================================
+# ==================================================
 # CARD ENGINE
-# =====================================================
+# ==================================================
 
 RANKS = "AKQJT98765432"
 
@@ -41,6 +47,11 @@ def generate_hand():
     for suit, rank in cards:
         hand[suit].append(rank)
 
+    for suit in hand:
+        hand[suit].sort(
+            key=lambda x: RANKS.index(x)
+        )
+
     return hand
 
 
@@ -67,9 +78,9 @@ def calculate_shape(hand):
     )
 
 
-# =====================================================
-# PAGE
-# =====================================================
+# ==================================================
+# CONFIG
+# ==================================================
 
 st.set_page_config(
     page_title="Shape Before Strength",
@@ -77,9 +88,15 @@ st.set_page_config(
     layout="wide"
 )
 
-# =====================================================
+# ==================================================
 # SESSION
-# =====================================================
+# ==================================================
+
+if "page" not in st.session_state:
+    st.session_state.page = "login"
+
+if "player_name" not in st.session_state:
+    st.session_state.player_name = ""
 
 if "score" not in st.session_state:
     st.session_state.score = 0
@@ -99,42 +116,165 @@ if "user_answer" not in st.session_state:
 if "hand" not in st.session_state:
     st.session_state.hand = generate_hand()
 
-# =====================================================
-# DATA
-# =====================================================
+# ==================================================
+# LOGIN
+# ==================================================
 
-hand = st.session_state.hand
+if st.session_state.page == "login":
 
-hcp = calculate_hcp(hand)
+    st.title("Shape Before Strength")
 
-shape = calculate_shape(hand)
+    with st.form("login"):
 
-correct_answer = opening_bid(
-    hcp,
-    shape
-)
+        name = st.text_input(
+            "ชื่อผู้เล่น"
+        )
 
-# =====================================================
-# HEADER
-# =====================================================
+        submitted = st.form_submit_button(
+            "เริ่มฝึก"
+        )
 
-st.title("Opening Practice")
+        if submitted and name.strip():
 
-st.write(
-    f"Question : {st.session_state.question}"
-)
+            st.session_state.player_name = name
+            st.session_state.page = "menu"
 
-st.write(
-    f"Score : {st.session_state.score}"
-)
+            st.rerun()
 
-st.divider()
+# ==================================================
+# MENU
+# ==================================================
 
-# =====================================================
-# HAND
-# =====================================================
+elif st.session_state.page == "menu":
 
-st.markdown(
+    st.title(
+        f"Welcome {st.session_state.player_name}"
+    )
+
+    if st.button("Opening"):
+        st.session_state.page = "opening"
+        st.rerun()
+
+    if st.button("Response 1NT"):
+        st.session_state.page = "r1nt"
+        st.rerun()
+
+    if st.button("Response 1C"):
+        st.session_state.page = "r1c"
+        st.rerun()
+
+    if st.button("Response 1D"):
+        st.session_state.page = "r1d"
+        st.rerun()
+
+    if st.button("Response 1H"):
+        st.session_state.page = "r1h"
+        st.rerun()
+
+    if st.button("Response 1S"):
+        st.session_state.page = "r1s"
+        st.rerun()
+
+# ==================================================
+# COMMON SCREEN
+# ==================================================
+
+elif st.session_state.page in [
+    "opening",
+    "r1nt",
+    "r1c",
+    "r1d",
+    "r1h",
+    "r1s",
+]:
+
+    if st.button("⬅ Menu"):
+
+        st.session_state.page = "menu"
+
+        st.rerun()
+
+    if st.session_state.hand is None:
+
+        st.session_state.hand = generate_hand()
+
+    hand = st.session_state.hand
+
+    hcp = calculate_hcp(hand)
+
+    shape = calculate_shape(hand)
+
+    # ----------------------------------
+    # ENGINE
+    # ----------------------------------
+
+    if st.session_state.page == "opening":
+
+        title = "Opening"
+
+        correct_answer = opening_bid(
+            hcp,
+            shape
+        )
+
+    elif st.session_state.page == "r1nt":
+
+        title = "Response 1NT"
+
+        correct_answer = response_1nt(
+            hcp,
+            shape
+        )
+
+    elif st.session_state.page == "r1c":
+
+        title = "Response 1C"
+
+        correct_answer = response_1c(
+            hcp,
+            shape
+        )
+
+    elif st.session_state.page == "r1d":
+
+        title = "Response 1D"
+
+        correct_answer = response_1d(
+            hcp,
+            shape
+        )
+
+    elif st.session_state.page == "r1h":
+
+        title = "Response 1H"
+
+        correct_answer = response_1major(
+            "1H",
+            hcp,
+            shape
+        )
+
+    else:
+
+        title = "Response 1S"
+
+        correct_answer = response_1major(
+            "1S",
+            hcp,
+            shape
+        )
+
+    st.title(title)
+
+    st.write(
+        f"Question : {st.session_state.question}"
+    )
+
+    st.write(
+        f"Score : {st.session_state.score}"
+    )
+
+    st.markdown(
 f"""
 ### Hand
 
@@ -146,26 +286,12 @@ f"""
 
 ♣ {"".join(hand["C"])}
 """
-)
+    )
 
-st.write(
-    f"HCP : {hcp}"
-)
-
-st.write(
-    f"Shape : {shape}"
-)
-
-st.divider()
-
-# =====================================================
-# QUESTION MODE
-# =====================================================
-
-if not st.session_state.answered:
+    st.write(f"HCP : {hcp}")
+    st.write(f"Shape : {shape}")
 
     bids = [
-
         "PASS",
 
         "1C","1D","1H","1S","1N",
@@ -183,53 +309,51 @@ if not st.session_state.answered:
         "7C","7D","7H","7S","7N"
     ]
 
-    choice = st.selectbox(
-        "Choose Bid",
-        bids
-    )
+    if not st.session_state.answered:
 
-    if st.button("Submit"):
+        choice = st.selectbox(
+            "Choose Bid",
+            bids
+        )
 
-        st.session_state.user_answer = choice
+        if st.button("Submit"):
 
-        if choice == correct_answer:
+            st.session_state.user_answer = choice
 
-            st.session_state.result = "✅ Correct"
+            if choice == correct_answer:
 
-            st.session_state.score += 1
+                st.session_state.result = "✅ Correct"
 
-        else:
+                st.session_state.score += 1
 
-            st.session_state.result = "❌ Incorrect"
+            else:
 
-        st.session_state.answered = True
+                st.session_state.result = "❌ Incorrect"
 
-        st.rerun()
+            st.session_state.answered = True
 
-# =====================================================
-# RESULT MODE
-# =====================================================
+            st.rerun()
 
-else:
+    else:
 
-    st.markdown(
-        f"## {st.session_state.result}"
-    )
+        st.markdown(
+            f"## {st.session_state.result}"
+        )
 
-    st.write(
-        f"Your Answer : {st.session_state.user_answer}"
-    )
+        st.write(
+            f"Your Answer : {st.session_state.user_answer}"
+        )
 
-    st.write(
-        f"Correct Answer : {correct_answer}"
-    )
+        st.write(
+            f"Correct Answer : {correct_answer}"
+        )
 
-    if st.button("Next Question"):
+        if st.button("Next Question"):
 
-        st.session_state.question += 1
+            st.session_state.question += 1
 
-        st.session_state.answered = False
+            st.session_state.answered = False
 
-        st.session_state.hand = generate_hand()
+            st.session_state.hand = generate_hand()
 
-        st.rerun()
+            st.rerun()
