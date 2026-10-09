@@ -75,16 +75,16 @@ def opening_bid(hcp, shape):
     if 5 <= hcp <= 10:
 
         if s >= 8 and h <= 4 and d <= 4 and c <= 4:
-            return "4S","ไพ่ 8 ใบเหมาะสมที่จะบุก"
+            return "4S"
 
         if h >= 8 and s <= 4 and d <= 4 and c <= 4:
-            return "4H","ไพ่ 8 ใบเหมาะสมที่จะบุก"
+            return "4H"
 
         if d >= 8 and s <= 4 and h <= 4 and c <= 4:
-            return "4D","ไพ่ 8 ใบเหมาะสมที่จะบุก"
+            return "4D"
 
         if c >= 8 and s <= 4 and h <= 4 and d <= 4:
-            return "4C","ไพ่ 8 ใบเหมาะสมที่จะบุก"
+            return "4C"
 
     # ----------------------------
     # 3 LEVEL PREEMPT
@@ -93,30 +93,30 @@ def opening_bid(hcp, shape):
     if 5 <= hcp <= 10:
 
         if s == 7 and h <= 4 and d <= 4 and c <= 4:
-            return "3S","ไพ่ 7 ใบ ถ้าแต้มดีเชพดีอาจดันไปถึง 4S"
+            return "3S"
 
         if h == 7 and s <= 4 and d <= 4 and c <= 4:
-            return "3H","ไพ่ 7 ใบ ถ้าแต้มดีเชพดีอาจดันไปถึง 4H"
+            return "3H"
 
         if d == 7 and s <= 4 and h <= 4 and c <= 4:
-            return "3D","เปิดไพ่ 7 ใบ อดทนอดกลั้น ลดการเปิดด้วย 6 ใบลงจะดีระยะยาว"
+            return "3D"
 
         if c == 7 and s <= 4 and h <= 4 and d <= 4:
-            return "3C","เปิดไพ่ 7 ใบ อดทนอดกลั้น ลดการเปิดด้วย 6 ใบลงจะดีระยะยาว"
+            return "3C"
 
     # ----------------------------
     # 2NT
     # ----------------------------
 
     if balanced and 20 <= hcp <= 22:
-        return "2N","20-22 ฺBalanced"
+        return "2N"
 
     # ----------------------------
     # 2C
     # ----------------------------
 
     if hcp >= 21:
-        return "2C","21+ any or 18+ 8.5 playing tricks"
+        return "2C"
 
     # ----------------------------
     # STRONG M55
@@ -125,8 +125,7 @@ def opening_bid(hcp, shape):
     if 17 <= hcp <= 20:
 
         if s >= 5 and h >= 5:
-            return "2D","Multi weak 1M or 17-20 2M"
-
+            return "2D"
     # ----------------------------
     # WEAK MAJOR
     # ----------------------------
@@ -134,10 +133,9 @@ def opening_bid(hcp, shape):
     if 6 <= hcp <= 10:
 
         if s == 6 and h <= 4 and d <= 4 and c <= 4:
-            return "2D","Multi weak 1M or 17-20 2M"
-
+            return "2D"
         if h == 6 and s <= 4 and d <= 4 and c <= 4:
-            return "2D","Multi weak 1M or 17-20 2M"
+            return "2D"
 
     # ----------------------------
     # 2S
@@ -150,7 +148,7 @@ def opening_bid(hcp, shape):
         and d <= 4
         and c <= 4
     ):
-        return "2S","11-13 S6"
+        return "2S"
 
     # ----------------------------
     # 2H
@@ -163,7 +161,7 @@ def opening_bid(hcp, shape):
         and d <= 4
         and c <= 4
     ):
-        return "2H","11-13 H6"
+        return "2H"
 
     # ----------------------------
     # BALANCED
@@ -179,13 +177,13 @@ def opening_bid(hcp, shape):
             if h >= 5:
                 return "1H"
 
-            return "1C","Big NT open 1C"
+            return "1C"
 
         if 14 <= hcp <= 16:
-            return "1N","14-16 NT"
+            return "1N"
 
         if 11 <= hcp <= 13:
-            return "1C","weak NT open 1C"
+            return "1C"
 
     # ----------------------------
     # MAJORS
@@ -196,15 +194,15 @@ def opening_bid(hcp, shape):
         if s >= 5 and h >= 5:
 
             if s >= h:
-                return "1S","11+ S5 no 5332 when 11-16"
+                return "1S"
 
-            return "1H","11+ H5 no 5332 when 11-16"
+            return "1H"
 
         if s >= 5:
-            return "1S","11+ S5 no 5332 when 11-16"
+            return "1S"
 
         if h >= 5:
-            return "1H","11+ H5 no 5332 when 11-16"
+            return "1H"
 
     # ----------------------------
     # 4441 FAMILY
@@ -214,8 +212,7 @@ def opening_bid(hcp, shape):
         return "1D"
 
     if 11 <= hcp <= 20 and shape == "4414":
-        return "1C","11+ C2+"
-
+        return "1C"
     # ----------------------------
     # SPECIAL D4C5
     # ----------------------------
@@ -223,10 +220,10 @@ def opening_bid(hcp, shape):
     if shape in SPECIAL_D4C5:
 
         if 11 <= hcp <= 15:
-            return "1D","11+ D4+ Unbalanced"
+            return "1D"
 
         if hcp >= 16:
-            return "1C","11+ C2+"
+            return "1C"
 
     # ----------------------------
     # LONGER MINOR
@@ -235,11 +232,11 @@ def opening_bid(hcp, shape):
     if 11 <= hcp <= 20:
 
         if c > d:
-            return "1C","11+ C2+"
+            return "1C"
 
-        return "1D","11+ D4+ Unbalanced"
+        return "1D"
 
-    return "PASS",""
+    return "PASS"
 
 
 # ==========================================
@@ -252,40 +249,40 @@ def response_1nt(hcp, shape):
 
     # 3D
     if hcp >= 9 and s >= 5 and h >= 5:
-        return "3D","Special Bid 9+ with M55"
+        return "3D"
 
     # 10+ M5 oM=4
     if hcp >= 10:
 
         if s >= 5 and h == 4:
-            return "2C","Inverted stayman"
+            return "2C"
 
         if h >= 5 and s == 4:
-            return "2C","Inverted stayman"
+            return "2C"
 
     # 8-9 M55 / M5m5,"Transfer H weak or GF or m55"
 
     if 8 <= hcp <= 9:
 
         if s >= 5 and h >= 5:
-            return "2C","Inverted stayman"
+            return "2C"
 
         if (
             (s >= 5 or h >= 5)
             and
             (d >= 5 or c >= 5)
         ):
-            return "2C","Inverted stayman"
+            return "2C"
 
     # 9 M5-6
 
     if hcp == 9:
 
         if s >= 5:
-            return "2C","Inverted stayman"
+            return "2C"
 
         if h >= 5:
-            return "2C","Inverted stayman"
+            return "2C"
 
     # Texas S
 
@@ -296,7 +293,7 @@ def response_1nt(hcp, shape):
         or
         (0 <= hcp <= 5 and s >= 8)
     ):
-        return "4D","Transfer S"
+        return "4D"
 
     # Texas H
 
@@ -307,22 +304,21 @@ def response_1nt(hcp, shape):
         or
         (0 <= hcp <= 5 and h >= 8)
     ):
-        return "4C","Transfer H"
+        return "4C"
 
     # 3S
 
     if hcp >= 11 and shape in ["1345", "1354"]:
-        return "3S","1354 or 1345"
-
+        return "3S"
     # 3H
 
     if hcp >= 11 and shape in ["3145", "3154"]:
-        return "3H","3154 or 3145"
+        return "3H"
 
     # m55
 
     if d >= 5 and c >= 5:
-        return "2D","Transfer H weak or GF or m55"
+        return "2D"
 
     # D route
 
@@ -333,7 +329,7 @@ def response_1nt(hcp, shape):
         or
         (9 <= hcp <= 12 and d >= 7)
     ):
-        return "2N","Transfer D"
+        return "2N"
 
     # C route
 
@@ -344,7 +340,7 @@ def response_1nt(hcp, shape):
         or
         (9 <= hcp <= 12 and c >= 7)
     ):
-        return "2S","Transfer C"
+        return "2S"
 
     # 3NT
 
@@ -353,13 +349,13 @@ def response_1nt(hcp, shape):
         and max(s, h) < 3
         and max(d, c) >= 6
     ):
-        return "3N","To play"
+        return "3N"
 
     if (
         11 <= hcp <= 15
         and shape in ["2254", "2245"]
     ):
-        return "3N","To play"
+        return "3N"
 
     # 3C
 
@@ -376,7 +372,7 @@ def response_1nt(hcp, shape):
         or
         (hcp >= 10 and s >= 5 and h < 4)
     ):
-        return "2H","Transfer S weak or GF"
+        return "2H"
 
     # Transfer H
 
@@ -385,8 +381,7 @@ def response_1nt(hcp, shape):
         or
         (hcp >= 10 and h >= 5 and s < 4)
     ):
-        return "2D","Transfer H weak or GF or m55"
-
+        return "2D"
     # 16+
 
     if (
@@ -397,7 +392,7 @@ def response_1nt(hcp, shape):
         and c < 6
         and not (d >= 5 and c >= 5)
     ):
-        return "2C","Inverted stayman"
+        return "2C"
 
     # 10
 
@@ -409,7 +404,7 @@ def response_1nt(hcp, shape):
         and c < 6
         and not (d >= 5 and c >= 5)
     ):
-        return "2C","Inverted stayman"
+        return "2C"
 
     return "PASS"
 
