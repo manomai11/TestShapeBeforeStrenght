@@ -1,477 +1,203 @@
 import streamlit as st
+import random
+
 from engine import opening_bid
 
-# =====================================================
-# CONFIG
-# =====================================================
+# ==========================================
+# CARD HELPERS
+# ==========================================
+
+RANKS = "AKQJT98765432"
+
+HCP_MAP = {
+    "A": 4,
+    "K": 3,
+    "Q": 2,
+    "J": 1
+}
+
+
+def generate_hand():
+
+    deck = []
+
+    for suit in ["S", "H", "D", "C"]:
+        for rank in RANKS:
+            deck.append((suit, rank))
+
+    random.shuffle(deck)
+
+    hand = deck[:13]
+
+    suits = {
+        "S": [],
+        "H": [],
+        "D": [],
+        "C": [],
+    }
+
+    for suit, rank in hand:
+        suits[suit].append(rank)
+
+    for suit in suits:
+        suits[suit].sort(
+            key=lambda x: RANKS.index(x)
+        )
+
+    return suits
+
+
+def calculate_hcp(hand):
+
+    total = 0
+
+    for suit_cards in hand.values():
+
+        for card in suit_cards:
+
+            total += HCP_MAP.get(card, 0)
+
+    return total
+
+
+def calculate_shape(hand):
+
+    return (
+        str(len(hand["S"])) +
+        str(len(hand["H"])) +
+        str(len(hand["D"])) +
+        str(len(hand["C"]))
+    )
+
+
+# ==========================================
+# STREAMLIT
+# ==========================================
 
 st.set_page_config(
     page_title="Shape Before Strength",
     page_icon="♠",
-    layout="wide"
+    layout="wide",
 )
 
-# =====================================================
-# SESSION
-# =====================================================
+if "hand" not in st.session_state:
+    st.session_state.hand = generate_hand()
 
-defaults = {
-    "page": "login",
-    "player_name": "",
-    "question": 1,
-    "score": 0,
-    "answered": False,
-    "result": "",
-    "user_answer": "",
-    "level_selected": None,
-}
+if "score" not in st.session_state:
+    st.session_state.score = 0
 
-for k, v in defaults.items():
+if "question" not in st.session_state:
+    st.session_state.question = 1
 
-    if k not in st.session_state:
-        st.session_state[k] = v
+if "answered" not in st.session_state:
+    st.session_state.answered = False
 
-# =====================================================
-# LOGIN
-# =====================================================
+if "result" not in st.session_state:
+    st.session_state.result = ""
 
-if st.session_state.page == "login":
+if "user_answer" not in st.session_state:
+    st.session_state.user_answer = ""
 
-    left, right = st.columns([3, 2])
 
-    with left:
+hand = st.session_state.hand
 
-        st.title("♠ Shape Before Strength")
+hcp = calculate_hcp(hand)
+shape = calculate_shape(hand)
 
-        st.markdown("""
-### A Modern Low-Information Transfer Club System
+correct_answer = opening_bid(
+    hcp,
+    shape
+)
 
-### Learn • Practice • Improve
-""")
+st.title("Opening Practice")
 
-        st.markdown("""
-เรียนรู้และฝึกประมูลไพ่บริดจ์ตามระบบ
+st.write(f"Question : {st.session_state.question}/20")
+st.write(f"Score : {st.session_state.score}")
 
-**Shape Before Strength**
+st.divider()
 
-✅ วิเคราะห์ Shape ก่อนแต้ม
+st.markdown(
+    f"""
+### Hand
 
-✅ ใช้การบิดแบบ Transfer
+♠ {"".join(hand["S"])}
 
-✅ เปิดเผยข้อมูลให้น้อยที่สุด
+♥ {"".join(hand["H"])}
 
-✅ หา Fit อย่างมีประสิทธิภาพ
+♦ {"".join(hand["D"])}
 
-✅ ฝึกผ่านโจทย์จริง
-""")
+♣ {"".join(hand["C"])}
+"""
+)
 
-    with right:
+st.write(f"HCP : {hcp}")
+st.write(f"Shape : {shape}")
 
-        st.subheader("เข้าสู่ระบบ")
+st.divider()
 
-        with st.form("login_form"):
+if not st.session_state.answered:
 
-            name = st.text_input(
-                "ชื่อผู้เล่น"
-            )
+    bids = [
+        "PASS",
 
-            submitted = st.form_submit_button(
-                "🚀 เริ่มฝึก"
-            )
+        "1C","1D","1H","1S","1N",
 
-            if submitted and name.strip():
+        "2C","2D","2H","2S","2N",
 
-                st.session_state.player_name = name
-                st.session_state.page = "menu"
+        "3C","3D","3H","3S","3N",
 
-                st.rerun()
+        "4C","4D","4H","4S",
 
-# =====================================================
-# MENU
-# =====================================================
+        "5C","5D","5H","5S","5N",
 
-elif st.session_state.page == "menu":
+        "6C","6D","6H","6S","6N",
 
-    st.title(
-        f"ยินดีต้อนรับ {st.session_state.player_name}"
-    )
-
-    st.subheader("เลือกหัวข้อฝึก")
-
-    c1, c2, c3 = st.columns([2, 2, 1])
-
-    with c1:
-
-        if st.button(
-            "Opening Practice",
-            use_container_width=True
-        ):
-            st.session_state.page = "opening"
-            st.rerun()
-
-        st.button(
-            "Response 1C",
-            use_container_width=True
-        )
-
-        st.button(
-            "Response 1D",
-            use_container_width=True
-        )
-
-    with c2:
-
-        st.button(
-            "Response 1H",
-            use_container_width=True
-        )
-
-        st.button(
-            "Response 1S",
-            use_container_width=True
-        )
-
-        st.button(
-            "Response 1NT",
-            use_container_width=True
-        )
-
-    with c3:
-
-        st.info(
-            "Statistics\n\nComing Soon"
-        )
-
-# =====================================================
-# OPENING PRACTICE
-# =====================================================
-
-elif st.session_state.page == "opening":
-
-    hcp = 13
-    shape = "5332"
-
-    import random
-
-    OPENING_QUESTIONS = [
-
-        (13, "5332"),
-        (17, "5530"),
-        (22, "5332"),
-
-        (14, "4432"),
-        (11, "4432"),
-
-        (17, "1345"),
-        (14, "2245"),
-
-        (8, "6322"),
-        (12, "6322"),
-        (15, "6322"),
-
-        (8, "3622"),
-        (12, "3622"),
-        (15, "3622"),
-
-        (13, "5512"),
-        (15, "5161"),
-
-        (17, "3523"),
-
-        (16, "3343")
+        "7C","7D","7H","7S","7N"
     ]
 
-    if "current_question" not in st.session_state:
-        import random
-
-    OPENING_QUESTIONS = [
-
-        (13, "5332"),
-        (17, "5530"),
-        (22, "5332"),
-
-        (14, "4432"),
-        (11, "4432"),
-
-        (17, "1345"),
-        (14, "2245"),
-
-        (8, "6322"),
-        (12, "6322"),
-        (15, "6322"),
-
-        (8, "3622"),
-        (12, "3622"),
-        (15, "3622"),
-
-        (13, "5512"),
-        (15, "5161"),
-
-        (17, "3523"),
-
-        (16, "3343")
-    ]
-
-    if (
-        "current_question" not in st.session_state
-        or
-        st.session_state.current_question is None
-    ):
-
-        st.session_state.current_question = random.choice(
-            OPENING_QUESTIONS
-        )
-
-    hcp, shape = st.session_state.current_question
-
-    correct_answer = opening_bid(
-        hcp,
-        shape
+    choice = st.selectbox(
+        "Choose Bid",
+        bids
     )
 
-    left, middle, right = st.columns([1, 3, 1])
+    if st.button("Submit"):
 
-    # =================================================
-    # LEFT
-    # =================================================
+        st.session_state.user_answer = choice
 
-    with left:
+        if choice == correct_answer:
 
-        if st.button("⬅ เมนู"):
-            st.session_state.page = "menu"
-            st.rerun()
+            st.session_state.result = "✅ Correct"
 
-        st.markdown("### Score")
-        st.write(st.session_state.score)
-
-        st.markdown("### Question")
-        st.write(
-            f"{st.session_state.question}/20"
-        )
-
-        st.markdown("### Player")
-        st.write(
-            st.session_state.player_name
-        )
-
-    # =================================================
-    # CENTER
-    # =================================================
-
-    with middle:
-
-        st.title("Opening Practice")
-
-        st.write("You Open")
-
-        st.markdown(
-            """
-<div style="font-size:24px; line-height:1.3">
-
-♠ AQ852<br>
-♥ K73<br>
-♦ Q42<br>
-♣ J3
-
-</div>
-""",
-            unsafe_allow_html=True
-        )
-
-        st.divider()
-
-        # =============================================
-        # QUESTION MODE
-        # =============================================
-
-        if not st.session_state.answered:
-
-            st.subheader("Bidding Box")
-
-            bid_cols = st.columns(
-                [2,1,1,1,1,1,1,1,2]
-            )
-
-            # PASS
-
-            if bid_cols[1].button(
-                "PASS",
-                key="pass_btn"
-            ):
-
-                bid = "PASS"
-
-                st.session_state.user_answer = bid
-
-                if bid == correct_answer:
-
-                    st.session_state.result = "✅ Correct"
-
-                    st.session_state.score += 1
-
-                else:
-
-                    st.session_state.result = "❌ Incorrect"
-
-                st.session_state.answered = True
-
-                st.rerun()
-
-            # LEVELS
-
-            for level in range(1, 8):
-
-                if bid_cols[level + 1].button(
-                    str(level),
-                    key=f"level_{level}"
-                ):
-                    st.session_state.level_selected = level
-
-            # SUITS
-
-            if st.session_state.level_selected:
-
-                st.markdown("---")
-
-                level = st.session_state.level_selected
-
-                suit_cols = st.columns(
-                    [2,1,1,1,1,1,2]
-                )
-
-                suit_map = {
-                    "C": "♣",
-                    "D": "♦",
-                    "H": "♥",
-                    "S": "♠",
-                    "N": "NT"
-                }
-
-                positions = [1,2,3,4,5]
-
-                for key, pos in zip(
-                    suit_map.keys(),
-                    positions
-                ):
-
-                    if suit_cols[pos].button(
-                        suit_map[key],
-                        key=f"{level}_{key}"
-                    ):
-
-                        bid = f"{level}{key}"
-
-                        st.session_state.user_answer = bid
-
-                        if bid == correct_answer:
-
-                            st.session_state.result = "✅ Correct"
-
-                            st.session_state.score += 1
-
-                        else:
-
-                            st.session_state.result = "❌ Incorrect"
-
-                        st.session_state.answered = True
-
-                        st.rerun()
-
-        # =============================================
-        # RESULT MODE
-        # =============================================
+            st.session_state.score += 1
 
         else:
 
-            st.markdown(
-                f"## {st.session_state.result}"
-            )
+            st.session_state.result = "❌ Incorrect"
 
-            st.write(
-                f"Your Answer : {st.session_state.user_answer}"
-            )
+        st.session_state.answered = True
 
-            st.write(
-                f"Correct Answer : {correct_answer}"
-            )
+        st.rerun()
 
-            st.info(
-f"""
-HCP = {hcp}
+else:
 
-Shape = {shape}
-
-Opening = {correct_answer}
-"""
-            )            
-            if st.button("Next Question", use_container_width=True):
-        
-                st.session_state.question += 1
-                st.session_state.answered = False
-                st.session_state.level_selected = None
-                st.session_state.current_question = None   
-            
-                if st.session_state.question > 20:
-                   st.session_state.page = "summary"
-
-                st.rerun()
-
-    # =================================================
-    # RIGHT
-    # =================================================
-
-    with right:
-
-        st.subheader("Opening Notes")
-
-        st.info(
-"""
-11-13 Balanced → 1C
-
-14-16 Balanced → 1NT
-
-17-19 Balanced
-No M5 → 1C
-
-20-22 Balanced → 2NT
-"""
-        )
-
-# =====================================================
-# SUMMARY
-# =====================================================
-
-elif st.session_state.page == "summary":
-
-    st.title("Quiz Complete")
-
-    st.write(
-        f"Player : {st.session_state.player_name}"
+    st.markdown(
+        f"## {st.session_state.result}"
     )
 
     st.write(
-        f"Correct : {st.session_state.score}"
+        f"Your Answer : {st.session_state.user_answer}"
     )
 
     st.write(
-        f"Wrong : {20 - st.session_state.score}"
+        f"Correct Answer : {correct_answer}"
     )
 
-    pct = (
-        st.session_state.score / 20
-    ) * 100
+    if st.button("Next Question"):
 
-    st.write(
-        f"Accuracy : {pct:.0f}%"
-    )
+        st.session_state.question += 1
 
-    if st.button("Back To Menu"):
-
-        st.session_state.page = "menu"
-
-        st.session_state.question = 1
-        st.session_state.score = 0
         st.session_state.answered = False
-        st.session_state.level_selected = None
+
+        st.session_state.hand = generate_hand()
 
         st.rerun()
