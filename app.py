@@ -1,5 +1,5 @@
 import streamlit as st
-
+from engine import opening_bid
 # =====================================================
 # CONFIG
 # =====================================================
@@ -159,7 +159,10 @@ elif st.session_state.page == "opening":
     hcp = 13
     shape = "5332"
 
-    correct_answer = "1C"
+    correct_answer = opening_bid(
+    hcp,
+    shape
+)
 
     left, middle, right = st.columns([1, 3, 1])
 
