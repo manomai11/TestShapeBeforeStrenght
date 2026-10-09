@@ -405,7 +405,7 @@ elif st.session_state.page in [
             with st.expander("💡 เหตุผลและหลักการประมูล", expanded=True):
                 st.markdown(f"""
                 - **แต้มรวม (HCP):** {hcp} แต้ม | **Shape:** {shape}
-                - เหตุผล (Shape Before Strength) คำตอบคือ **{correct_answer[1]}**
+                - เหตุผล **{correct_answer[1]}**
                 """)
 
             if st.session_state.question < 20:
