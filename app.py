@@ -151,6 +151,42 @@ elif st.session_state.page == "opening":
     hcp = 13
     shape = "5332"
 
+    import random
+
+OPENING_QUESTIONS = [
+
+    (13, "5332"),
+    (17, "5530"),
+    (22, "5332"),
+
+    (14, "4432"),
+    (11, "4432"),
+
+    (17, "1345"),
+    (14, "2245"),
+
+    (8, "6322"),
+    (12, "6322"),
+    (15, "6322"),
+
+    (8, "3622"),
+    (12, "3622"),
+    (15, "3622"),
+
+    (13, "5512"),
+    (15, "5161"),
+
+    (17, "3523"),
+
+    (16, "3343")
+]
+
+if "current_question" not in st.session_state:
+    st.session_state.current_question = random.choice(
+        OPENING_QUESTIONS
+    )
+
+hcp, shape = st.session_state.current_question
     correct_answer = opening_bid(
         hcp,
         shape
@@ -341,7 +377,9 @@ Opening = {correct_answer}
 
                 st.session_state.answered = False
                 st.session_state.level_selected = None
-
+                st.session_state.current_question = random.choice(
+                    OPENING_QUESTIONS
+                )
                 if (
                     st.session_state.question > 20
                 ):
