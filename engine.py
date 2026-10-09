@@ -355,14 +355,14 @@ def response_1nt(hcp, shape):
     
     # 3C
 
-    if 13 <= hcap <= 15 and (s >= 3 or h >= 3) and m < 6:
-    return "3C","ASk M with no M5 not interest slam"
+    if 13 <= hcp <= 15 and (s >= 3 or h >= 3) and min(d, c) < 6:
+        return "3C","ASk M with no M5 not interest slam"
 
-elif 11 <= hcap <= 12 and (s >= 3 or h >= 3) and m < 7:
-    return "3C","ASk M with no M5 not interest slam"
+    elif 11 <= hcp <= 12 and (s >= 3 or h >= 3) and min(d, c) < 7:
+        return "3C","ASk M with no M5 not interest slam"
 
-elif hcap == 10 and (s >= 3 or h >= 3) and m == 6:
-    return "3C","ASk M with no M5 not interest slam"
+    elif hcp == 10 and (s >= 3 or h >= 3) and min(d, c) == 6:
+        return "3C","ASk M with no M5 not interest slam"
 
 # D route
 
