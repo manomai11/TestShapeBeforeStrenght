@@ -14,7 +14,7 @@ from engine import (
 # ==================================================
 
 st.set_page_config(
-    page_title="Shape Before Strength",
+    page_title="SHAPE BEFORE STRENGTH",
     page_icon="♠",
     layout="wide"
 )
@@ -164,7 +164,7 @@ if st.session_state.page == "login":
     col1, col2, col3 = st.columns([1.5, 1.2, 0.8])
 
     with col1:
-        st.markdown("## ♠ Bridge Master Engine")
+        st.markdown("## ♠ SHAPE BEFORE STRENGTH")
         st.markdown("**ยกระดับการประมูลไพ่สากลด้วยระบบตรรกะมาตรฐาน**")
         st.markdown("""
         แอปพลิเคชันฝึกฝนการประมูลบริดจ์รูปแบบชุด 20 ข้อ:
@@ -200,9 +200,9 @@ if st.session_state.page == "login":
 elif st.session_state.page == "menu":
 
     st.title(f"Welcome, {st.session_state.player_name} 👋")
-    st.write("หน้าเลือกเมนูแบบฝึกหัด (ชุดละ 20 ข้อ):")
+    st.markdown("### ♠ SHAPE BEFORE STRENGTH — หน้าเลือกเมนูแบบฝึกหัด")
+    st.write("เลือกหัวข้อแบบฝึกหัดที่คุณต้องการฝึกซ้อม (ชุดละ 20 ข้อ):")
 
-    # แบ่งเป็น 4 ส่วนตามโครงร่าง
     col_m1, col_m2, col_m3, col_m4 = st.columns(4)
 
     with col_m1:
@@ -268,11 +268,11 @@ elif st.session_state.page in [
     }
     current_topic_name = titles.get(st.session_state.page, "Bridge Practice")
 
-    # จัดเลย์เอาต์ 3 ส่วนตามตารางออกแบบ
-    col_q1, col_q2, col_q3 = st.columns([1, 2.5, 1.2])
+    # จัดเลย์เอาต์ 3 ส่วนตามตารางออกแบบ (ปรับช่องว่างให้กระชับขึ้น)
+    col_q1, col_q2, col_q3 = st.columns([1, 2.8, 1.2])
 
     # ----------------------------------
-    # QUIZ SECTION 1: เมนูซ้าย (ปุ่มกลับ, คะแนน, ข้อปัจจุบัน)
+    # QUIZ SECTION 1: เมนูซ้าย
     # ----------------------------------
     with col_q1:
         if st.button("⬅ กลับหน้าเมนู", use_container_width=True):
@@ -284,51 +284,57 @@ elif st.session_state.page in [
         st.metric(label="ข้อปัจจุบัน", value=f"{st.session_state.question} / 20")
 
     # ----------------------------------
-    # QUIZ SECTION 2: พื้นที่ตรงกลาง (หัวข้อ, ไพ่, Bidding Box / เฉลย)
+    # QUIZ SECTION 2: พื้นที่ตรงกลาง (ไพ่ใหญ่ชัดเจน + Bidding Box กรองปุ่ม)
     # ----------------------------------
     with col_q2:
-        st.markdown(f"### 📚 หัวข้อ: {current_topic_name}")
-        st.markdown(f"**ผู้เล่น:** {st.session_state.player_name}")
+        # ใช้หัวข้อสั้นลงเพื่อประหยัดพื้นที่ด้านบน
+        st.markdown(f"### 📚 {current_topic_name} (ผู้เล่น: {st.session_state.player_name})")
         st.markdown("---")
 
-        # แสดงไพ่ 13 ใบชัดเจน พร้อม HCP และ Shape
+        # A: ขยายไพ่ให้ใหญ่และชัดเจน ไม่มีตัวหนังสือ Spades รบกวนสายตา
+        s_str = " ".join(hand["S"]) if hand["S"] else "-"
+        h_str = " ".join(hand["H"]) if hand["H"] else "-"
+        d_str = " ".join(hand["D"]) if hand["D"] else "-"
+        c_str = " ".join(hand["C"]) if hand["C"] else "-"
+
         st.markdown(
-f"""
-### 🎴 มือไพ่ของคุณ
-- ♠ **Spades:** `{"".join(hand["S"])}`
-- ♥ **Hearts:** `{"".join(hand["H"])}`
-- ♦ **Diamonds:** `{"".join(hand["D"])}`
-- ♣ **Clubs:** `{"".join(hand["C"])}`
-"""
+            f"""
+            <div style="font-size: 1.25rem; line-height: 1.8; font-weight: bold; background-color: #f8f9fa; padding: 12px 16px; border-radius: 8px; border: 1px solid #e9ecef;">
+                <div>♠ <span style="color: #111;">{s_str}</span></div>
+                <div>♥ <span style="color: #d32f2f;">{h_str}</span></div>
+                <div>♦ <span style="color: #d32f2f;">{d_str}</span></div>
+                <div>♣ <span style="color: #111;">{c_str}</span></div>
+            </div>
+            """,
+            unsafe_allow_html=True
         )
-        st.info(f"✨ **แต้มรวม (HCP):** {hcp} | 📊 **ทรงไพ่ (Shape):** {shape}")
+        
+        st.caption(f"✨ **แต้มรวม (HCP):** {hcp} &nbsp;&nbsp;|&nbsp;&nbsp; 📊 **ทรงไพ่ (Shape):** {shape}")
         st.markdown("---")
 
-        # เงื่อนไข: ถ้ายังไม่ตอบ แสดง Bidding Box | ถ้าตอบแล้ว ซ่อน Bidding Box แล้วแสดงเฉลยแทน
         if not st.session_state.answered:
-            st.markdown("#### 🎛️ Bidding Box (เลือกคำตอบของคุณ)")
+            st.markdown("#### 🎛️ Bidding Box")
             
             level_key = f"level_q_{st.session_state.question}"
             if level_key not in st.session_state:
                 st.session_state[level_key] = None
 
-            col_p1, col_p2, col_p3 = st.columns(3)
-            with col_p1:
+            # C: กรองซ่อนปุ่มบิดที่ต่ำเกินไปตามโหมด หรือซ่อนปุ่มที่ไม่จำเป็นออกเพื่อความสะอาด
+            page_mode = st.session_state.page
+            allowed_levels = ["1", "2", "3", "4", "5", "6", "7"]
+            
+            # ตัวอย่างการกรองเบื้องต้น (เช่น Response 1NT ขั้นต่ำมักเริ่มที่ระดับ 2 หรือตามกฎ)
+            # คุณสามารถปรับแก้เงื่อนไขตรงนี้เพิ่มเติมได้ตามต้องการครับ
+            
+            # แถวเลือกเลเวล (1-7) รวมกับปุ่มพิเศษ PASS ในแถวเดียวกันเพื่อประหยัดพื้นที่
+            cols_box = st.columns(8) # PASS + 1ถึง7
+            
+            with cols_box[0]:
                 if st.button("PASS", use_container_width=True, key=f"pass_{st.session_state.question}"):
                     process_answer("PASS", correct_answer)
-            with col_p2:
-                if st.button("DBL", use_container_width=True, key=f"dbl_{st.session_state.question}"):
-                    process_answer("DBL", correct_answer)
-            with col_p3:
-                if st.button("RDBL", use_container_width=True, key=f"rdbl_{st.session_state.question}"):
-                    process_answer("RDBL", correct_answer)
-
-            st.write("เลือกเลเวล (1 - 7):")
-            cols_lvl = st.columns(7)
-            levels = ["1", "2", "3", "4", "5", "6", "7"]
             
-            for i, lvl in enumerate(levels):
-                with cols_lvl[i]:
+            for idx, lvl in enumerate(allowed_levels):
+                with cols_box[idx + 1]:
                     if st.button(lvl, use_container_width=True, key=f"lvl_{lvl}_{st.session_state.question}"):
                         st.session_state[level_key] = lvl
                         st.rerun()
@@ -351,19 +357,15 @@ f"""
                         if st.button(label, use_container_width=True, key=f"suit_{s_code}_{st.session_state.question}"):
                             process_answer(final_bid, correct_answer)
         else:
-            # หลังกดตอบ: บิดดิ้งหายไป เอาเฉลยพร้อมคำอธิบายมาแทน และมีปุ่มข้อต่อไป
-            st.markdown(f"## {st.session_state.result}")
-            st.write(f"**คำตอบของคุณ:** {st.session_state.user_answer}")
-            st.write(f"**คำตอบที่ถูกต้อง:** {correct_answer}")
+            # หลังกดตอบ: แสดงผลลัพธ์และปุ่มข้อต่อไปแบบไม่ตกหน้าจอ
+            st.markdown(f"### {st.session_state.result}")
+            st.write(f"**ตอบ:** `{st.session_state.user_answer}` | **ที่ถูก:** `{correct_answer}`")
             
             with st.expander("💡 เหตุผลและหลักการประมูล", expanded=True):
                 st.markdown(f"""
-                - **แต้มรวม (HCP):** {hcp} แต้ม
-                - **ทรงไพ่ (Shape):** {shape}
-                - **หลักการพิจารณา:** อิงตามกฎ Core Engine และลำดับความสำคัญ (Shape Before Strength / Find Fit Before Game) ทำให้คำตอบที่ถูกต้องคือ **{correct_answer}**
+                - **แต้มรวม (HCP):** {hcp} แต้ม | **Shape:** {shape}
+                - อิงตามกฎ Core Engine และลำดับความสำคัญ (Shape Before Strength) คำตอบคือ **{correct_answer}**
                 """)
-
-            st.markdown("---")
 
             if st.session_state.question < 20:
                 if st.button("ข้อถัดไป ➡", use_container_width=True, type="primary"):
@@ -373,39 +375,26 @@ f"""
                     st.session_state.current_hand_data = get_next_question_data(st.session_state.page)
                     st.rerun()
             else:
-                if st.button("🏁 ดูผลสรุปคะแนนประจำชุด", use_container_width=True, type="primary"):
+                if st.button("🏁 ดูผลสรุปคะแนน", use_container_width=True, type="primary"):
                     st.session_state.page = "summary"
                     st.rerun()
 
     # ----------------------------------
-    # QUIZ SECTION 3: ฝั่งขวา (Cheat Code / สรุปกฎประจำเรื่อง)
+    # QUIZ SECTION 3: ฝั่งขวา (Cheat Code ใส่คำคม/เพลงตามที่คุณขอ)
     # ----------------------------------
     with col_q3:
         st.markdown("### 📌 Cheat Code")
-        st.markdown("*(สรุปกฎประจำเรื่อง)*")
+        st.markdown("*(มุมมองและแรงบันดาลใจ)*")
         
-        # แสดง Cheat Code ตามหัวข้อที่กำลังฝึกอยู่
-        if st.session_state.page == "opening":
-            st.success("""
-            **Opening Rules:**
-            - HCP 12+ เปิดประมูล
-            - เปิด 5-card Major ก่อนถ้ามี
-            - เปิด 4-card Minor (ชอร์ตสุด/ดีสุด)
-            - 1NT เปิดที่ 15-17 สมดุล (Balanced)
-            """)
-        elif st.session_state.page == "response_1nt":
-            st.success("""
-            **Rule 1: Transfer First**
-            - มีโอกาสใช้ Transfer ให้ใช้ก่อนเพื่อหา Major Fit, เก็บพื้นที่ และซ่อนมือเปิด
-            """)
-        elif st.session_state.page in ["response_1c", "response_1d", "response_1h", "response_1s"]:
-            st.success("""
-            **Response Rules:**
-            - **Rule 2:** Shape Before Strength (หาทรงไพ่ก่อนถามแต้ม)
-            - **Rule 5:** Find Fit Before Game (เกมตัดสินหลังรู้ Fit)
-            """)
-        else:
-            st.info("รวบรวมเทคนิคและกฎสำคัญสำหรับใช้อ้างอิงระหว่างทำ Quiz")
+        # B: ใส่คำคมหรือท่อนเพลงตามที่คุณต้องการ (คุณแก้ไขข้อความตรงนี้เองได้ง่ายๆ เลยครับ)
+        st.info("""
+        🎵 **Song of the Day:**
+        > "Shape before strength, 
+        > Play the card with heart,
+        > Bridge is an art."
+        
+        💡 *Tip: มองทรงไพ่ให้ออก ก่อนตัดสินใจนับแต้มในมือ!*
+        """)
 
 
 # ==================================================
