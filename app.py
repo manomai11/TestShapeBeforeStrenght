@@ -410,7 +410,6 @@ Opening = {correct_answer}
             ):
 
                 st.session_state.question += 1
-
                 st.session_state.answered = False
                 st.session_state.level_selected = None
                 st.session_state.current_question = None                 )
