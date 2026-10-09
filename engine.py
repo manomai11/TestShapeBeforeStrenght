@@ -161,7 +161,7 @@ def opening_bid(hcp, shape):
         and d <= 4
         and c <= 4
     ):
-        return "2H",11-13 H6"
+        return "2H","11-13 H6"
 
     # ----------------------------
     # BALANCED
