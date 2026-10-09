@@ -151,28 +151,88 @@ elif st.session_state.page == "menu":
         f"Welcome {st.session_state.player_name}"
     )
 
-    if st.button("Opening"):
+    if st.button(
+        "Opening Practice",
+        use_container_width=True
+    ):
+
         st.session_state.page = "opening"
+
+        st.session_state.answered = False
+        st.session_state.result = ""
+        st.session_state.user_answer = ""
+        st.session_state.level_selected = None
+
         st.rerun()
 
-    if st.button("Response 1NT"):
-        st.session_state.page = "r1nt"
+     if st.button(
+         "Response 1NT",
+        use_container_width=True
+    ):
+
+        st.session_state.page = "response_1nt"
+
+        st.session_state.answered = False
+        st.session_state.result = ""
+        st.session_state.user_answer = ""
+        st.session_state.level_selected = None
+
         st.rerun()
 
-    if st.button("Response 1C"):
-        st.session_state.page = "r1c"
+    if st.button(
+         "Response 1C",
+        use_container_width=True
+    ):
+
+        st.session_state.page = "response_1c"
+
+        st.session_state.answered = False
+        st.session_state.result = ""
+        st.session_state.user_answer = ""
+        st.session_state.level_selected = None
+
         st.rerun()
 
-    if st.button("Response 1D"):
-        st.session_state.page = "r1d"
+    if st.button(
+         "Response 1D",
+        use_container_width=True
+    ):
+
+        st.session_state.page = "response_1d"
+
+        st.session_state.answered = False
+        st.session_state.result = ""
+        st.session_state.user_answer = ""
+        st.session_state.level_selected = None
+
         st.rerun()
 
-    if st.button("Response 1H"):
-        st.session_state.page = "r1h"
+    if st.button(
+         "Response 1H",
+        use_container_width=True
+    ):
+
+        st.session_state.page = "response_1h"
+
+        st.session_state.answered = False
+        st.session_state.result = ""
+        st.session_state.user_answer = ""
+        st.session_state.level_selected = None
+
         st.rerun()
 
-    if st.button("Response 1S"):
-        st.session_state.page = "r1s"
+    if st.button(
+         "Response 1S",
+        use_container_width=True
+    ):
+
+        st.session_state.page = "response_1s"
+
+        st.session_state.answered = False
+        st.session_state.result = ""
+        st.session_state.user_answer = ""
+        st.session_state.level_selected = None
+
         st.rerun()
 
 # ==================================================
