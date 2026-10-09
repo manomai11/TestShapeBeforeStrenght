@@ -400,12 +400,12 @@ elif st.session_state.page in [
                             process_answer(final_bid, correct_answer)
         else:
             st.markdown(f"### {st.session_state.result}")
-            st.write(f"**ตอบ:** `{st.session_state.user_answer}` | **ที่ถูก:** `{correct_answer}`")
+            st.write(f"**ตอบ:** `{st.session_state.user_answer}` | **ที่ถูก:** `{correct_answer[0]}`")
             
             with st.expander("💡 เหตุผลและหลักการประมูล", expanded=True):
                 st.markdown(f"""
                 - **แต้มรวม (HCP):** {hcp} แต้ม | **Shape:** {shape}
-                - อิงตามกฎ Core Engine และลำดับความสำคัญ (Shape Before Strength) คำตอบคือ **{correct_answer}**
+                - อิงตามกฎ Core Engine และลำดับความสำคัญ (Shape Before Strength) คำตอบคือ **{correct_answer[1]}**
                 """)
 
             if st.session_state.question < 20:
