@@ -241,10 +241,10 @@ elif st.session_state.page == "menu":
 
 elif st.session_state.page in [
     "opening",
-    "r1nt",
-    "r1c",
-    "r1d",
-    "r1h",
+    "response_1nt",
+    "response_1c",
+    "response_1d",
+    "response_1h",
     "r1s",
 ]:
 
@@ -277,7 +277,7 @@ elif st.session_state.page in [
             shape
         )
 
-    elif st.session_state.page == "r1nt":
+    elif st.session_state.page == "response_1nt":
 
         title = "Response 1NT"
 
@@ -286,7 +286,7 @@ elif st.session_state.page in [
             shape
         )
 
-    elif st.session_state.page == "r1c":
+    elif st.session_state.page == "response_1c":
 
         title = "Response 1C"
 
@@ -295,7 +295,7 @@ elif st.session_state.page in [
             shape
         )
 
-    elif st.session_state.page == "r1d":
+    elif st.session_state.page == "response_1d":
 
         title = "Response 1D"
 
@@ -304,7 +304,7 @@ elif st.session_state.page in [
             shape
         )
 
-    elif st.session_state.page == "r1h":
+    elif st.session_state.page == "response_1h":
 
         title = "Response 1H"
 
