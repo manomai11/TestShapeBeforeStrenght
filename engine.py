@@ -248,13 +248,13 @@ def opening_bid(hcp, shape):
 
 def response_1nt(hcp, shape):
 
-    s,h,d,c = shape_lengths(shape)
+    s, h, d, c = shape_lengths(shape)
 
-    # Rule 1
+    # 3D
     if hcp >= 9 and s >= 5 and h >= 5:
         return "3D"
 
-    # Rule 2
+    # 10+ M5 oM=4
     if hcp >= 10:
 
         if s >= 5 and h == 4:
@@ -263,7 +263,8 @@ def response_1nt(hcp, shape):
         if h >= 5 and s == 4:
             return "2C"
 
-    # Rule 3
+    # 8-9 M55 / M5m5
+
     if 8 <= hcp <= 9:
 
         if s >= 5 and h >= 5:
@@ -276,7 +277,8 @@ def response_1nt(hcp, shape):
         ):
             return "2C"
 
-    # Rule 4
+    # 9 M5-6
+
     if hcp == 9:
 
         if s >= 5:
@@ -285,7 +287,8 @@ def response_1nt(hcp, shape):
         if h >= 5:
             return "2C"
 
-    # Rule 5
+    # Texas S
+
     if (
         (10 <= hcp <= 12 and s >= 6)
         or
@@ -295,7 +298,8 @@ def response_1nt(hcp, shape):
     ):
         return "4D"
 
-    # Rule 6
+    # Texas H
+
     if (
         (10 <= hcp <= 12 and h >= 6)
         or
@@ -305,19 +309,23 @@ def response_1nt(hcp, shape):
     ):
         return "4C"
 
-    # Rule 7
+    # 3S
+
     if hcp >= 11 and shape in ["1345", "1354"]:
         return "3S"
 
-    # Rule 8
+    # 3H
+
     if hcp >= 11 and shape in ["3145", "3154"]:
         return "3H"
 
-    # Rule 9
+    # m55
+
     if d >= 5 and c >= 5:
         return "2D"
 
-    # Rule 10
+    # D route
+
     if (
         (0 <= hcp <= 8 and d >= 6)
         or
@@ -327,7 +335,8 @@ def response_1nt(hcp, shape):
     ):
         return "2N"
 
-    # Rule 11
+    # C route
+
     if (
         (0 <= hcp <= 8 and c >= 6)
         or
@@ -337,28 +346,31 @@ def response_1nt(hcp, shape):
     ):
         return "2S"
 
-    # Rule 12
+    # 3NT
+
     if (
         9 <= hcp <= 12
-        and max(s,h) < 3
-        and max(d,c) >= 6
+        and max(s, h) < 3
+        and max(d, c) >= 6
     ):
         return "3N"
 
     if (
         11 <= hcp <= 15
-        and shape in ["2254","2245"]
+        and shape in ["2254", "2245"]
     ):
         return "3N"
 
-    # Rule 13
+    # 3C
+
     if (
         11 <= hcp <= 15
         and (s >= 3 or h >= 3)
     ):
         return "3C"
 
-    # Rule 14
+    # Transfer S
+
     if (
         (0 <= hcp <= 8 and s >= 5 and s >= h)
         or
@@ -366,7 +378,8 @@ def response_1nt(hcp, shape):
     ):
         return "2H"
 
-    # Rule 15
+    # Transfer H
+
     if (
         (0 <= hcp <= 8 and h >= 5 and h > s)
         or
@@ -374,7 +387,8 @@ def response_1nt(hcp, shape):
     ):
         return "2D"
 
-    # Rule 16
+    # 16+
+
     if (
         hcp >= 16
         and s < 5
@@ -385,7 +399,8 @@ def response_1nt(hcp, shape):
     ):
         return "2C"
 
-    # Rule 17
+    # 10
+
     if (
         hcp == 10
         and s < 5
@@ -397,7 +412,6 @@ def response_1nt(hcp, shape):
         return "2C"
 
     return "PASS"
-
 
 # ==========================================
 # RESPONSE 1 MAJOR
