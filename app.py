@@ -3,9 +3,9 @@ import random
 
 from engine import opening_bid
 
-# ==========================================
-# CARD HELPERS
-# ==========================================
+# =====================================================
+# CARD ENGINE
+# =====================================================
 
 RANKS = "AKQJT98765432"
 
@@ -22,38 +22,35 @@ def generate_hand():
     deck = []
 
     for suit in ["S", "H", "D", "C"]:
+
         for rank in RANKS:
+
             deck.append((suit, rank))
 
     random.shuffle(deck)
 
-    hand = deck[:13]
+    cards = deck[:13]
 
-    suits = {
+    hand = {
         "S": [],
         "H": [],
         "D": [],
-        "C": [],
+        "C": []
     }
 
-    for suit, rank in hand:
-        suits[suit].append(rank)
+    for suit, rank in cards:
+        hand[suit].append(rank)
 
-    for suit in suits:
-        suits[suit].sort(
-            key=lambda x: RANKS.index(x)
-        )
-
-    return suits
+    return hand
 
 
 def calculate_hcp(hand):
 
     total = 0
 
-    for suit_cards in hand.values():
+    for cards in hand.values():
 
-        for card in suit_cards:
+        for card in cards:
 
             total += HCP_MAP.get(card, 0)
 
@@ -70,18 +67,19 @@ def calculate_shape(hand):
     )
 
 
-# ==========================================
-# STREAMLIT
-# ==========================================
+# =====================================================
+# PAGE
+# =====================================================
 
 st.set_page_config(
     page_title="Shape Before Strength",
     page_icon="♠",
-    layout="wide",
+    layout="wide"
 )
 
-if "hand" not in st.session_state:
-    st.session_state.hand = generate_hand()
+# =====================================================
+# SESSION
+# =====================================================
 
 if "score" not in st.session_state:
     st.session_state.score = 0
@@ -98,10 +96,17 @@ if "result" not in st.session_state:
 if "user_answer" not in st.session_state:
     st.session_state.user_answer = ""
 
+if "hand" not in st.session_state:
+    st.session_state.hand = generate_hand()
+
+# =====================================================
+# DATA
+# =====================================================
 
 hand = st.session_state.hand
 
 hcp = calculate_hcp(hand)
+
 shape = calculate_shape(hand)
 
 correct_answer = opening_bid(
@@ -109,15 +114,28 @@ correct_answer = opening_bid(
     shape
 )
 
+# =====================================================
+# HEADER
+# =====================================================
+
 st.title("Opening Practice")
 
-st.write(f"Question : {st.session_state.question}/20")
-st.write(f"Score : {st.session_state.score}")
+st.write(
+    f"Question : {st.session_state.question}"
+)
+
+st.write(
+    f"Score : {st.session_state.score}"
+)
 
 st.divider()
 
+# =====================================================
+# HAND
+# =====================================================
+
 st.markdown(
-    f"""
+f"""
 ### Hand
 
 ♠ {"".join(hand["S"])}
@@ -130,14 +148,24 @@ st.markdown(
 """
 )
 
-st.write(f"HCP : {hcp}")
-st.write(f"Shape : {shape}")
+st.write(
+    f"HCP : {hcp}"
+)
+
+st.write(
+    f"Shape : {shape}"
+)
 
 st.divider()
+
+# =====================================================
+# QUESTION MODE
+# =====================================================
 
 if not st.session_state.answered:
 
     bids = [
+
         "PASS",
 
         "1C","1D","1H","1S","1N",
@@ -146,7 +174,7 @@ if not st.session_state.answered:
 
         "3C","3D","3H","3S","3N",
 
-        "4C","4D","4H","4S",
+        "4C","4D","4H","4S","4N",
 
         "5C","5D","5H","5S","5N",
 
@@ -177,6 +205,10 @@ if not st.session_state.answered:
         st.session_state.answered = True
 
         st.rerun()
+
+# =====================================================
+# RESULT MODE
+# =====================================================
 
 else:
 
