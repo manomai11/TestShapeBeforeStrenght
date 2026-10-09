@@ -371,13 +371,13 @@ f"""
 
     if not st.session_state.answered:
 
-        user_choice = st.radio("Choose Bid", bids, key="r1nt_choice")
+        choice = st.radio("Choose Bid", bids, key="r1nt_choice", index=None)
 
-        if user_choice:
+        if choice:
 
-            st.session_state.user_answer = user_choice
+            st.session_state.user_answer = choice
 
-            if user_choice == correct_answer:
+            if choice == correct_answer:
 
                 st.session_state.result = "✅ Correct"
 
@@ -410,6 +410,8 @@ f"""
             st.session_state.question += 1
 
             st.session_state.answered = False
+            
+            st.session_state.user_answer = ""
 
             st.session_state.hand = generate_hand()
 
