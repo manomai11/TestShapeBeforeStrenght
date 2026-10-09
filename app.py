@@ -371,14 +371,11 @@ f"""
 
     if not st.session_state.answered:
 
-        choice = st.selectbox(
-            "Choose Bid",
-            bids
-        )
+        user_choice = st.radio("Choose Bid", bids, key="r1nt_choice")
 
-        if st.button("Submit"):
+        if user_choice:
 
-            st.session_state.user_answer = choice
+            st.session_state.user_answer = user_choice
 
             if choice == correct_answer:
 
