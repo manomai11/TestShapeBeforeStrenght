@@ -200,15 +200,33 @@ def get_cheat_code_quote(mode):
 if st.session_state.page == "login":
     col1, col2, col3 = st.columns([1.5, 1.2, 0.8])
 
-    with col1:
-        st.markdown("## ♠ SHAPE BEFORE STRENGTH")
-        st.markdown("**ยกระดับการประมูลไพ่สากลด้วยระบบตรรกะมาตรฐาน**")
+ left, right = st.columns([3, 2])
+
+    with left:
+
+        st.title("♠ Shape Before Strength")
+
         st.markdown("""
-        แอปพลิเคชันฝึกฝนการประมูลบริดจ์รูปแบบชุด 20 ข้อ:
-        - **🎯 Fast Random:** สุ่มโจทย์สดทีละข้อ ลื่นไหล
-        - **⚖️ Unique & Balanced:** มือไม่ซ้ำกัน คุม PASS ไม่เกิน 1 ข้อ
-        - **💡 Detailed Explanation:** มีเฉลยพร้อมเหตุผลประกอบชัดเจน
-        """)
+### A Modern Low-Information Transfer Club System
+
+### Learn • Practice • Improve
+""")
+
+        st.markdown("""
+เรียนรู้และฝึกประมูลไพ่บริดจ์ตามระบบ
+
+**Shape Before Strength**
+
+✅ วิเคราะห์ Shape ก่อนแต้ม
+
+✅ ใช้การบิดแบบ Transfer
+
+✅ เปิดเผยข้อมูลให้น้อยที่สุด
+
+✅ หา Fit อย่างมีประสิทธิภาพ
+
+✅ ฝึกผ่านโจทย์จริง
+""")
 
     with col2:
         st.markdown("### เริ่มต้นใช้งาน")
