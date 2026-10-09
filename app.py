@@ -153,46 +153,46 @@ elif st.session_state.page == "opening":
 
     import random
 
-OPENING_QUESTIONS = [
+    OPENING_QUESTIONS = [
 
-    (13, "5332"),
-    (17, "5530"),
-    (22, "5332"),
+        (13, "5332"),
+        (17, "5530"),
+        (22, "5332"),
 
-    (14, "4432"),
-    (11, "4432"),
+        (14, "4432"),
+        (11, "4432"),
 
-    (17, "1345"),
-    (14, "2245"),
+        (17, "1345"),
+        (14, "2245"),
 
-    (8, "6322"),
-    (12, "6322"),
-    (15, "6322"),
+        (8, "6322"),
+        (12, "6322"),
+        (15, "6322"),
 
-    (8, "3622"),
-    (12, "3622"),
-    (15, "3622"),
+        (8, "3622"),
+        (12, "3622"),
+        (15, "3622"),
 
-    (13, "5512"),
-    (15, "5161"),
+        (13, "5512"),
+        (15, "5161"),
 
-    (17, "3523"),
+        (17, "3523"),
 
-    (16, "3343")
-]
+        (16, "3343")
+    ]
 
-if "current_question" not in st.session_state:
-    st.session_state.current_question = random.choice(
-        OPENING_QUESTIONS
+    if "current_question" not in st.session_state:
+        st.session_state.current_question = random.choice(
+            OPENING_QUESTIONS
+        )
+
+    hcp, shape = st.session_state.current_question
+    correct_answer = opening_bid(
+        hcp,
+        shape
     )
 
-hcp, shape = st.session_state.current_question
-correct_answer = opening_bid(
-    hcp,
-    shape
-    )
-
-left, middle, right = st.columns([1, 3, 1])
+    left, middle, right = st.columns([1, 3, 1])
 
     # =================================================
     # LEFT
