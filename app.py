@@ -212,17 +212,17 @@ elif st.session_state.page == "opening":
         (16, "3343")
     ]
 
-if (
-    "current_question" not in st.session_state
-    or
-    st.session_state.current_question is None
-):
+    if (
+        "current_question" not in st.session_state
+        or
+        st.session_state.current_question is None
+    ):
 
     st.session_state.current_question = random.choice(
         OPENING_QUESTIONS
     )
 
-hcp, shape = st.session_state.current_question
+    hcp, shape = st.session_state.current_question
 
     hcp, shape = st.session_state.current_question
     correct_answer = opening_bid(
