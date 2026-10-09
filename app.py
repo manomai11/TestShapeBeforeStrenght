@@ -266,5 +266,10 @@ elif st.session_state.page == "opening":
                 )
 
                 suit_map = {
-            
-                    )
+                        "C": "♣",
+                        "D": "♦",
+                        "H": "♥",
+                        "S": "♠",
+                        "N": "NT"
+                }
+                    
