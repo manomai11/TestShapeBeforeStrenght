@@ -218,17 +218,16 @@ elif st.session_state.page == "opening":
         st.session_state.current_question is None
     ):
 
-    st.session_state.current_question = random.choice(
-        OPENING_QUESTIONS
+        st.session_state.current_question = random.choice(
+            OPENING_QUESTIONS
     )
 
-    hcp, shape = st.session_state.current_question
+hcp, shape = st.session_state.current_question
 
-    hcp, shape = st.session_state.current_question
-    correct_answer = opening_bid(
-        hcp,
-        shape
-    )
+correct_answer = opening_bid(
+    hcp,
+    shape
+)
 
     left, middle, right = st.columns([1, 3, 1])
 
