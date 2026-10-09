@@ -93,30 +93,30 @@ def opening_bid(hcp, shape):
     if 5 <= hcp <= 10:
 
         if s == 7 and h <= 4 and d <= 4 and c <= 4:
-            return "3S"
+            return "3S","มีแต้ม 5-10 และมีไพ่ Spade 7 ใบ (3 Level Preempt)"
 
         if h == 7 and s <= 4 and d <= 4 and c <= 4:
-            return "3H"
+            return "3H","มีแต้ม 5-10 และมีไพ่ Heart 7 ใบ (3 Level Preempt)"
 
         if d == 7 and s <= 4 and h <= 4 and c <= 4:
-            return "3D"
+            return "3D","มีแต้ม 5-10 และมีไพ่ Diamond 7 ใบ (3 Level Preempt)"
 
         if c == 7 and s <= 4 and h <= 4 and d <= 4:
-            return "3C"
+            return "3C","มีแต้ม 5-10 และมีไพ่ Club 7 ใบ (3 Level Preempt)"
 
     # ----------------------------
     # 2NT
     # ----------------------------
 
     if balanced and 20 <= hcp <= 22:
-        return "2N"
+        return "2N","20-22 Balanced"
 
     # ----------------------------
     # 2C
     # ----------------------------
 
     if hcp >= 21:
-        return "2C"
+        return "2C","21+ any or 18+ playing tricks"
 
     # ----------------------------
     # STRONG M55
@@ -125,7 +125,7 @@ def opening_bid(hcp, shape):
     if 17 <= hcp <= 20:
 
         if s >= 5 and h >= 5:
-            return "2D"
+            return "2D","Multi 17-20 M55"
     # ----------------------------
     # WEAK MAJOR
     # ----------------------------
@@ -133,9 +133,9 @@ def opening_bid(hcp, shape):
     if 6 <= hcp <= 10:
 
         if s == 6 and h <= 4 and d <= 4 and c <= 4:
-            return "2D"
+            return "2D","Multi weak 1M"
         if h == 6 and s <= 4 and d <= 4 and c <= 4:
-            return "2D"
+            return "2D","Multi weak 1M"
 
     # ----------------------------
     # 2S
@@ -148,7 +148,7 @@ def opening_bid(hcp, shape):
         and d <= 4
         and c <= 4
     ):
-        return "2S"
+        return "2S","11-13 S6"
 
     # ----------------------------
     # 2H
@@ -161,7 +161,7 @@ def opening_bid(hcp, shape):
         and d <= 4
         and c <= 4
     ):
-        return "2H"
+        return "2H",11-13 H6"
 
     # ----------------------------
     # BALANCED
@@ -194,15 +194,15 @@ def opening_bid(hcp, shape):
         if s >= 5 and h >= 5:
 
             if s >= h:
-                return "1S"
+                return "1S","11+ S5"
 
-            return "1H"
+            return "1H","11+ H5"
 
         if s >= 5:
-            return "1S"
+            return "1S","11+ S5"
 
         if h >= 5:
-            return "1H"
+            return "1H","11+ H5"
 
     # ----------------------------
     # 4441 FAMILY
@@ -249,40 +249,40 @@ def response_1nt(hcp, shape):
 
     # 3D
     if hcp >= 9 and s >= 5 and h >= 5:
-        return "3D"
+        return "3D"," GF 9+ M55"
 
     # 10+ M5 oM=4
     if hcp >= 10:
 
         if s >= 5 and h == 4:
-            return "2C"
+            return "2C","GF 10+ M5+ and oM4"
 
         if h >= 5 and s == 4:
-            return "2C"
+            return "2C","GF 10+ M5+ and oM4"
 
     # 8-9 M55 / M5m5,"Transfer H weak or GF or m55"
 
     if 8 <= hcp <= 9:
 
         if s >= 5 and h >= 5:
-            return "2C"
+            return "2C","Constructive 8-9 55 atleast 1M"
 
         if (
             (s >= 5 or h >= 5)
             and
             (d >= 5 or c >= 5)
         ):
-            return "2C"
+            return "2C","Constructive 8-9 55 atleast 1M"
 
     # 9 M5-6
 
     if hcp == 9:
 
         if s >= 5:
-            return "2C"
+            return "2C","GI 9 Hcp S5-6 ใบ"
 
         if h >= 5:
-            return "2C"
+            return "2C","GI 9 Hcp S5-6 ใบ"
 
     # Texas S
 
@@ -293,7 +293,7 @@ def response_1nt(hcp, shape):
         or
         (0 <= hcp <= 5 and s >= 8)
     ):
-        return "4D"
+        return "4D","Transfer Spade"
 
     # Texas H
 
@@ -304,66 +304,36 @@ def response_1nt(hcp, shape):
         or
         (0 <= hcp <= 5 and h >= 8)
     ):
-        return "4C"
+        return "4C","Transfer Heart"
 
     # 3S
 
     if hcp >= 11 and shape in ["1345", "1354"]:
-        return "3S"
+        return "3S","GF m54 with singleton S"
     # 3H
 
     if hcp >= 11 and shape in ["3145", "3154"]:
-        return "3H"
+        return "3H","GF m54 with singleton H"
 
     # m55
 
     if d >= 5 and c >= 5:
-        return "2D"
-
-    # D route
-
-    if (
-        (0 <= hcp <= 8 and d >= 6)
-        or
-        (13 <= hcp and d >= 6)
-        or
-        (9 <= hcp <= 12 and d >= 7)
-    ):
-        return "2N"
-
-    # C route
-
-    if (
-        (0 <= hcp <= 8 and c >= 6)
-        or
-        (13 <= hcp and c >= 6)
-        or
-        (9 <= hcp <= 12 and c >= 7)
-    ):
-        return "2S"
+        return "2D","m55"
 
     # 3NT
 
     if (
-        9 <= hcp <= 12
+        10 <= hcp <= 12
         and max(s, h) < 3
         and max(d, c) >= 6
     ):
-        return "3N"
+        return "3N","To Play"
 
     if (
         11 <= hcp <= 15
         and shape in ["2254", "2245"]
     ):
-        return "3N"
-
-    # 3C
-
-    if (
-        11 <= hcp <= 15
-        and (s >= 3 or h >= 3)
-    ):
-        return "3C","GF Stayman not interest Slam"
+        return "3N","To Play"
 
     # Transfer S
 
@@ -372,7 +342,7 @@ def response_1nt(hcp, shape):
         or
         (hcp >= 10 and s >= 5 and h < 4)
     ):
-        return "2H"
+        return "2H","Transfer S"
 
     # Transfer H
 
@@ -381,7 +351,41 @@ def response_1nt(hcp, shape):
         or
         (hcp >= 10 and h >= 5 and s < 4)
     ):
-        return "2D"
+        return "2D","Transfer H"
+    
+    # 3C
+
+    if 13 <= hcap <= 15 and (s >= 3 or h >= 3) and m < 6:
+    return "3C", "ASk M with no M5 not interest slam"
+
+elif 11 <= hcap <= 12 and (s >= 3 or h >= 3) and m < 7:
+    return "3C", "ASk M with no M5 not interest slam"
+
+elif hcap == 10 and (s >= 3 or h >= 3) and m == 6:
+    return "3C", "ASk M with no M5 not interest slam"
+
+# D route
+
+    if (
+        (0 <= hcp <= 9 and d >= 6)
+        or
+        (13 <= hcp and d >= 6)
+        or
+        (10 <= hcp <= 12 and d >= 7)
+    ):
+        return "2N","Transfer D6+"
+
+    # C route
+
+    if (
+        (0 <= hcp <= 9 and c >= 6)
+        or
+        (13 <= hcp and c >= 6)
+        or
+        (10 <= hcp <= 12 and c >= 7)
+    ):
+        return "2S","Transfer C"
+    
     # 16+
 
     if (
@@ -392,7 +396,7 @@ def response_1nt(hcp, shape):
         and c < 6
         and not (d >= 5 and c >= 5)
     ):
-        return "2C"
+        return "2C","16+ M<5"
 
     # 10
 
@@ -404,9 +408,9 @@ def response_1nt(hcp, shape):
         and c < 6
         and not (d >= 5 and c >= 5)
     ):
-        return "2C"
+        return "2C","Game invited"
 
-    return "PASS"
+    return "PASS","no good bid"
 
 # ==========================================
 # RESPONSE 1 MAJOR
@@ -451,7 +455,7 @@ def response_1major(
         # 13+ M4+ with any void
 
         if hcp >= 13 and has_void:
-            return "3D"
+            return "3D","GF 13+ M4+ with any void"
 
         # Rule 2
         # 13+ M4+ with other major singleton
@@ -459,27 +463,27 @@ def response_1major(
         if hcp >= 13 and other_major == 1:
 
             if opening == "1H":
-                return "3S"
+                return "3S","GF 13+ H4+ singletom S"
             else:
-                return "3H"
+                return "3H","GF 13+ S4+ singletom H"
 
         # Rule 3
         # 13+ M4+ C=1
 
         if hcp >= 13 and c == 1:
-            return "3N"
+            return "3N","GF 13+ singleton C"
 
         # Rule 4
         # 13+ M4+ D=1
 
         if hcp >= 13 and d == 1:
-            return "4C"
+            return "4C","GF 13+ singleton D"
 
         # Rule 6
         # 13+ catch-all GF
 
         if hcp >= 13:
-            return "2C"
+            return "2C","GF RELAY"
 
         # Rule 7
         # 10-12 M4+ any short
@@ -488,7 +492,7 @@ def response_1major(
             10 <= hcp <= 12
             and has_short
         ):
-            return "2N"
+            return "2N","Game Invite M4+ with any short"
 
         # Rule 8
         # 8-12 M4+ no short
@@ -497,7 +501,7 @@ def response_1major(
             8 <= hcp <= 12
             and not has_short
         ):
-            return "3C"
+            return "3C","Game Invite M4+ with no short"
 
         # Rule 9
         # 6-9 M5+
@@ -506,7 +510,7 @@ def response_1major(
             6 <= hcp <= 9
             and trump >= 5
         ):
-            return "4H" if opening == "1H" else "4S"
+            return "4H" if opening == "1H" else "4S","Non Force M4+"
 
         # Rule 10
         # 6-9 M4+ with short
@@ -515,7 +519,7 @@ def response_1major(
             6 <= hcp <= 9
             and has_short
         ):
-            return "4H" if opening == "1H" else "4S"
+            return "4H" if opening == "1H" else "4S","Non Force M4+ "
 
         # Rule 11
         # 4-7 M4 not 4333 and has Ace
@@ -525,25 +529,25 @@ def response_1major(
             and shape != "4333"
             and has_ace
         ):
-            return "3H" if opening == "1H" else "3S"
+            return "3H" if opening == "1H" else "3S","Blocking M4+ 4-7 hcp  ถ้ามี4-5แต้มต้องมีเอ"
 
         # Rule 12
         # 0-5 M4 not 4333
 
         if (
             0 <= hcp <= 5
-            and shape != "4333"
+                and shape != "4333"
         ):
-            return "3D"
+            return "3D","weak raise M4+"
 
         # special 4333 case
 
         if shape == "4333":
 
             if hcp >= 5:
-                return "2H" if opening == "1H" else "2S"
+                return "2H" if opening == "1H" else "2S","constructive raised"
 
-            return "PASS"
+            return "PASS","no good bid"
 
     # =====================================
     # SUPPORT EXACTLY 3
@@ -559,31 +563,31 @@ def response_1major(
             if has_short:
 
                 if opening == "1H":
-                    return "2D"
+                    return "2D","GF 13+ M3 with any short"
                 else:
-                    return "2H"
+                    return "2H","GF 13+ M3 with any short"
 
-            return "2C"
+            return "2C","GF RELAY"
 
         # GI
 
         if 10 <= hcp <= 12:
 
             if opening == "1H":
-                return "2D"
+                return "2D","Game invited H3"
             else:
-                return "2H"
+                return "2H","Game invited S3"
 
         # constructive
 
         if 6 <= hcp <= 9:
 
             if opening == "1H":
-                return "2H"
+                return "2H","constructive raised"
             else:
-                return "2S"
+                return "2S","constructive raised"
 
-        return "PASS"
+        return "PASS","no good bid"
 
     # =====================================
     # OPEN 1S
@@ -598,7 +602,7 @@ def response_1major(
             and h >= 6
             and s < 3
         ):
-            return "2D"
+            return "2D","Transfer H"
 
         # Rule 15
 
@@ -607,15 +611,15 @@ def response_1major(
             and h >= 5
             and s < 4
         ):
-            return "2D"
+            return "2D","Transfer H"
 
         if hcp >= 13:
-            return "2C"
+            return "2C","GF RELAY"
 
         if 6 <= hcp <= 12:
-            return "1N"
+            return "1N","1N Forcing"
 
-        return "PASS"
+        return "PASS","no good bid"
 
     # =====================================
     # OPEN 1H
@@ -630,10 +634,10 @@ def response_1major(
             and s == 6
             and h < 2
         ):
-            return "2S"
+            return "2S","6-9 S6"
 
         if hcp >= 13:
-            return "2C"
+            return "2C","GF RELAY"
 
         # Rule 19
 
@@ -642,7 +646,7 @@ def response_1major(
             and s >= 5
             and h < 3
         ):
-            return "1N"
+            return "1N","6-12 S5+"
 
         # Rule 20
 
@@ -651,16 +655,16 @@ def response_1major(
             and s >= 5
             and h < 4
         ):
-            return "1N"
+            return "1N","6-12 S5+"
 
         # Rule 21
 
         if 6 <= hcp <= 12:
-            return "1S"
+            return "1S","S<5 1RF"
 
         # Rule 22
 
-        return "PASS"
+        return "PASS","no good bid"
 
 # ==========================================
 # RESPONSE 1 DIAMOND
@@ -679,7 +683,7 @@ def response_1d(
     c = int(shape[3])
 
     if hcp >= 13 and s < 3 and h < 3:
-        return "1N"
+        return "1N","GF RELAY"
 
     if (
         hcp >= 13
@@ -687,7 +691,7 @@ def response_1d(
         and not bad_suit
         and (s == 4 or h == 4)
     ):
-        return "1N"
+        return "1N","GF RELAY"
 
     if (
         10 <= hcp <= 12
@@ -696,7 +700,7 @@ def response_1d(
         and c >= 5
         and c > d
     ):
-        return "2S"
+        return "2S","Game invited C5+ C>D"
 
     if (
         10 <= hcp <= 12
@@ -705,7 +709,7 @@ def response_1d(
         and d >= 4
         and d >= c
     ):
-        return "3C"
+        return "3C","Game invited D4+ unbalanced"
 
     if (
         11 <= hcp <= 12
@@ -713,7 +717,7 @@ def response_1d(
         and s < 4
         and h < 4
     ):
-        return "2H"
+        return "2H","11-12 Balanced"
 
     if (
         6 <= hcp <= 10
@@ -721,7 +725,7 @@ def response_1d(
         and s < 4
         and h < 4
     ):
-        return "3D"
+        return "3D","6-9 D5+ or D4 unbalanced"
 
     if (
         6 <= hcp <= 9
@@ -730,13 +734,13 @@ def response_1d(
         and h < 4
         and (s <= 1 or h <= 1)
     ):
-        return "3D"
+        return "3D","6-9 D5+ or D4 unbalanced"
 
     if (
         hcp == 10
         and shape == "3325"
     ):
-        return "2C"
+        return "2C","NF C5+"
 
     if (
         6 <= hcp <= 9
@@ -745,7 +749,7 @@ def response_1d(
         and s < 4
         and h < 4
     ):
-        return "2C"
+        return "2C","NF C5+"
 
     if (
         6 <= hcp <= 10
@@ -753,7 +757,7 @@ def response_1d(
         and s < 4
         and h < 4
     ):
-        return "2D"
+        return "2D","constructive D3-4"
 
     if (
         0 <= hcp <= 5
@@ -761,7 +765,7 @@ def response_1d(
         and s < 4
         and h < 4
     ):
-        return "2N"
+        return "2N","weak raised"
 
     if (
         hcp >= 6
@@ -769,7 +773,7 @@ def response_1d(
         and s >= h
         and not (s == 4 and h == 4)
     ):
-        return "1S"
+        return "1S","S4+"
 
     if (
         0 <= hcp <= 5
@@ -778,14 +782,14 @@ def response_1d(
         and s >= h
         and not (s == 4 and h == 4)
     ):
-        return "1S"
+        return "1S","S4+"
 
     if (
         hcp >= 6
         and h >= 4
         and h > s
     ):
-        return "1H"
+        return "1H","H4+"
 
     if (
         0 <= hcp <= 5
@@ -793,9 +797,9 @@ def response_1d(
         and d >= 4
         and h > s
     ):
-        return "1H"
+        return "1H","H4+"
 
-    return "PASS"
+    return "PASS","no good bid"
     
 # ==========================================
 # RESPONSE 1 CLUB
@@ -820,7 +824,7 @@ def response_1c(
         and s < 4
         and h < 4
     ):
-        return "1N"
+        return "1N","GF RELAY"
 
     # Rule 2
     # 13+ M=4 Balanced No Bad Suit
@@ -831,7 +835,7 @@ def response_1c(
         and not bad_suit
         and (s == 4 or h == 4)
     ):
-        return "1N"
+        return "1N","GF RELAY"
 
     # Rule 3
     # H4+ 44 หรือ H>S
@@ -844,7 +848,7 @@ def response_1c(
             h > s
         )
     ):
-        return "1D"
+        return "1D","Transfer H4+"
 
     # Rule 4
     # S4+ S>=H ยกเว้น 44
@@ -854,7 +858,7 @@ def response_1c(
         and not (s == 4 and h == 4)
         and s >= h
     ):
-        return "1H"
+        return "1H","Transfer S4+"
 
     # Rule 5
     # 11-12 C=5
@@ -863,7 +867,7 @@ def response_1c(
         11 <= hcp <= 12
         and c == 5
     ):
-        return "2D"
+        return "2D","11-12 C5+"
 
     # Rule 6
     # 11-12 Balanced M<4 m<5
@@ -876,7 +880,7 @@ def response_1c(
         and d < 5
         and c < 5
     ):
-        return "2H"
+        return "2H","11-12 Balanced no m5"
 
     # Rule 7
     # Transfer Diamond
@@ -887,7 +891,7 @@ def response_1c(
         and s < 4
         and h < 4
     ):
-        return "2C"
+        return "2C","Transfer D"
 
     if (
         11 <= hcp <= 12
@@ -895,7 +899,7 @@ def response_1c(
         and s < 4
         and h < 4
     ):
-        return "2C"
+        return "2C","Transfer D"
 
     if (
         0 <= hcp <= 5
@@ -903,7 +907,7 @@ def response_1c(
         and s < 4
         and h < 4
     ):
-        return "2C"
+        return "2C","Transfer D"
 
     # Rule 8
     # 6-10 m55
@@ -913,7 +917,7 @@ def response_1c(
         and d >= 5
         and c >= 5
     ):
-        return "2S"
+        return "2S","6-10 m55"
 
     # Rule 9
     # 0-5 C6+
@@ -922,7 +926,7 @@ def response_1c(
         0 <= hcp <= 5
         and c >= 6
     ):
-        return "2N"
+        return "2N","weak raised"
 
     # Rule 10
     # 6-10 C6+
@@ -931,7 +935,7 @@ def response_1c(
         6 <= hcp <= 10
         and c >= 6
     ):
-        return "3C"
+        return "3C","blocking raised"
 
     # Rule 11
     # 6-10 M<4 m<6
@@ -943,8 +947,8 @@ def response_1c(
         and d < 6
         and c < 6
     ):
-        return "1S"
+        return "1S","6-10 M<4 m<5"
 
     # Rule 12
 
-    return "PASS"
+    return "PASS","no good bid"
