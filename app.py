@@ -220,7 +220,7 @@ elif st.session_state.page == "opening":
 
         st.session_state.current_question = random.choice(
             OPENING_QUESTIONS
-    )
+        )
 
 hcp, shape = st.session_state.current_question
 
