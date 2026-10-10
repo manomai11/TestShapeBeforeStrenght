@@ -421,13 +421,95 @@ elif st.session_state.page in [
                     st.rerun()
 
     # ----------------------------------
-    # QUIZ SECTION 3: ฝั่งขวา (Cheat Code / สุ่มคำคมประจำหมวด)
+    # QUIZ SECTION 3: ฝั่งขวา (Cheat Sheet / Cheat Code)
     # ----------------------------------
     with col_q3:
-        st.markdown("### 📌 Cheat Code")
-        st.markdown("*(มุมมองและแรงบันดาลใจ)*")
+        st.markdown("### 📌 Cheat Sheet")
+        st.markdown("*(สรุปกติกาเร่งด่วน)*")
         
-        # เรียกใช้ฟังก์ชันสุ่มคำคมตามหมวดหมู่ปัจจุบัน
+        # ฟังก์ชันดึง Cheat Sheet ตามหมวดหมู่
+        def get_cheat_sheet_content(mode):
+            sheets = {
+                "opening": """
+**Opening Rules:**
+- Pass = 0-10 HCP
+- 1C = 11-20 HCP, ♣ 2+ (ถ้า Balanced ไม่จำกัดว่าชุดต้องยาวกว่า เช่น 5332, 4432)
+- 1D = 11-20 HCP, Unbalanced, ♦ 4+
+- 1H = 11-20 HCP, M5 (ไม่มี 5332 ยกเว้นมี 17+ HCP)
+- 1S = 11-20 HCP, M5 (ไม่มี 5332 ยกเว้นมี 17+ HCP)
+- 1NT = 14-16 (Balanced)
+- 2C = 21+ or 8.5 PT
+- 2D = weak 1M or 17-20 M55
+- 2M = 11-13 M6 no second suit >4
+                """,
+                "response_1c": """
+**Response 1C Rules:**
+- 1D = Transfer H (4+)
+- 1H = Transfer S (4+)
+- 1S = 0-10, No M4, No Void
+- 1NT = GF, No M5
+- 2C = Transfer D
+- 2D = GI (C 5+)
+- 2H = GI Balanced (M<4m<5)
+- 3C = NF (C 6)
+                """,
+                "response_1nt": """
+**Response 1NT Rules:**
+- 2C = inverted stayman จะทะยอยเพิ่มรายละเอียดในเวป
+- 2D = Transfer to H or mss
+- 2H = Transfer to S
+- 2S/2N = transfer C/D
+- 3C = Ask M คนถามไม่มี M5 และแค่เกมไม่สนใจสแลม
+- 3D = GF 9+ M55 (GF 10+ M54 ใช้ 2C)
+- 3H = GF 3154 or 3145
+- 3S = GF 1354 or 1345
+- 3N = To play
+                """,
+                "response_1d": """
+**Response 1D Rules:**
+- Level 1 คล้าย เปิด 1C
+- 2C = NF C6+ or 3325 (แทน 1N  ที่คุณเคยเล่น)
+- 2D = NF D3-4
+- 2H = 11-12 Balance 
+- 2S = GI C5+ C>D
+- 3C = GI D4+ D>C
+- 3D = NF D5 or D4 with any short
+                """,
+                "response_1h": """
+**Response 1H Rules:**
+- 1S = S<5 แทน 1NFC
+- 1N = S5+ less than GF
+- 2C = GF RELAY
+- 2D = GI H3 or GF H3 with any short
+- 2H = constructive raised H3 or 3433
+- 2S = <10 S6
+- 2N = 10-12 H4+ with any short
+- 3C = 8-12 H4+ no short
+- 3D = 0-5 H4 or GF H4 with any void
+- 3H = 4-7 H4 4-5 must have A
+- 3S = GF H4+ singleton S
+- 3N = GF H4+ singleton C
+- 4C = GF H4+ singleton D
+- 4H = <10 H5 or H4+short
+                """,
+                "response_1s": """
+**Response 1S Rules:**
+- 1N = Force 1 round
+- 2C = GF RELAY
+- 2D = Transfer H
+- 2H = GI S3 or GF S3 with any short
+- 2S = constructive raised S3 or 4333
+- 2N up คล้าย open 1H
+                """
+            }
+            return sheets.get(mode, "หลักการ Shape Before Strength: หา Fit & Shape ก่อนแต้ม")
+
+        # แสดงกล่องสรุปกติกา
+        with st.expander("📖 เปิดดู Cheat Sheet", expanded=True):
+            st.markdown(get_cheat_sheet_content(st.session_state.page))
+
+        st.markdown("---")
+        st.markdown("### 💡 คำคมประจำหมวด")
         current_quote = get_cheat_code_quote(st.session_state.page)
         st.info(current_quote)
 
@@ -448,7 +530,7 @@ elif st.session_state.page == "summary":
     elif percentage >= 50:
         st.info("👍 ทำได้ดี! ลองทบทวนข้อที่พลาดแล้วฝึกใหม่อีกรอบเพื่อความแม่นยำ")
     else:
-        st.warning("💪 สู้ๆ ครับ ลองกลับไปทบทวนกฎ 5 ข้อหลักแล้วมาลองใหม่อีกครั้ง!")
+        st.warning("💪 สู้ๆ ครับ ลองกลับไปทบทวนข้อตกลง ข้อหลักแล้วมาลองใหม่อีกครั้ง!")
 
     st.markdown("<br>", unsafe_allow_html=True)
     
