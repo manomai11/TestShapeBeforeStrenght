@@ -1,6 +1,4 @@
-from datetime import datetime
 import random
-import sqlite3
 import streamlit as st
 
 from engine import (
@@ -12,7 +10,7 @@ from engine import (
 )
 
 # ==================================================
-# CONFIG & DATABASE SETUP
+# CONFIG
 # ==================================================
 
 st.set_page_config(
@@ -20,26 +18,6 @@ st.set_page_config(
     page_icon="♠",
     layout="wide"
 )
-
-def init_db():
-    conn = sqlite3.connect("bridge_stats.db")
-    cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS training_sessions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            player_name TEXT,
-            mode TEXT,
-            score INTEGER,
-            total_questions INTEGER,
-            week_number INTEGER,
-            year INTEGER,
-            timestamp TEXT
-        )
-    """)
-    conn.commit()
-    conn.close()
-
-init_db()
 
 # ==================================================
 # SESSION STATE INITIALIZATION
@@ -177,46 +155,38 @@ def start_new_practice(page_name):
     st.session_state.current_hand_data = get_next_question_data(page_name)
     st.rerun()
 
-def save_session_to_db(player_name, mode, score):
-    conn = sqlite3.connect("bridge_stats.db")
-    cursor = conn.cursor()
-    now = datetime.now()
-    year, week_number, _ = now.isocalendar()
-    timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
-    
-    cursor.execute("""
-        INSERT INTO training_sessions (player_name, mode, score, total_questions, week_number, year, timestamp)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    """, (player_name, mode, score, 20, week_number, year, timestamp))
-    
-    conn.commit()
-    conn.close()
-
+# ฟังก์ชันแจกจ่ายคำคม/เพลงที่แตกต่างกันตามโหมด
 def get_cheat_code_quote(mode):
     quotes = {
         "opening": [
             "🎵 *'ก้าวแรกสำคัญที่สุด เปิดให้ถูกทรง ไพ่ในมือจะนำทาง'*",
             "💡 **Opening Wisdom:** เสียงแรกที่เปล่งออกไป คือเข็มทิศนำทางของคู่หู",
+            "🔥 'อย่ากลัวที่จะเปิด เมื่อทรงไพ่ในมือคุณกระซิบว่าพร้อม'"
         ],
         "response_1nt": [
             "🎵 *'1NT คือความนิ่งสงบ สยบความเคลื่อนไหวทั้งหมดบนโต๊ะ'*",
             "💡 **1NT Rule:** สมดุลคือหัวใจ ไร้ความโลภคือชัยชนะ",
+            "🔥 'เมื่อ partner เปิด 1NT โลกทั้งใบก็อยู่ในกำมือ'"
         ],
         "response_1c": [
             "🎵 *'Club เล็กๆ แต่พลังยิ่งใหญ่ จุดประกายความหวัง'*",
-            "💡 **1C Mindset:** ก้าวเล็กที่มั่นคง คือทางสู่เกมนิรันดร์",
+            "💡 **1C Mindset:** ก้าวเล็กที่มั่น and safe คือทางสู่เกมนิรันดร์",
+            "🔥 'คลับที่เรียบง่าย ซ่อนเร้นพลังมหาศาลไว้เสมอ'"
         ],
         "response_1d": [
             "🎵 *'Diamond เพชรเม็ดงามที่รอการเจียระไน'*",
             "💡 **1D Focus:** อดทนรอจังหวะ ค้นหา Fit ให้เจอ",
+            "🔥 'เพชรแท้ดูที่ทรง ไม่ใช่แค่แสงสะท้อนของแต้ม'"
         ],
         "response_1h": [
             "🎵 *'Hearts หัวใจแห่งเกมบริดจ์ รักใครให้บอก Spades หรือ Hearts'*",
             "💡 **Major First:** หัวใจสำคัญคือการปกป้องแต้มสูงสุด",
+            "🔥 'เมื่อใจตรงกัน (Fit) เกมไหนก็ไม่หวั่น'"
         ],
         "response_1s": [
             "🎵 *'Spades เจ้าแห่งโพดำ สูงสุดย่อมเป็นราชา'*",
             "💡 **King of Suits:** โพดำคือเกียรติยศและอำนาจการตัดสินใจ",
+            "🔥 'เหนือกว่าด้วยทรง เหนือชั้นด้วยโพดำ'"
         ]
     }
     mode_quotes = quotes.get(mode, ["🎵 *'Bridge is an art of logic'*"])
@@ -231,14 +201,29 @@ if st.session_state.page == "login":
     left, right = st.columns([3, 2])
 
     with left:
-        st.title("♠ Shape Before Strength")
-        st.markdown("### A Modern Low-Information Transfer Club System")
-        st.markdown("""
-เรียนรู้และฝึกประมูลไพ่บริดจ์ตามระบบ **Shape Before Strength**
 
-✅ วิเคราะห์ Shape ก่อนแต้ม  
-✅ ติดตามพัฒนาการรายสัปดาห์สำหรับนักเรียนและเทรนเนอร์  
-✅ ฝึกผ่านโจทย์จริงพร้อมระบบบันทึกสถิติอัตโนมัติ  
+        st.title("♠ Shape Before Strength")
+
+        st.markdown("""
+### A Modern Low-Information Transfer Club System
+
+### Learn • Practice • Improve
+""")
+
+        st.markdown("""
+เรียนรู้และฝึกประมูลไพ่บริดจ์ตามระบบ
+
+**Shape Before Strength**
+
+✅ วิเคราะห์ Shape ก่อนแต้ม
+
+✅ ใช้การบิดแบบ Transfer
+
+✅ เปิดเผยข้อมูลให้น้อยที่สุด
+
+✅ หา Fit อย่างมีประสิทธิภาพ
+
+✅ ฝึกผ่านโจทย์จริง
 """)
 
     with right:
@@ -246,12 +231,8 @@ if st.session_state.page == "login":
          st.write("กรอกชื่อเพื่อเข้าสู่สนามฝึกซ้อม")
         
          with st.form("login_form"):
-             name = st.text_input("ชื่อของคุณ (นักเรียน/เทรนเนอร์):", placeholder="เช่น Player_01")
-             col_l1, col_l2 = st.columns(2)
-             with col_l1:
-                 submitted = st.form_submit_button("เข้าสู่หน้าฝึกซ้อม", use_container_width=True)
-             with col_l2:
-                 trainer_btn = st.form_submit_button("🎓 Trainer Dashboard", use_container_width=True)
+             name = st.text_input("ชื่อของคุณ:", placeholder="เช่น Player_01")
+             submitted = st.form_submit_button("เข้าสู่หน้าเลือกแบบฝึกหัด", use_container_width=True)
             
              if submitted:
                  if name.strip() != "":
@@ -260,72 +241,15 @@ if st.session_state.page == "login":
                      st.rerun()
                  else:
                      st.warning("⚠️ กรุณากรอกชื่อก่อนครับ")
-             elif trainer_btn:
-                 st.session_state.page = "trainer_dashboard"
-                 st.rerun()
+
 
 
 # ==================================================
-# 1.5 TRAINER DASHBOARD SCREEN
-# ==================================================
-
-elif st.session_state.page == "trainer_dashboard":
-    st.title("🎓 Trainer & Progress Dashboard")
-    st.write("ตรวจสอบสถิติ ความคืบหน้า และผลงานรายสัปดาห์ของผู้เรียนทั้งหมด")
-    
-    if st.button("⬅ กลับหน้าแรก"):
-        st.session_state.page = "login"
-        st.rerun()
-        
-    st.markdown("---")
-    
-    conn = sqlite3.connect("bridge_stats.db")
-    cursor = conn.cursor()
-    
-    # ดึงข้อมูลทั้งหมด
-    cursor.execute("""
-        SELECT player_name, mode, score, total_questions, week_number, year, timestamp 
-        FROM training_sessions ORDER BY id DESC
-    """)
-    rows = cursor.fetchall()
-    conn.close()
-    
-    if not rows:
-        st.info("ยังไม่มีข้อมูลการฝึกซ้อมในระบบ")
-    else:
-        # แปลงเป็นตารางสรุป
-        import pandas as pd
-        df = pd.DataFrame(rows, columns=["Player", "Mode", "Score", "Total", "Week", "Year", "Timestamp"])
-        
-        # ตัวเลือกกรองตามผู้เล่น
-        selected_player = st.selectbox("กรองตามรายชื่อผู้เล่น:", ["ทั้งหมด"] + list(df["Player"].unique()))
-        if selected_player != "ทั้งหมด":
-            df_filtered = df[df["Player"] == selected_player]
-        else:
-            df_filtered = df
-            
-        st.subheader("📊 ประวัติการฝึกซ้อมทั้งหมด")
-        st.dataframe(df_filtered, use_container_width=True)
-        
-        st.markdown("---")
-        st.subheader("📅 สรุปสถิติเฉลี่ยรายสัปดาห์ (Weekly Progress)")
-        
-        # คำนวณค่าเฉลี่ยรายสัปดาห์และรายคน
-        weekly_summary = df.groupby(["Year", "Week", "Player", "Mode"]).agg(
-            Times_Practiced=("Score", "count"),
-            Avg_Score=("Score", "mean"),
-            Max_Score=("Score", "max")
-        ).reset()
-        weekly_summary["Avg_Score"] = weekly_summary["Avg_Score"].round(2)
-        
-        st.dataframe(weekly_summary, use_container_width=True)
-
-
-# ==================================================
-# 2. MENU SCREEN
+# 2. MENU SCREEN (4 Sections)
 # ==================================================
 
 elif st.session_state.page == "menu":
+
     st.title(f"Welcome, {st.session_state.player_name} 👋")
     st.markdown("### ♠ SHAPE BEFORE STRENGTH — หน้าเลือกเมนูแบบฝึกหัด")
     st.write("เลือกหัวข้อแบบฝึกหัดที่คุณต้องการฝึกซ้อม (ชุดละ 20 ข้อ):")
@@ -354,21 +278,17 @@ elif st.session_state.page == "menu":
 
     with col_m3:
         st.markdown("### ส่วนที่ 3")
-        st.info("Coming Soon...")
+        st.markdown("*ว่าง*")
+        st.info("รอเติมเนื้อหาในอนาคต")
 
     with col_m4:
         st.markdown("### ส่วนที่ 4")
-        st.info("Coming Soon...")
-        
-    st.markdown("---")
-    if st.button("🚪 ออกจากระบบ / เปลี่ยนชื่อ"):
-        st.session_state.player_name = ""
-        st.session_state.page = "login"
-        st.rerun()
+        st.markdown("*ว่าง*")
+        st.info("รอเติมเนื้อหาในอนาคต")
 
 
 # ==================================================
-# 3. QUIZ SCREEN
+# 3. QUIZ SCREEN (3 Sections)
 # ==================================================
 
 elif st.session_state.page in [
@@ -401,6 +321,9 @@ elif st.session_state.page in [
 
     col_q1, col_q2, col_q3 = st.columns([1, 2.8, 1.2])
 
+    # ----------------------------------
+    # QUIZ SECTION 1: เมนูซ้าย
+    # ----------------------------------
     with col_q1:
         if st.button("⬅ กลับหน้าเมนู", use_container_width=True):
             st.session_state.page = "menu"
@@ -410,6 +333,9 @@ elif st.session_state.page in [
         st.metric(label="คะแนนสะสม", value=f"{st.session_state.score} / 20")
         st.metric(label="ข้อปัจจุบัน", value=f"{st.session_state.question} / 20")
 
+    # ----------------------------------
+    # QUIZ SECTION 2: พื้นที่ตรงกลาง
+    # ----------------------------------
     with col_q2:
         st.markdown(f"### 📚 {current_topic_name} (ผู้เล่น: {st.session_state.player_name})")
         st.markdown("---")
@@ -442,6 +368,7 @@ elif st.session_state.page in [
                 st.session_state[level_key] = None
 
             allowed_levels = ["1", "2", "3", "4", "5", "6", "7"]
+            
             cols_box = st.columns(8)
             
             with cols_box[0]:
@@ -458,7 +385,13 @@ elif st.session_state.page in [
             if current_level:
                 st.markdown(f"**เลเวลที่เลือก: {current_level}** — เลือกชุดไพ่:")
                 suit_cols = st.columns(5)
-                suits = [("♣ C", "C"), ("♦ D", "D"), ("♥ H", "H"), ("♠ S", "S"), ("NT N", "N")]
+                suits = [
+                    ("♣ C", "C"), 
+                    ("♦ D", "D"), 
+                    ("♥ H", "H"), 
+                    ("♠ S", "S"), 
+                    ("NT N", "N")
+                ]
                 
                 for i, (label, s_code) in enumerate(suits):
                     with suit_cols[i]:
@@ -483,23 +416,102 @@ elif st.session_state.page in [
                     st.session_state.current_hand_data = get_next_question_data(st.session_state.page)
                     st.rerun()
             else:
-                if st.button("🏁 ดูผลสรุปคะแนนและบันทึกสถิติ", use_container_width=True, type="primary"):
-                    # บันทึกลง Database ทันทีเมื่อจบ 20 ข้อ
-                    save_session_to_db(
-                        st.session_state.player_name, 
-                        st.session_state.page, 
-                        st.session_state.score
-                    )
+                if st.button("🏁 ดูผลสรุปคะแนน", use_container_width=True, type="primary"):
                     st.session_state.page = "summary"
                     st.rerun()
 
+    # ----------------------------------
+    # QUIZ SECTION 3: ฝั่งขวา (Cheat Sheet / Cheat Code)
+    # ----------------------------------
     with col_q3:
         st.markdown("### 📌 Cheat Sheet")
+        st.markdown("*(สรุปกติกาเร่งด่วน)*")
+        
+        # ฟังก์ชันดึง Cheat Sheet ตามหมวดหมู่
+        def get_cheat_sheet_content(mode):
+            sheets = {
+                "opening": """
+**Opening Rules:**
+- Pass = 0-10 HCP
+- 1C = 11-20 HCP, ♣ 2+ (ถ้า Balanced ไม่จำกัดว่าชุดต้องยาวกว่า เช่น 5332, 4432)
+- 1D = 11-20 HCP, Unbalanced, ♦ 4+
+- 1H = 11-20 HCP, M5 (ไม่มี 5332 ยกเว้นมี 17+ HCP)
+- 1S = 11-20 HCP, M5 (ไม่มี 5332 ยกเว้นมี 17+ HCP)
+- 1NT = 14-16 (Balanced)
+- 2C = 21+ or 8.5 PT
+- 2D = weak 1M or 17-20 M55
+- 2M = 11-13 M6 no second suit >4
+                """,
+                "response_1c": """
+**Response 1C Rules:**
+- 1D = Transfer H (4+)
+- 1H = Transfer S (4+)
+- 1S = 0-10, No M4, No Void
+- 1NT = GF, No M5
+- 2C = Transfer D
+- 2D = GI (C 5+)
+- 2H = GI Balanced (M<4m<5)
+- 3C = NF (C 6)
+                """,
+                "response_1nt": """
+**Response 1NT Rules:**
+- 2C = inverted stayman จะทะยอยเพิ่มรายละเอียดในเวป
+- 2D = Transfer to H or mss
+- 2H = Transfer to S
+- 2S/2N = transfer C/D
+- 3C = Ask M คนถามไม่มี M5 และแค่เกมไม่สนใจสแลม
+- 3D = GF 9+ M55 (GF 10+ M54 ใช้ 2C)
+- 3H = GF 3154 or 3145
+- 3S = GF 1354 or 1345
+- 3N = To play
+                """,
+                "response_1d": """
+**Response 1D Rules:**
+- Level 1 คล้าย เปิด 1C
+- 2C = NF C6+ or 3325 (แทน 1N  ที่คุณเคยเล่น)
+- 2D = NF D3-4
+- 2H = 11-12 Balance 
+- 2S = GI C5+ C>D
+- 3C = GI D4+ D>C
+- 3D = NF D5 or D4 with any short
+                """,
+                "response_1h": """
+**Response 1H Rules:**
+- 1S = S<5 แทน 1NFC
+- 1N = S5+ less than GF
+- 2C = GF RELAY
+- 2D = GI H3 or GF H3 with any short
+- 2H = constructive raised H3 or 3433
+- 2S = <10 S6
+- 2N = 10-12 H4+ with any short
+- 3C = 8-12 H4+ no short
+- 3D = 0-5 H4 or GF H4 with any void
+- 3H = 4-7 H4 4-5 must have A
+- 3S = GF H4+ singleton S
+- 3N = GF H4+ singleton C
+- 4C = GF H4+ singleton D
+- 4H = <10 H5 or H4+short
+                """,
+                "response_1s": """
+**Response 1S Rules:**
+- 1N = Force 1 round
+- 2C = GF RELAY
+- 2D = Transfer H
+- 2H = GI S3 or GF S3 with any short
+- 2S = constructive raised S3 or 4333
+- 2N up คล้าย open 1H
+                """
+            }
+            return sheets.get(mode, "หลักการ Shape Before Strength: หา Fit & Shape ก่อนแต้ม")
+
+        # แสดงกล่องสรุปกติกา
         with st.expander("📖 เปิดดู Cheat Sheet", expanded=True):
-            st.markdown("หลักการ Shape Before Strength: หา Fit & Shape ก่อนแต้ม")
+            st.markdown(get_cheat_sheet_content(st.session_state.page))
+
         st.markdown("---")
         st.markdown("### 💡 คำคมประจำหมวด")
-        st.info(get_cheat_code_quote(st.session_state.page))
+        current_quote = get_cheat_code_quote(st.session_state.page)
+        st.info(current_quote)
 
 
 # ==================================================
@@ -514,20 +526,14 @@ elif st.session_state.page == "summary":
     
     percentage = (st.session_state.score / 20) * 100
     if percentage >= 80:
-        st.success("🌟 ยอดเยี่ยมมาก! บันทึกสถิติลงระบบเรียบร้อยแล้ว")
+        st.success("🌟 ยอดเยี่ยมมาก! คุณมีความเข้าใจหลักการประมูลระดับเซียน")
     elif percentage >= 50:
-        st.info("👍 ทำได้ดี! ระบบได้บันทึกสถิติการฝึกรอบนี้ไว้แล้ว")
+        st.info("👍 ทำได้ดี! ลองทบทวนข้อที่พลาดแล้วฝึกใหม่อีกรอบเพื่อความแม่นยำ")
     else:
-        st.warning("💪 สู้ๆ ครับ บันทึกผลไว้แล้ว ลองกลับมาฝึกซ้อมซ้ำเพื่อพัฒนาการที่ดีขึ้น!")
+        st.warning("💪 สู้ๆ ครับ ลองกลับไปทบทวนข้อตกลง ข้อหลักแล้วมาลองใหม่อีกครั้ง!")
 
     st.markdown("<br>", unsafe_allow_html=True)
     
-    col_s1, col_s2 = st.columns(2)
-    with col_s1:
-        if st.button("🔄 กลับไปหน้าเมนูหลัก", use_container_width=True):
-            st.session_state.page = "menu"
-            st.rerun()
-    with col_s2:
-        if st.button("🎓 ไปหน้า Trainer Dashboard", use_container_width=True):
-            st.session_state.page = "trainer_dashboard"
-            st.rerun()
+    if st.button("🔄 กลับไปหน้าเมนูหลัก", use_container_width=True):
+        st.session_state.page = "menu"
+        st.rerun()
