@@ -139,6 +139,30 @@ def get_next_question_data(mode_type):
             ans = response_1d(hcp, shape)
         elif mode_type == "response_1h":
             ans = response_1major("1H", hcp, shape)
+        elif mode_type == "opener_1c_rebid":
+        # 1. เช็คก่อนว่ามือนี้เปิด 1C จริงไหม ถ้าไม่ใช่ให้สุ่มใหม่
+        opening_check = opening_bid(hcp, shape)
+        if not opening_check or opening_check[0] != "1C":
+            continue
+            
+        # 2. สุ่ม Response ของ Partner
+        responses = ["1D", "1H", "1S", "1N", "2C", "2D", "2H", "2S", "2N", "3C"]
+        weights   = [ 24,   24,   8,   12,   8,   8,   8,   4,   2,   2 ]
+            
+        resp = random.choices(responses, weights=weights, k=1)[0]
+            
+        c_cards = hand["C"]
+        c_honors = sum(1 for card in c_cards if card in ["A", "K", "Q"])
+        extra_info = {"c_honors": c_honors}
+            
+        ans = opener_rebid_1c(resp, hcp, shape, extra_info)
+        if not ans:
+            continue
+                
+        # 3. บันทึก Sequence ไว้แสดงผล
+        st.session_state.current_auction_context = f"1C ➔ {resp}"
+        else:
+            ans = opening_bid(hcp, shape)
         else:
             ans = response_1major("1S", hcp, shape)
             
@@ -464,8 +488,6 @@ elif st.session_state.page in [
             st.info(f"🔄 **สถานการณ์การประมูล:** {st.session_state.current_auction_context}")
             
         st.markdown("---")
-        if st.session_state.page == "opener_1c_rebid" and "current_auction_context" in st.session_state:
-            st.info(f"🔄 **สถานการณ์การประมูล:** {st.session_state.current_auction_context}")
 
         if not st.session_state.answered:
             st.markdown("#### 🎛️ Bidding Box")
@@ -614,8 +636,18 @@ elif st.session_state.page in [
                 """,
                 "opener_1c_rebid": """
 **Opener 1C Rebid Rules:**
-- อ้างอิงตามลำดับการประมูลหลังจากเปิด 1C แล้ว Partner ตอบ (เช่น 1C-1D, 1C-1H, 1C-1S ฯลฯ)
-- พิจารณา HCP, Shape และความยาวชุดไพ่เพื่อตัดสินใจ Rebid
+- Extran hand 16+
+- 2N 17-19 Balanced M4
+- 2M-1 Turbo Fit 16+ M3
+- 2D or 2oM ที่ไม่ใช้ Turbo Fit ==>Power Fit 16+ M4
+- 1N 17-19 Bal no M4 or 16+ M<3
+- Medium Hand 14-15
+- 2M 14-15 M4 
+- 3C 14-15 good C6+
+- minimum 11-15
+- 1M Accept transfer 11-13 Balanced or M4
+- 1S 11-15 S4 unbalanced
+- 2C 11-15 C5+ 
                 """  # <--- ปิดด้วยเครื่องหมายคำพูด 3 ตัวและใส่คอมมาให้ถูกต้อง
             }
             return sheets.get(mode, "หลักการ Shape Before Strength: หา Fit & Shape ก่อนแต้ม")
