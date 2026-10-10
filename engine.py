@@ -342,7 +342,7 @@ def response_1nt(hcp, shape):
         or
         (hcp >= 10 and s >= 5 and h < 4)
     ):
-        return "2H","Transfer S"
+        return "2H","Transfer S weak or GF"
 
     # Transfer H
 
@@ -351,7 +351,7 @@ def response_1nt(hcp, shape):
         or
         (hcp >= 10 and h >= 5 and s < 4)
     ):
-        return "2D","Transfer H"
+        return "2D","Transfer H weak or GF"
     
     # 3C
 
