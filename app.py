@@ -415,8 +415,8 @@ elif st.session_state.page in [
         "response_1c": "Response 1C",
         "response_1d": "Response 1D",
         "response_1h": "Response 1H",
-        "response_1s": "Response 1S"
-        "opener_1c_rebid": "Opener 1C Rebid Practice"
+        "response_1s": "Response 1S",
+        "opener_1c_rebid": "Opener 1C Rebid Practice",
     }
     current_topic_name = titles.get(st.session_state.page, "Bridge Practice")
 
