@@ -141,7 +141,7 @@ def get_next_question_data(mode_type):
             ans = response_1major("1H", hcp, shape)
         elif mode_type == "opener_1c_rebid":
         # 1. เช็คก่อนว่ามือนี้เปิด 1C จริงไหม ถ้าไม่ใช่ให้สุ่มใหม่
-        opening_check = opening_bid(hcp, shape)
+            opening_check = opening_bid(hcp, shape)
         if not opening_check or opening_check[0] != "1C":
             continue
             
