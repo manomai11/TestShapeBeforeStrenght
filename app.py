@@ -459,6 +459,10 @@ elif st.session_state.page in [
         )
         
         st.caption(f"✨ **แต้มรวม (HCP):** {hcp} &nbsp;&nbsp;|&nbsp;&nbsp; 📊 **ทรงไพ่ (Shape):** {shape}")
+        # เพิ่มบรรทัดนี้เพื่อให้โชว์สถานการณ์การประมูลครับ
+        if st.session_state.page == "opener_1c_rebid" and "current_auction_context" in st.session_state:
+            st.info(f"🔄 **สถานการณ์การประมูล:** {st.session_state.current_auction_context}")
+            
         st.markdown("---")
         if st.session_state.page == "opener_1c_rebid" and "current_auction_context" in st.session_state:
             st.info(f"🔄 **สถานการณ์การประมูล:** {st.session_state.current_auction_context}")
