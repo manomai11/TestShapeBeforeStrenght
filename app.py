@@ -140,32 +140,31 @@ def get_next_question_data(mode_type):
         elif mode_type == "response_1h":
             ans = response_1major("1H", hcp, shape)
         elif mode_type == "opener_1c_rebid":
-        # 1. เช็คก่อนว่ามือนี้เปิด 1C จริงไหม ถ้าไม่ใช่ให้สุ่มใหม่
+            # 1. เช็คก่อนว่ามือนี้เปิด 1C จริงไหม ถ้าไม่ใช่ให้สุ่มใหม่
             opening_check = opening_bid(hcp, shape)
-        if not opening_check or opening_check[0] != "1C":
-            continue
+            if not opening_check or opening_check[0] != "1C":
+                continue
             
-        # 2. สุ่ม Response ของ Partner
-        responses = ["1D", "1H", "1S", "1N", "2C", "2D", "2H", "2S", "2N", "3C"]
-        weights   = [ 24,   24,   8,   12,   8,   8,   8,   4,   2,   2 ]
+            # 2. สุ่ม Response ตามน้ำหนักที่กำหนด
+            responses = ["1D", "1H", "1S", "1N", "2C", "2D", "2H", "2S", "2N", "3C"]
+            weights   = [ 24,   24,   8,   12,   8,   8,   8,   4,   2,   2 ]
+            resp = random.choices(responses, weights=weights, k=1)[0]
             
-        resp = random.choices(responses, weights=weights, k=1)[0]
+            c_cards = hand["C"]
+            c_honors = sum(1 for card in c_cards if card in ["A", "K", "Q"])
+            extra_info = {"c_honors": c_honors}
             
-        c_cards = hand["C"]
-        c_honors = sum(1 for card in c_cards if card in ["A", "K", "Q"])
-        extra_info = {"c_honors": c_honors}
-            
-        ans = opener_rebid_1c(resp, hcp, shape, extra_info)
-        if not ans:
-            continue
+            ans = opener_rebid_1c(resp, hcp, shape, extra_info)
+            if not ans:
+                continue
                 
-        # 3. บันทึก Sequence ไว้แสดงผล
-        st.session_state.current_auction_context = f"1C ➔ {resp}"
-
-    elif mode_type == "opening":
-        ans = opening_bid(hcp, shape)
-    else:
-        ans = response_1major("1S", hcp, shape)
+            # 3. บันทึก Sequence ไว้แสดงผล
+            st.session_state.current_auction_context = f"1C ➔ {resp}"
+            
+        elif mode_type == "opening":
+            ans = opening_bid(hcp, shape)
+        else:
+            ans = response_1major("1S", hcp, shape)
             
         if ans == "PASS":
             if st.session_state.pass_count_in_set >= 1:
