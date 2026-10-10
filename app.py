@@ -1,4 +1,6 @@
+from datetime import datetime
 import random
+import sqlite3
 import streamlit as st
 
 from engine import (
@@ -10,7 +12,7 @@ from engine import (
 )
 
 # ==================================================
-# CONFIG
+# CONFIG & DATABASE SETUP
 # ==================================================
 
 st.set_page_config(
@@ -18,6 +20,26 @@ st.set_page_config(
     page_icon="♠",
     layout="wide"
 )
+
+def init_db():
+    conn = sqlite3.connect("bridge_stats.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS training_sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            player_name TEXT,
+            mode TEXT,
+            score INTEGER,
+            total_questions INTEGER,
+            week_number INTEGER,
+            year INTEGER,
+            timestamp TEXT
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+init_db()
 
 # ==================================================
 # SESSION STATE INITIALIZATION
@@ -155,6 +177,21 @@ def start_new_practice(page_name):
     st.session_state.current_hand_data = get_next_question_data(page_name)
     st.rerun()
 
+def save_session_to_db(player_name, mode, score):
+    conn = sqlite3.connect("bridge_stats.db")
+    cursor = conn.cursor()
+    now = datetime.now()
+    year, week_number, _ = now.isocalendar()
+    timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
+    
+    cursor.execute("""
+        INSERT INTO training_sessions (player_name, mode, score, total_questions, week_number, year, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (player_name, mode, score, 20, week_number, year, timestamp))
+    
+    conn.commit()
+    conn.close()
+
 # ฟังก์ชันแจกจ่ายคำคม/เพลงที่แตกต่างกันตามโหมด
 def get_cheat_code_quote(mode):
     quotes = {
@@ -232,7 +269,11 @@ if st.session_state.page == "login":
         
          with st.form("login_form"):
              name = st.text_input("ชื่อของคุณ:", placeholder="เช่น Player_01")
-             submitted = st.form_submit_button("เข้าสู่หน้าเลือกแบบฝึกหัด", use_container_width=True)
+             col_l1, col_l2 = st.columns(2)
+             with col_l1:
+                 submitted = st.form_submit_button("เข้าสู่หน้าเลือกแบบฝึกหัด", use_container_width=True)
+             with col_l2:
+                 trainer_btn = st.form_submit_button("🎓 Trainer Dashboard", use_container_width=True)
             
              if submitted:
                  if name.strip() != "":
@@ -241,7 +282,60 @@ if st.session_state.page == "login":
                      st.rerun()
                  else:
                      st.warning("⚠️ กรุณากรอกชื่อก่อนครับ")
+             elif trainer_btn:
+                 st.session_state.page = "trainer_dashboard"
+                 st.rerun()
 
+
+# ==================================================
+# 1.5 TRAINER DASHBOARD SCREEN
+# ==================================================
+
+elif st.session_state.page == "trainer_dashboard":
+    st.title("🎓 Trainer & Progress Dashboard")
+    st.write("ตรวจสอบสถิติ ความคืบหน้า และผลงานรายสัปดาห์ของผู้เรียนทั้งหมด")
+    
+    if st.button("⬅ กลับหน้าแรก"):
+        st.session_state.page = "login"
+        st.rerun()
+        
+    st.markdown("---")
+    
+    conn = sqlite3.connect("bridge_stats.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT player_name, mode, score, total_questions, week_number, year, timestamp 
+        FROM training_sessions ORDER BY id DESC
+    """)
+    rows = cursor.fetchall()
+    conn.close()
+    
+    if not rows:
+        st.info("ยังไม่มีข้อมูลการฝึกซ้อมในระบบ")
+    else:
+        import pandas as pd
+        df = pd.DataFrame(rows, columns=["Player", "Mode", "Score", "Total", "Week", "Year", "Timestamp"])
+        
+        selected_player = st.selectbox("กรองตามรายชื่อผู้เล่น:", ["ทั้งหมด"] + list(df["Player"].unique()))
+        if selected_player != "ทั้งหมด":
+            df_filtered = df[df["Player"] == selected_player]
+        else:
+            df_filtered = df
+            
+        st.subheader("📊 ประวัติการฝึกซ้อมทั้งหมด")
+        st.dataframe(df_filtered, use_container_width=True)
+        
+        st.markdown("---")
+        st.subheader("📅 สรุปสถิติเฉลี่ยรายสัปดาห์ (Weekly Progress)")
+        
+        weekly_summary = df.groupby(["Year", "Week", "Player", "Mode"]).agg(
+            Times_Practiced=("Score", "count"),
+            Avg_Score=("Score", "mean"),
+            Max_Score=("Score", "max")
+        ).reset()
+        weekly_summary["Avg_Score"] = weekly_summary["Avg_Score"].round(2)
+        
+        st.dataframe(weekly_summary, use_container_width=True)
 
 
 # ==================================================
@@ -285,6 +379,12 @@ elif st.session_state.page == "menu":
         st.markdown("### ส่วนที่ 4")
         st.markdown("*ว่าง*")
         st.info("รอเติมเนื้อหาในอนาคต")
+
+    st.markdown("---")
+    if st.button("🚪 ออกจากระบบ / เปลี่ยนชื่อ"):
+        st.session_state.player_name = ""
+        st.session_state.page = "login"
+        st.rerun()
 
 
 # ==================================================
@@ -417,6 +517,11 @@ elif st.session_state.page in [
                     st.rerun()
             else:
                 if st.button("🏁 ดูผลสรุปคะแนน", use_container_width=True, type="primary"):
+                    save_session_to_db(
+                        st.session_state.player_name,
+                        st.session_state.page,
+                        st.session_state.score
+                    )
                     st.session_state.page = "summary"
                     st.rerun()
 
@@ -427,7 +532,6 @@ elif st.session_state.page in [
         st.markdown("### 📌 Cheat Sheet")
         st.markdown("*(สรุปกติกาเร่งด่วน)*")
         
-        # ฟังก์ชันดึง Cheat Sheet ตามหมวดหมู่
         def get_cheat_sheet_content(mode):
             sheets = {
                 "opening": """
@@ -504,7 +608,6 @@ elif st.session_state.page in [
             }
             return sheets.get(mode, "หลักการ Shape Before Strength: หา Fit & Shape ก่อนแต้ม")
 
-        # แสดงกล่องสรุปกติกา
         with st.expander("📖 เปิดดู Cheat Sheet", expanded=True):
             st.markdown(get_cheat_sheet_content(st.session_state.page))
 
@@ -526,14 +629,20 @@ elif st.session_state.page == "summary":
     
     percentage = (st.session_state.score / 20) * 100
     if percentage >= 80:
-        st.success("🌟 ยอดเยี่ยมมาก! คุณมีความเข้าใจหลักการประมูลระดับเซียน")
+        st.success("🌟 ยอดเยี่ยมมาก! บันทึกสถิติลงระบบเรียบร้อยแล้ว")
     elif percentage >= 50:
-        st.info("👍 ทำได้ดี! ลองทบทวนข้อที่พลาดแล้วฝึกใหม่อีกรอบเพื่อความแม่นยำ")
+        st.info("👍 ทำได้ดี! ระบบได้บันทึกสถิติการฝึกรอบนี้ไว้แล้ว")
     else:
-        st.warning("💪 สู้ๆ ครับ ลองกลับไปทบทวนข้อตกลง ข้อหลักแล้วมาลองใหม่อีกครั้ง!")
+        st.warning("💪 สู้ๆ ครับ บันทึกผลไว้แล้ว ลองกลับมาฝึกซ้อมซ้ำเพื่อพัฒนาการที่ดีขึ้น!")
 
     st.markdown("<br>", unsafe_allow_html=True)
     
-    if st.button("🔄 กลับไปหน้าเมนูหลัก", use_container_width=True):
-        st.session_state.page = "menu"
-        st.rerun()
+    col_s1, col_s2 = st.columns(2)
+    with col_s1:
+        if st.button("🔄 กลับไปหน้าเมนูหลัก", use_container_width=True):
+            st.session_state.page = "menu"
+            st.rerun()
+    with col_s2:
+        if st.button("🎓 ไปหน้า Trainer Dashboard", use_container_width=True):
+            st.session_state.page = "trainer_dashboard"
+            st.rerun()
