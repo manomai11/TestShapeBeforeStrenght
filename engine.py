@@ -1126,7 +1126,7 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
             return "PASS", "Minimum Long C"
         if 14 <= hcp <= 15:
             return "PASS", "Medium 14-15 C6"
-        return "2D", "waiting"
+        return "2D", "11-15 อดทนไว้"
 
     # ----------------------------------------------------
     # CASE: 1C - 2D
