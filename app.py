@@ -9,6 +9,7 @@ from engine import (
     response_1major,
     response_1d,
     response_1c,
+    opener_rebid_1c,
 )
 
 # ==================================================
@@ -351,13 +352,11 @@ elif st.session_state.page == "menu":
     col_m1, col_m2, col_m3, col_m4 = st.columns(4)
 
     with col_m1:
-        st.markdown("### ส่วนที่ 1")
         st.markdown("**ฝึกเปิด (Opening)**")
         if st.button("Start Opening", use_container_width=True):
             start_new_practice("opening")
 
     with col_m2:
-        st.markdown("### ส่วนที่ 2")
         st.markdown("**ฝึก Response**")
         if st.button("Response 1C", use_container_width=True):
             start_new_practice("response_1c")
@@ -371,9 +370,9 @@ elif st.session_state.page == "menu":
             start_new_practice("response_1nt")
 
     with col_m3:
-        st.markdown("### ส่วนที่ 3")
-        st.markdown("*ว่าง*")
-        st.info("รอเติมเนื้อหาในอนาคต")
+        st.markdown("**ฝึก Rebid (Opener)**")
+        if st.button("Opener 1C Rebid", use_container_width=True):
+            start_new_practice("opener_1c_rebid")
 
     with col_m4:
         st.markdown("### ส่วนที่ 4")
@@ -398,6 +397,7 @@ elif st.session_state.page in [
     "response_1d",
     "response_1h",
     "response_1s",
+    "opener_1c_rebid",
 ]:
 
     if st.session_state.current_hand_data is None:
@@ -416,6 +416,7 @@ elif st.session_state.page in [
         "response_1d": "Response 1D",
         "response_1h": "Response 1H",
         "response_1s": "Response 1S"
+        "opener_1c_rebid": "Opener 1C Rebid Practice"
     }
     current_topic_name = titles.get(st.session_state.page, "Bridge Practice")
 
@@ -459,6 +460,8 @@ elif st.session_state.page in [
         
         st.caption(f"✨ **แต้มรวม (HCP):** {hcp} &nbsp;&nbsp;|&nbsp;&nbsp; 📊 **ทรงไพ่ (Shape):** {shape}")
         st.markdown("---")
+        if st.session_state.page == "opener_1c_rebid" and "current_auction_context" in st.session_state:
+            st.info(f"🔄 **สถานการณ์การประมูล:** {st.session_state.current_auction_context}")
 
         if not st.session_state.answered:
             st.markdown("#### 🎛️ Bidding Box")
@@ -604,6 +607,11 @@ elif st.session_state.page in [
 - 2H = GI S3 or GF S3 with any short
 - 2S = constructive raised S3 or 4333
 - 2N up คล้าย open 1H
+                """,
+                "opener_1c_rebid": """
+**Opener 1C Rebid Rules:**
+- อ้างอิงตามลำดับการประมูลหลังจากเปิด 1C แล้ว Partner ตอบ (เช่น 1C-1D, 1C-1H, 1C-1S ฯลฯ)
+- พิจารณา HCP, Shape (Balanced/Unbalanced) และความยาวชุดไพ่ของตนเองเพื่อตัดสินใจ Rebid บิดต่อหรือ Pass
                 """
             }
             return sheets.get(mode, "หลักการ Shape Before Strength: หา Fit & Shape ก่อนแต้ม")
