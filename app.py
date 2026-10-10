@@ -636,6 +636,7 @@ elif st.session_state.page in [
                 """,
                 "opener_1c_rebid": """
 **Opener 1C Rebid Rules:**
+- When Respose Transfer Major
 - Extran hand 16+
 - 2N 17-19 Balanced M4
 - 2M-1 Turbo Fit 16+ M3
