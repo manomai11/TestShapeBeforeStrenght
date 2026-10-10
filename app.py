@@ -611,8 +611,8 @@ elif st.session_state.page in [
                 "opener_1c_rebid": """
 **Opener 1C Rebid Rules:**
 - อ้างอิงตามลำดับการประมูลหลังจากเปิด 1C แล้ว Partner ตอบ (เช่น 1C-1D, 1C-1H, 1C-1S ฯลฯ)
-- พิจารณา HCP, Shape (Balanced/Unbalanced) และความยาวชุดไพ่ของตนเองเพื่อตัดสินใจ Rebid บิดต่อหรือ Pass
-                """
+- พิจารณา HCP, Shape และความยาวชุดไพ่เพื่อตัดสินใจ Rebid
+                """  # <--- ปิดด้วยเครื่องหมายคำพูด 3 ตัวและใส่คอมมาให้ถูกต้อง
             }
             return sheets.get(mode, "หลักการ Shape Before Strength: หา Fit & Shape ก่อนแต้ม")
 
