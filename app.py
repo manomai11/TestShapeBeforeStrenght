@@ -332,7 +332,7 @@ elif st.session_state.page == "trainer_dashboard":
             Times_Practiced=("Score", "count"),
             Avg_Score=("Score", "mean"),
             Max_Score=("Score", "max")
-        ).reset()
+        ).reset_index()
         weekly_summary["Avg_Score"] = weekly_summary["Avg_Score"].round(2)
         
         st.dataframe(weekly_summary, use_container_width=True)
