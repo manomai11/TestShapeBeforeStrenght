@@ -162,9 +162,9 @@ def get_next_question_data(mode_type):
         # 3. บันทึก Sequence ไว้แสดงผล
         st.session_state.current_auction_context = f"1C ➔ {resp}"
     else:
-            ans = opening_bid(hcp, shape)
-        else:
-            ans = response_1major("1S", hcp, shape)
+        ans = opening_bid(hcp, shape)
+    else:
+        ans = response_1major("1S", hcp, shape)
             
         if ans == "PASS":
             if st.session_state.pass_count_in_set >= 1:
