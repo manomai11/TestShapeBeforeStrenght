@@ -10,6 +10,7 @@ from engine import (
     response_1d,
     response_1c,
     opener_rebid_1c,
+    opener_rebid_1d,
 )
 
 # ==================================================
@@ -160,6 +161,30 @@ def get_next_question_data(mode_type):
                 
             # 3. บันทึก Sequence ไว้แสดงผล
             st.session_state.current_auction_context = f"1C ➔ {resp}"
+            
+        elif mode_type == "opening":
+            ans = opening_bid(hcp, shape)
+            elif mode_type == "opener_1d_rebid":
+            # 1. เช็คก่อนว่ามือนี้เปิด 1D จริงไหม ถ้าไม่ใช่ให้สุ่มใหม่
+            opening_check = opening_bid(hcp, shape)
+            if not opening_check or opening_check[0] != "1D":
+                continue
+            
+            # 2. สุ่ม Response ตามน้ำหนักที่กำหนด
+            responses = ["1H", "1S", "1N", "2C", "2D", "2H", "2S", "2N", "3C"]
+            weights   = [ 25,   25,   14,   8,   8,   8,   8,   2,   2 ]
+            resp = random.choices(responses, weights=weights, k=1)[0]
+            
+            c_cards = hand["D"]
+            c_honors = sum(1 for card in c_cards if card in ["A", "K", "Q"])
+            extra_info = {"d_honors": d_honors}
+            
+            ans = opener_rebid_1d(resp, hcp, shape, extra_info)
+            if not ans:
+                continue
+                
+            # 3. บันทึก Sequence ไว้แสดงผล
+            st.session_state.current_auction_context = f"1D ➔ {resp}"
             
         elif mode_type == "opening":
             ans = opening_bid(hcp, shape)
@@ -397,6 +422,8 @@ elif st.session_state.page == "menu":
         st.markdown("**ฝึก Rebid (Opener)**")
         if st.button("Opener 1C Rebid", use_container_width=True):
             start_new_practice("opener_1c_rebid")
+        if st.button("Opener 1D Rebid", use_container_width=True):
+            start_new_practice("opener_1d_rebid")
 
     with col_m4:
         st.markdown("### ส่วนที่ 4")
@@ -422,6 +449,7 @@ elif st.session_state.page in [
     "response_1h",
     "response_1s",
     "opener_1c_rebid",
+    "opener_rebid_1d",
 ]:
 
     if st.session_state.current_hand_data is None:
@@ -441,6 +469,7 @@ elif st.session_state.page in [
         "response_1h": "Response 1H",
         "response_1s": "Response 1S",
         "opener_1c_rebid": "Opener 1C Rebid Practice",
+        "opener_1d_rebid": "Opener 1D Rebid Practice",
     }
     current_topic_name = titles.get(st.session_state.page, "Bridge Practice")
 
@@ -636,7 +665,7 @@ elif st.session_state.page in [
                 """,
                 "opener_1c_rebid": """
 **Opener 1C Rebid Rules:**
-- When Respose Transfer Major
+- 1C - 1D or 1C - 1H
 - Extran hand 16+
 - 2N 17-19 Balanced M4
 - 2D Turbo Fit 16+ M3
@@ -649,6 +678,22 @@ elif st.session_state.page in [
 - 1M Accept transfer 11-13 Balanced or M4
 - 1S 11-15 S4 unbalanced
 - 2C 11-15 C5+ 
+                """  # <--- ปิดด้วยเครื่องหมายคำพูด 3 ตัวและใส่คอมมาให้ถูกต้อง
+                "opener_1d_rebid": """
+**Opener 1D Rebid Rules:**
+- After 1D-1N (1C-1N)
+- 2C 444-1 or (balanced when open 1C)
+- 2D Transfer H
+- 2H Transfer S
+- 2S Transfer C(C6 when open 1C)
+- 2N Transfer D6 have short (D4 with short S when open 1C) 
+- 3C Transfer D6 no short (D4 with short H when open 1C)
+- (D4 no short 2245 when open 1C)
+- After 1D - 2H (1C-2H)
+- 2S F bid 2N 11-12 444-1 or 14+ any (14+ or 11-12 no m5)
+- 2N 11-13C<4(13 balanced )
+- 3C 11-12 C4+ (11-12 C5)
+- 3D 11-13 D6  (11-12 D5)
                 """  # <--- ปิดด้วยเครื่องหมายคำพูด 3 ตัวและใส่คอมมาให้ถูกต้อง
             }
             return sheets.get(mode, "หลักการ Shape Before Strength: หา Fit & Shape ก่อนแต้ม")
