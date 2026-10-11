@@ -676,7 +676,7 @@ elif st.session_state.page in [
 - 1M Accept transfer 11-13 Balanced or M4
 - 1S 11-15 S4 unbalanced
 - 2C 11-15 C5+ 
-                """  # <--- ปิดด้วยเครื่องหมายคำพูด 3 ตัวและใส่คอมมาให้ถูกต้อง
+                """,  # <--- ปิดด้วยเครื่องหมายคำพูด 3 ตัวและใส่คอมมาให้ถูกต้อง
                 "opener_1d_rebid": """
 **Opener 1D Rebid Rules:**
 - After 1D-1N (1C-1N)
