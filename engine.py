@@ -1207,95 +1207,75 @@ def opener_rebid_1d(response, hcp, shape, extra_info=None):
     # CASE: 1D - 1H
     # ----------------------------------------------------
     elif response == "1H":
-        # Rule 1: 16+ 4441 -> 2N (priority 1000)
         if 16 <= hcp <= 20 and shape in ["1444", "4441"]:
             return "2N", "2NT Fit 4441 H4"
 
-        # Rule 8: 14-15 h<3 D6+ (AKQ >= 2) -> 3D (priority 400)
         if 14 <= hcp <= 15 and h < 3 and d >= 6 and d_honors >= 2:
             return "3D", "Medium 14-15 good D6"
 
-        # Rule 2 & 3 & 4 (1N ต่างๆ)
-        if (16 <= hcp <= 20) and h < 3) or (11 <= hcp <=15 and D >=6 and c<4):
+        if (16 <= hcp <= 20 and h < 3) or (11 <= hcp <= 15 and d >= 6 and c < 4):
             return "1N", "1NT no Fit 16+ H<3 or Minimum D6"
 
-        # Rule 5: 16+ H4+ unbalanced -> 2S (priority 700)
         if 16 <= hcp <= 20 and h >= 4:
             return "2S", "Power Fit 16+ H4"
 
-        # Rule 6: 16+ H=3 unbalanced -> 2D (priority 600)
         if 16 <= hcp <= 20 and h == 3:
             return "2D", "Turbo Fit 16+ H3"
 
-        # Rule 7: 14-15 H4  -> 3H (priority 500)
         if 14 <= hcp <= 15 and h == 4:
             return "3H", "Medium 14-15 H4"
 
-        # Rule 9:  11-13 H4+ -> 2H
-        if 11 <= hcp <= 13 and h == 4):
+        if 11 <= hcp <= 13 and h == 4:
             return "2H", "minumum H4"
 
-        # Rule 11: 11-15 S4 -> 1S (priority 10)
-        if 11 <= hcp <= 15 and S >= 4:
+        if 11 <= hcp <= 15 and s >= 4:
             return "1S", "Minimum 11-15 S4"
+            
         return "2C", "Minimum 11-15 2m"
 
     # ----------------------------------------------------
     # CASE: 1D - 1S
     # ----------------------------------------------------
     elif response == "1S":
-        # Rule 1: 16+ 4441 -> 2N (priority 1000)
         if 16 <= hcp <= 20 and shape in ["4144", "4441"]:
             return "2N", "2NT Fit 4441 S4"
 
-        # Rule 8: 14-15 s<3 D6+ (AKQ >= 2) -> 3D (priority 400)
         if 14 <= hcp <= 15 and s < 3 and d >= 6 and d_honors >= 2:
             return "3D", "Medium 14-15 good D6"
 
-        # Rule 2 & 3 & 4 (1N ต่างๆ)
-        if (16 <= hcp <= 20) and s < 3) or (11 <= hcp <=15 and D >=5 and c<4):
+        if (16 <= hcp <= 20 and s < 3) or (11 <= hcp <= 15 and d >= 5 and c < 4):
             return "1N", "1NT no Fit 16+ S<3 or Minimum D5"
 
-        # Rule 5: 16+ S4+ -> 2H (priority 700)
         if 16 <= hcp <= 20 and s >= 4:
             return "2S", "Power Fit 16+ S4"
 
-        # Rule 6: 16+ H=3 unbalanced -> 2D (priority 600)
         if 16 <= hcp <= 20 and s == 3:
             return "2D", "Turbo Fit 16+ S3"
 
-        # Rule 7: 14-15 H4  -> S4 (priority 500)
         if 14 <= hcp <= 15 and s == 4:
             return "3S", "Medium 14-15 S4"
 
-        # Rule 9:  11-13 S4+ -> 2S
-        if 11 <= hcp <= 13 and s == 4):
+        if 11 <= hcp <= 13 and s == 4:
             return "2S", "minumum H4"
+            
         return "2C", "Minimum 11-15 2m"
 
     # ----------------------------------------------------
     # CASE: 1D - 1NT (1N)
     # ----------------------------------------------------
     elif response == "1N":
-        # Rule 1: 4414 -> 2C (priority 1000)
-        if shape in ["4441", "4144", "4441"]:
-            return "2C", 4441"
-        # Rule 2: unbalanced H4 -> 2D (priority 900)
+        if shape in ["4441", "4144"]:
+            return "2C", "4441"
         if h == 4:
             return "2D", "Transfer H"
-        # Rule 3: unbalanced S4 -> 2H (priority 800)
         if s == 4:
             return "2H", "Transfer S"
-        # Rule 4: unbalanced C4 -> 2S (priority 700)
         if c == 4:
             return "2S", "Transfer C"
-        # Rule 5: D6 have short -> 2N (priority 600)
-        if d >= 6 and s <= 4 and h <= 4 and c <= 4 and has_short:
-            return "2N", "unbalanced D4 have short)"
-        # Rule 6: unbalanced D6 no short
-        if d >= 6 and s <= 4 and h <= 4 and c <= 4 :
-        # Rule 6: unbalanced D6 no short
-
+        if d >= 6 and s <= 4 and h <= 4 and c <= 4 and has_short_suit:
+            return "2N", "unbalanced D4 have short"
+        if d >= 6 and s <= 4 and h <= 4 and c <= 4:
+            return "3D", "unbalanced D6 no short"
     # ----------------------------------------------------
     # CASE: 1D - 2C
     # ----------------------------------------------------
@@ -1312,7 +1292,7 @@ def opener_rebid_1d(response, hcp, shape, extra_info=None):
     elif response == "2D":
         if hcp >= 16:
             return "2H", "16+ Asking"
-        if 11 <= hcp <= 15 d >= 6):
+        if 11 <= hcp <= 15 and d >= 6:
             return "3D", "Blocking"
         return "PASS", "11-15 อดทนไว้"
 
@@ -1366,7 +1346,7 @@ def opener_rebid_1d(response, hcp, shape, extra_info=None):
     # ----------------------------------------------------
     # CASE: 1D - 3D
     # ----------------------------------------------------
-    elif response == "3C":
+    elif response == "3D":
         if 17 <= hcp <= 19 and balanced:
             return "3N", "Big NT To Play"
         if hcp >= 16 and s <= 1:
