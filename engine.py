@@ -1183,7 +1183,7 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
             return "3S", "Cue short"
         if hcp >= 16:
             return "3D", "waiting"
-        return "PASS", "กำขี้ดีกว่ากำตด"
+        return ("PASS", "กำขี้ดีกว่ากำตด")
 
 # ==========================================
 # OPENER REBID AFTER 1D
