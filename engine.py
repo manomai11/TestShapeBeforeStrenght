@@ -1192,7 +1192,7 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
 def opener_rebid_1d(response, hcp, shape, extra_info=None):
     """
     extra_info สามารถส่งค่าเพิ่มเติมเข้ามาได้ เช่น:
-    - c_honors: จำนวนตัว A, K, Q ในชุด Club (เช่นนับได้กี่ตัว)
+    - d_honors: จำนวนตัว A, K, Q ในชุด Club (เช่นนับได้กี่ตัว)
     - opening_suit_lengths: ความยาวของไพ่แต่ละชุด
     """
     if extra_info is None:
