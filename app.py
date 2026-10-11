@@ -162,9 +162,7 @@ def get_next_question_data(mode_type):
             # 3. บันทึก Sequence ไว้แสดงผล
             st.session_state.current_auction_context = f"1C ➔ {resp}"
             
-        elif mode_type == "opening":
-            ans = opening_bid(hcp, shape)
-            elif mode_type == "opener_1d_rebid":
+        elif mode_type == "opener_1d_rebid":
             # 1. เช็คก่อนว่ามือนี้เปิด 1D จริงไหม ถ้าไม่ใช่ให้สุ่มใหม่
             opening_check = opening_bid(hcp, shape)
             if not opening_check or opening_check[0] != "1D":
