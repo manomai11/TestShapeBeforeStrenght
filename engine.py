@@ -364,7 +364,7 @@ def response_1nt(hcp, shape):
     elif hcp == 10 and (s >= 3 or h >= 3) and min(d, c) == 6:
         return "3C","ASk M with no M5 not interest slam"
 
-# D route
+    # D route
 
     if (
         (0 <= hcp <= 9 and d >= 6)
@@ -1008,7 +1008,7 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
             return "3C", "Medium 14-15 good C6"
 
         # Rule 9: Balanced หรือ 11-13 H3+ -> 1H (priority ต่ำสุด)
-        if balanced or (11 <= hcp <= 13 and h = 4):
+        if balanced or (11 <= hcp <= 13 and h == 4):
             return "1H", "accept Transfer weak NT or H4"
 
         # Rule 10: 11-15 S4 unbalanced -> 1S (priority 200)
@@ -1048,7 +1048,7 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
             return "3C", "Medium 14-15 C6"
 
         # Rule 9: Balanced หรือ 11-13 S3+ -> 1S
-        if balanced or (11 <= hcp <= 13 and s = 3):
+        if balanced or (11 <= hcp <= 13 and s == 3):
             return "1S", "accept Transfer weak NT or S4"
 
         # Rule 11: 11-15 C5+ -> 2C (priority 10)
@@ -1201,12 +1201,12 @@ def opener_rebid_1d(response, hcp, shape, extra_info=None):
     s, h, d, c = shape_lengths(shape)
     balanced = is_balanced(shape)
     has_short_suit = has_short(shape)
-    d_honors = extra_info.get("d_honors", 0) # จำนวน AKQ ในชุด C
+    d_honors = extra_info.get("d_honors", 0)
 
     # ----------------------------------------------------
     # CASE: 1D - 1H
     # ----------------------------------------------------
-    elif response == "1H":
+    if response == "1H":
         if 16 <= hcp <= 20 and shape in ["1444", "4441"]:
             return "2N", "2NT Fit 4441 H4"
 
@@ -1276,13 +1276,14 @@ def opener_rebid_1d(response, hcp, shape, extra_info=None):
             return "2N", "unbalanced D4 have short"
         if d >= 6 and s <= 4 and h <= 4 and c <= 4:
             return "3D", "unbalanced D6 no short"
+
     # ----------------------------------------------------
     # CASE: 1D - 2C
     # ----------------------------------------------------
     elif response == "2C":
         if hcp >= 16:
             return "2H", "16+ Forcing"
-        if 11 <= hcp <= 15 and D >= 6 and c <= 1:
+        if 11 <= hcp <= 15 and d >= 6 and c <= 1:
             return "2D", "Minimum short C6"
         return "PASS", "11-15 อดทนไว้"
 
@@ -1300,28 +1301,28 @@ def opener_rebid_1d(response, hcp, shape, extra_info=None):
     # CASE: 1D - 2H
     # ----------------------------------------------------
     elif response == "2H":
-        if hcp >= 14 or ( hcp <=13 and shape in ["4441", "4144", "4441"]):
+        if hcp >= 14 or (hcp <= 13 and shape in ["4441", "4144"]):
             return "2S", "F bid 2N"
         if 11 <= hcp <= 13 and c >= 4:
             return "3C", "Minimum P/C"    
-        if 11 <= hcp <= 13 and D >= 6:
+        if 11 <= hcp <= 13 and d >= 6:
             return "3D", "Minimum D6"          
-        return "2N", "continue pass(3325) 3C(D3C5 3D(other)"
+        return "2N", "continue pass"
 
     # ----------------------------------------------------
     # CASE: 1D - 2S
     # ----------------------------------------------------
     elif response == "2S":
-        if 11 <= hcp <= 13 and shape in ["4441"]:
+        if 11 <= hcp <= 13 and shape in ["4441", "4144"]:
             return "2N", "Minimum 4441"
         if 11 <= hcp <= 13 and c >= 3:
             return "3C", "Minimum C3"
-        if 11<= hcp <= 13 and d>=6 and c < 3:
+        if 11 <= hcp <= 13 and d >= 6 and c < 3:
             return "3D", "Minimum D6"
-        if 14 <= hcp <= 16 and d <6 and C < 3:
-            return "3N", " to play"
-        if hcp >=14 and s <=1:
-            return "3S", "short S"
+        if 14 <= hcp <= 16 and d < 6 and c < 3:
+            return "3N", "To play"
+        if hcp >= 14 and s <= 1:
+            return "3S", "Short S"
         return "3H", "Forcing"
 
     # ----------------------------------------------------
@@ -1337,7 +1338,7 @@ def opener_rebid_1d(response, hcp, shape, extra_info=None):
     elif response == "3C":
         if 14 <= hcp <= 17 and c <= 1:
             return "3N", "To play"
-        if 14 <= hcp <= 20 and s <=1:
+        if 14 <= hcp <= 20 and s <= 1:
             return "3S", "Cue short"
         if 14 <= hcp <= 20:
             return "3H", "Waiting"
