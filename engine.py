@@ -1356,4 +1356,4 @@ def opener_rebid_1d(response, hcp, shape, extra_info=None):
         if hcp >= 16:
             return "3H", "waiting"
         return "PASS", "กำขี้ดีกว่ากำตด"
-     return "PASS", "no good bid for 1D rebid"
+    return "PASS", "no good bid for 1D rebid"
