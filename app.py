@@ -173,8 +173,10 @@ def get_next_question_data(mode_type):
             weights   = [ 25,   25,   14,   8,   8,   8,   8,   2,   2 ]
             resp = random.choices(responses, weights=weights, k=1)[0]
             
-            c_cards = hand["D"]
-            c_honors = sum(1 for card in c_cards if card in ["A", "K", "Q"])
+            # --- เติม 2 บรรทัดนี้เพิ่มเข้าไปครับ ---
+            d_cards = hand["D"]
+            d_honors = sum(1 for card in d_cards if card in ["A", "K", "Q"])
+            
             extra_info = {"d_honors": d_honors}
             
             ans = opener_rebid_1d(resp, hcp, shape, extra_info)
