@@ -639,8 +639,8 @@ elif st.session_state.page in [
 - When Respose Transfer Major
 - Extran hand 16+
 - 2N 17-19 Balanced M4
-- 2M-1 Turbo Fit 16+ M3
-- 2D or 2oM ที่ไม่ใช้ Turbo Fit ==>Power Fit 16+ M4
+- 2D Turbo Fit 16+ M3
+- 2oM Power Fit 16+ M4
 - 1N 17-19 Bal no M4 or 16+ M<3
 - Medium Hand 14-15
 - 2M 14-15 M4 
