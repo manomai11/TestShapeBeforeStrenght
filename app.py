@@ -169,8 +169,8 @@ def get_next_question_data(mode_type):
                 continue
             
             # 2. สุ่ม Response ตามน้ำหนักที่กำหนด
-            responses = ["1H", "1S", "1N", "2C", "2D", "2H", "2S", "2N", "3C"]
-            weights   = [ 25,   25,   14,   8,   8,   8,   8,   2,   2 ]
+            responses = ["1H", "1S", "1N", "2C", "2D", "2H", "2S", "2N", "3C", "3D"]
+            weights   = [ 24,   24,   14,   8,    8,    8,    8,    2,    2,    2 ]
             resp = random.choices(responses, weights=weights, k=1)[0]
             
             # --- เติม 2 บรรทัดนี้เพิ่มเข้าไปครับ ---
@@ -449,7 +449,7 @@ elif st.session_state.page in [
     "response_1h",
     "response_1s",
     "opener_1c_rebid",
-    "opener_rebid_1d",
+    "opener_1d_rebid",
 ]:
 
     if st.session_state.current_hand_data is None:
