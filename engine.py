@@ -955,6 +955,24 @@ def response_1c(
 # ==========================================
 # OPENER REBID AFTER 1C (SHOW RULES + SMART DECISION)
 # ==========================================
+  
+# ==========================================
+# BRIDGE ENGINE WITH EMBEDDED RESPONSE TABLE
+# ==========================================
+
+# ตารางช่วงแต้ม (Min-Max) ของผู้ตอบ (Response) อ้างอิงจาก Excel ของคุณ
+RESPONSE_RANGES = {
+    "1D": {"min": 0, "max": 29},
+    "1H": {"min": 0, "max": 29},
+    "1S": {"min": 6, "max": 10},
+    "1N": {"min": 13, "max": 29},
+    "2C": {"min": 6, "max": 12},
+    "2D": {"min": 11, "max": 12},
+    "2H": {"min": 11, "max": 12},
+    "2S": {"min": 6, "max": 10},  # อ้างอิงตามตาราง Excel ล่าสุดของคุณ (6-10)
+    "2N": {"min": 0, "max": 5},
+    "3C": {"min": 6, "max": 10},
+}
 
 def opener_rebid_1c(response, hcp, shape, extra_info=None):
     if extra_info is None:
@@ -965,7 +983,7 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
     c_honors = extra_info.get("c_honors", 0)
 
     # ----------------------------------------------------
-    # 1. GROUP SHOW: 1C - 1D (เขียนตามกฎตายตัวในตาราง)
+    # 1. GROUP SHOW: 1C - 1D
     # ----------------------------------------------------
     if response == "1D":
         if 17 <= hcp <= 19 and balanced and h == 4:
@@ -989,7 +1007,7 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
         return "1H", "weak NT or H4"
 
     # ----------------------------------------------------
-    # 2. GROUP SHOW: 1C - 1H (เขียนตามกฎตายตัวในตาราง)
+    # 2. GROUP SHOW: 1C - 1H
     # ----------------------------------------------------
     elif response == "1H":
         if 17 <= hcp <= 19 and balanced and s == 4:
@@ -1009,8 +1027,9 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
         if 11 <= hcp <= 15 and c >= 5:
             return "2C", "minimum 11-15 C5"
         return "1S", "weak NT or S4"
+
     # ----------------------------------------------------
-    # 3. GROUP SHOW: 1C - 1N (เขียนตามกฎตายตัวในตาราง)
+    # 3. GROUP SHOW: 1C - 1N
     # ----------------------------------------------------
     elif response == "1N":
         if 17 <= hcp <= 19 and balanced:
@@ -1032,23 +1051,13 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
         if d >= 5:
             return "3D", "Transfer D [2245]"
         return "PASS", "no good bid for 1C-1N"
-    
+
     # ----------------------------------------------------
-    # 3. GROUP DECISION: ที่เหลือให้โปรแกรมคิดเองทั้งหมด
+    # 4. GROUP DECISION: ดึงช่วงแต้มจากตารางมาคำนวณเอง
     # ----------------------------------------------------
-    # กำหนดช่วงแต้ม Min - Max ของ Response ในกลุ่ม Decision
-    response_ranges = {
-        "1S": (6, 10),
-        "1N": (6, 12),
-        "2C": (11, 13),
-        "2D": (11, 13),
-        "2H": (11, 12),
-        "2S": (11, 13),
-        "2N": (11, 12),
-        "3C": (6, 10)
-    }
-    
-    min_resp, max_resp = response_ranges.get(response, (6, 10))
+    resp_range = RESPONSE_RANGES.get(response, {"min": 6, "max": 10})
+    min_resp = resp_range["min"]
+    max_resp = resp_range["max"]
     
     # คำนวณแต้มแจกแจง (Distribution Points) ของคนเปิด
     suit_lengths = [s, h, d, c]
@@ -1058,33 +1067,38 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
     elif min_len == 1: dist_points += 3
     
     opener_total = hcp + dist_points
-    min_total = opener_total + min_resp  # แต้มรวมขั้นต่ำ (เช็ค Fit / สัญญาตายตัว)
-    max_total = opener_total + max_resp  # แต้มรวมขั้นสูง (เช็คโอกาสเผื่อฟิต/ลีลา)
+    min_total = opener_total + min_resp
+    max_total = opener_total + max_resp
     
     SLAM_ZONE = 33
     GAME_ZONE = 25
 
-    # ตรวจสอบการเกิด Major Fit จากทรงไพ่
+    # เช็ค Major Fit
     fit_suit = None
     if s >= 4: fit_suit = "S"
     elif h >= 4: fit_suit = "H"
 
-    # --- เช็คด้วยค่า Min (เพื่อตัดสินใจขั้นเด็ดขาด) ---
-    if fit_suit and min_total >= SLAM_ZONE:
-        return f"6{fit_suit}", f"Decision: Min total ({min_total}) reaches Slam"
-    if fit_suit and min_total >= GAME_ZONE:
-        return f"4{fit_suit}", f"Decision: Min total ({min_total}) reaches Game"
-    
-    # --- เช็คด้วยค่า Max (เพื่อดูโอกาสเผื่อ Fit เพิ่มเติม หรือลีลาหา 6-2 Fit / ชุดสำรอง) ---
-    if fit_suit and max_total >= GAME_ZONE:
-        # ถ้ารวม Max แล้วถึงเกม แต่ Min ยังไม่ถึงเกม (หรืออยู่ในช่วงลุ้น)
-        # ตรวจสอบว่ายังมีโอกาสเจอ Fit เพิ่ม หรือสำรวจชุดอื่นไหม
-        if min_total < GAME_ZONE:
-            return f"3{fit_suit}", f"Decision: Borderline (Min:{min_total}, Max:{max_total}), Game Try / Explore Fit"
-        else:
-            return f"4{fit_suit}", f"Decision: Max reaches Game, safe 4{fit_suit}"
+    # ถ้ามี Major Fit ให้ใช้กฎ 4M
+    if fit_suit:
+        if min_total >= SLAM_ZONE:
+            return f"6{fit_suit}", f"Decision: Major Slam (Min: {min_total})"
+        if min_total >= GAME_ZONE:
+            return f"4{fit_suit}", f"Decision: Major Game (Min: {min_total})"
+        if max_total < GAME_ZONE:
+            return f"2{fit_suit}", f"Decision: Max ({max_total}) below game, sign off"
+        if max_total >= GAME_ZONE and min_total < GAME_ZONE:
+            return f"3{fit_suit}", f"Decision: Borderline, Game Try (Min:{min_total}, Max:{max_total})"
+        return f"4{fit_suit}", f"Decision: Max reaches Game, bid 4{fit_suit}"
 
-    # --- กรณีไม่มี Major Fit มองหา NT ตามลำดับความสำคัญ (4M Fit > 3NT > 5m) ---
+    # ถ้าไม่มี Major Fit -> เช็คชุดยาวพิเศษ (Minor Fit / Long Suit เช่น C ยาว 6-7 ใบ)
+    if c >= 6 and max_total >= GAME_ZONE:
+        if min_total >= SLAM_ZONE:
+            return "6C", f"Decision: Club Slam (Min: {min_total})"
+        if min_total >= GAME_ZONE:
+            return "5C", f"Decision: Club Game 5C (Min: {min_total})"
+        return "5C", f"Decision: Long Club Game (Max: {max_total})"
+
+    # กรณีปกติ มองหา NT ตามลำดับความสำคัญ (3NT > 5m)
     nt_min = hcp + min_resp
     nt_max = hcp + max_resp
     
