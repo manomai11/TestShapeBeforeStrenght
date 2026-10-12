@@ -1092,7 +1092,15 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
     # ----------------------------------------------------
     # 4. GROUP DECISION: ดึงช่วงแต้มจากตารางมาคำนวณเอง
     # ----------------------------------------------------
-    resp_range = RESPONSE_RANGES.get(response, {"min": 6, "max": 10})
+    # ฟังก์ชันค้นหาช่วงแต้มจาก EXACT_BRIDGE_TABLE แบบปลอดภัย
+def get_response_range(response_str):
+    for row in EXACT_BRIDGE_TABLE:
+        if row.get("bid") == f"1C-{response_str}" or row.get("bid") == response_str:
+            if "p_min" in row and "p_max" in row:
+                return {"min": row["p_min"], "max": row["p_max"]}
+    # ค่าสำรองหากหาไม่เจอ
+    return {"min": 6, "max": 10}
+    resp_range = get_response_range(response)
     min_resp = resp_range["min"]
     max_resp = resp_range["max"]
     
