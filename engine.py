@@ -960,20 +960,57 @@ def response_1c(
 # BRIDGE ENGINE WITH EMBEDDED RESPONSE TABLE
 # ==========================================
 
-# ตารางช่วงแต้ม (Min-Max) ของผู้ตอบ (Response) อ้างอิงจาก Excel ของคุณ
-RESPONSE_RANGES = {
-    "1D": {"min": 0, "max": 29},
-    "1H": {"min": 0, "max": 29},
-    "1S": {"min": 6, "max": 10},
-    "1N": {"min": 13, "max": 29},
-    "2C": {"min": 6, "max": 12},
-    "2D": {"min": 11, "max": 12},
-    "2H": {"min": 11, "max": 12},
-    "2S": {"min": 6, "max": 10},  # อ้างอิงตามตาราง Excel ล่าสุดของคุณ (6-10)
-    "2N": {"min": 0, "max": 5},
-    "3C": {"min": 6, "max": 10},
-}
+# ==========================================
+# BRIDGE EXACT TABLE DATABASE (Strict Matching)
+# ==========================================
 
+EXACT_BRIDGE_TABLE = [
+    # --- กลุ่ม Decision (ตรวจสอบช่วงแต้มและเช็คเงื่อนไข shape ของ response) ---
+    {"bid": "1C-3C", "status": "decision", "p_min": 6, "p_max": 10, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 0, "d_max": 3, "c_min": 4, "c_max": 6},
+    {"bid": "1C-2N", "status": "decision", "p_min": 0, "p_max": 5, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 0, "d_max": 3, "c_min": 4, "c_max": 6},
+    {"bid": "1C-2S", "status": "decision", "p_min": 6, "p_max": 10, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 5, "d_max": 8, "c_min": 5, "c_max": 11},
+    {"bid": "1C-2D", "status": "decision", "p_min": 11, "p_max": 12, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 0, "d_max": 3, "c_min": 4, "c_max": 5},
+    {"bid": "1C-2C", "priority": 500, "status": "decision", "p_min": 6, "p_max": 10, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 0, "d_max": 3, "c_min": 6, "c_max": 13},
+    {"bid": "1C-2C", "priority": 400, "status": "decision", "p_min": 11, "p_max": 12, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 0, "d_max": 3, "c_min": 6, "c_max": 13},
+    {"bid": "1C-2H", "status": "decision", "p_min": 11, "p_max": 12, "s_min": 2, "s_max": 3, "h_min": 2, "h_max": 3, "d_min": 2, "d_max": 3, "c_min": 2, "c_max": 4},
+    {"bid": "1C-1S", "status": "decision", "p_min": 6, "p_max": 10, "s_min": 1, "s_max": 3, "h_min": 1, "h_max": 3, "d_min": 5, "d_max": 5, "c_min": 2, "c_max": 5},
+
+    # --- กลุ่ม Show: 1C-1D ---
+    {"bid": "1C-1D", "status": "show", "p_min": 0, "p_max": 29, "s_min": 29, "h_min": 0, "h_max": 4, "d_min": 13, "d_max": 13},
+    {"bid": "1C-1D-2N", "priority": 900, "type": "Balanced", "p_min": 17, "p_max": 19, "s": 2, "h": 4, "d": 2, "c": 2, "result": "2N FIT 16+ H4 Balanced"},
+    {"bid": "1C-1D-2S", "priority": 800, "p_min": 16, "p_max": 20, "s": 0, "h": 4, "d": 0, "c": 4, "result": "Power Fit 16+ H4 unbalanced"},
+    {"bid": "1C-1D-2D", "priority": 700, "p_min": 16, "p_max": 20, "s": 0, "h": 3, "d": 0, "c": 5, "result": "Turbo Fit 16+ H3"},
+    {"bid": "1C-1D-1N", "priority": 600, "p_min": 16, "p_max": 20, "s": 0, "h": 3, "d": 0, "c": 5, "result": "1N no fit 16+ H<4"},
+    {"bid": "1C-1D-2H", "priority": 500, "p_min": 14, "p_max": 15, "s": 0, "h": 4, "d": 0, "c": 4, "result": "Medium Fit 14-15 H4"},
+    {"bid": "1C-1D-3C", "priority": 400, "p_min": 14, "p_max": 15, "s": 0, "h": 3, "d": 0, "c": 6, "special": "AK AQ KQ in C", "result": "Medium Fit 14-15 C6"},
+    {"bid": "1C-1D-1H", "priority": 300, "p_min": 11, "p_max": 13, "s": 2, "h": 2, "d": 5, "c": 2, "result": "weak NT or H4"},
+    {"bid": "1C-1D-1S", "priority": 200, "p_min": 11, "p_max": 15, "s": 4, "h": 0, "d": 3, "c": 5, "result": "minimum 11-15 S4 unbalanced"},
+    {"bid": "1C-1D-2C", "priority": 100, "p_min": 11, "p_max": 15, "s": 0, "h": 3, "d": 3, "c": 6, "result": "minimum 11-15 C6"},
+
+    # --- กลุ่ม Show: 1C-1H ---
+    {"bid": "1C-1H", "status": "show", "p_min": 0, "p_max": 29, "s_min": 29, "h_min": 4, "max": 29},
+    {"bid": "1C-1H-2N", "priority": 900, "type": "Balanced", "p_min": 17, "p_max": 19, "s": 2, "h": 2, "d": 2, "c": 2, "result": "2N FIT 16+ S4 Balanced"},
+    {"bid": "1C-1H-2H", "priority": 800, "p_min": 14, "p_max": 15, "s": 4, "h": 0, "d": 0, "c": 4, "result": "Power Fit 16+ S4 unbalanced"},
+    {"bid": "1C-1H-2D", "priority": 700, "p_min": 16, "p_max": 20, "s": 3, "h": 0, "d": 0, "c": 5, "result": "Turbo Fit 16+ S3"},
+    {"bid": "1C-1H-1N", "priority": 600, "p_min": 16, "p_max": 20, "s": 3, "h": 0, "d": 0, "c": 5, "result": "1N no fit 16+ S<4"},
+    {"bid": "1C-1H-2S", "priority": 500, "p_min": 16, "p_max": 20, "s": 4, "h": 0, "d": 0, "c": 4, "result": "Medium Fit 14-15 S4"},
+    {"bid": "1C-1H-3C", "priority": 400, "p_min": 14, "p_max": 15, "s": 3, "h": 0, "d": 0, "c": 6, "special": "AK AQ KQ in C", "result": "Medium Fit 14-15 C6"},
+    {"bid": "1C-1H-1S", "priority": 300, "p_min": 11, "p_max": 13, "s": 2, "h": 5, "d": 3, "c": 2, "result": "weak NT or H4"},
+    {"bid": "1C-1H-2C", "priority": 200, "p_min": 11, "p_max": 15, "s": 3, "h": 0, "d": 5, "c": 6, "result": "minimum 11-15 C6"},
+
+    # --- กลุ่ม Show: 1C-1S และ 1C-1N ---
+    {"bid": "1C-1S", "status": "decision", "p_min": 6, "p_max": 10, "s_min": 1, "s_max": 3, "h_min": 1, "h_max": 3, "d_min": 5, "d_max": 5, "c_min": 2, "c_max": 5},
+    {"bid": "1C-1N", "status": "show", "p_min": 13, "p_max": 29, "s_min": 4, "h_min": 4, "d_min": 0},
+    {"bid": "1C-1N-2C", "priority": 1000, "type": "Balanced", "p_min": 17, "p_max": 19, "s": 2, "h": 2, "d": 5, "c": 2, "result": "Big NT"},
+    {"bid": "1C-1N-2C", "priority": 900, "type": "Balanced", "p_min": 11, "p_max": 13, "s": 2, "h": 5, "d": 5, "c": 2, "result": "weak NT"},
+    {"bid": "1C-1N-2C", "priority": 800, "type": "not Balanced", "p_min": 11, "p_max": 20, "s": 4, "h": 4, "d": 0, "c": 4, "result": "4-4-1-4"},
+    {"bid": "1C-1N-2D", "priority": 700, "p_min": 11, "p_max": 20, "s": 4, "h": 4, "d": 4, "c": 4, "result": "Transfer H [C5H4]"},
+    {"bid": "1C-1N-2H", "priority": 600, "p_min": 11, "p_max": 20, "s": 4, "h": 3, "d": 4, "c": 4, "result": "Transfer S [C5S4]"},
+    {"bid": "1C-1N-2S", "priority": 500, "p_min": 11, "p_max": 20, "s": 3, "h": 3, "d": 4, "c": 4, "result": "Transfer C [C6]"},
+    {"bid": "1C-1N-2N", "priority": 400, "p_min": 16, "p_max": 20, "s": 0, "h": 1, "d": 3, "c": 4, "special": "1345", "result": "Transfer D [1345]"},
+    {"bid": "1C-1N-3C", "priority": 300, "p_min": 16, "p_max": 20, "s": 0, "h": 3, "d": 0, "c": 4, "special": "3145", "result": "Transfer D [3145]"},
+    {"bid": "1C-1N-3D", "priority": 200, "p_min": 16, "p_max": 20, "s": 4, "h": 2, "d": 2, "c": 4, "special": "2245", "result": "Transfer D [2245]"}
+]
 def opener_rebid_1c(response, hcp, shape, extra_info=None):
     if extra_info is None:
         extra_info = {}
