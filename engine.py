@@ -955,13 +955,12 @@ def response_1c(
 # ==========================================
 # OPENER REBID AFTER 1C (SHOW RULES + SMART DECISION)
 # ==========================================
-
 # ==========================================
 # BRIDGE EXACT TABLE DATABASE (Strict Matching)
 # ==========================================
 
 EXACT_BRIDGE_TABLE = [
-    # --- กลุ่ม Decision (ตรวจสอบช่วงแต้มและเช็คเงื่อนไข shape ของ response) ---
+    # --- กลุ่ม Decision ---
     {"bid": "1C-3C", "status": "decision", "p_min": 6, "p_max": 10, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 0, "d_max": 3, "c_min": 4, "c_max": 6},
     {"bid": "1C-2N", "status": "decision", "p_min": 0, "p_max": 5, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 0, "d_max": 3, "c_min": 4, "c_max": 6},
     {"bid": "1C-2S", "status": "decision", "p_min": 6, "p_max": 10, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 5, "d_max": 8, "c_min": 5, "c_max": 11},
@@ -970,109 +969,27 @@ EXACT_BRIDGE_TABLE = [
     {"bid": "1C-2C", "priority": 400, "status": "decision", "p_min": 11, "p_max": 12, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 0, "d_max": 3, "c_min": 6, "c_max": 13},
     {"bid": "1C-2H", "status": "decision", "p_min": 11, "p_max": 12, "s_min": 2, "s_max": 3, "h_min": 2, "h_max": 3, "d_min": 2, "d_max": 3, "c_min": 2, "c_max": 4},
     {"bid": "1C-1S", "status": "decision", "p_min": 6, "p_max": 10, "s_min": 1, "s_max": 3, "h_min": 1, "h_max": 3, "d_min": 5, "d_max": 5, "c_min": 2, "c_max": 5},
-
-    # --- กลุ่ม Show: 1C-1D ---
-    {"bid": "1C-1D", "status": "show", "p_min": 0, "p_max": 29, "s_min": 29, "h_min": 0, "h_max": 4, "d_min": 13, "d_max": 13},
-    {"bid": "1C-1D-2N", "priority": 900, "type": "Balanced", "p_min": 17, "p_max": 19, "s": 2, "h": 4, "d": 2, "c": 2, "result": "2N FIT 16+ H4 Balanced"},
-    {"bid": "1C-1D-2S", "priority": 800, "p_min": 16, "p_max": 20, "s": 0, "h": 4, "d": 0, "c": 4, "result": "Power Fit 16+ H4 unbalanced"},
-    {"bid": "1C-1D-2D", "priority": 700, "p_min": 16, "p_max": 20, "s": 0, "h": 3, "d": 0, "c": 5, "result": "Turbo Fit 16+ H3"},
-    {"bid": "1C-1D-1N", "priority": 600, "p_min": 16, "p_max": 20, "s": 0, "h": 3, "d": 0, "c": 5, "result": "1N no fit 16+ H<4"},
-    {"bid": "1C-1D-2H", "priority": 500, "p_min": 14, "p_max": 15, "s": 0, "h": 4, "d": 0, "c": 4, "result": "Medium Fit 14-15 H4"},
-    {"bid": "1C-1D-3C", "priority": 400, "p_min": 14, "p_max": 15, "s": 0, "h": 3, "d": 0, "c": 6, "special": "AK AQ KQ in C", "result": "Medium Fit 14-15 C6"},
-    {"bid": "1C-1D-1H", "priority": 300, "p_min": 11, "p_max": 13, "s": 2, "h": 2, "d": 5, "c": 2, "result": "weak NT or H4"},
-    {"bid": "1C-1D-1S", "priority": 200, "p_min": 11, "p_max": 15, "s": 4, "h": 0, "d": 3, "c": 5, "result": "minimum 11-15 S4 unbalanced"},
-    {"bid": "1C-1D-2C", "priority": 100, "p_min": 11, "p_max": 15, "s": 0, "h": 3, "d": 3, "c": 6, "result": "minimum 11-15 C6"},
-
-    # --- กลุ่ม Show: 1C-1H ---
-    {"bid": "1C-1H", "status": "show", "p_min": 0, "p_max": 29, "s_min": 29, "h_min": 4, "max": 29},
-    {"bid": "1C-1H-2N", "priority": 900, "type": "Balanced", "p_min": 17, "p_max": 19, "s": 2, "h": 2, "d": 2, "c": 2, "result": "2N FIT 16+ S4 Balanced"},
-    {"bid": "1C-1H-2H", "priority": 800, "p_min": 14, "p_max": 15, "s": 4, "h": 0, "d": 0, "c": 4, "result": "Power Fit 16+ S4 unbalanced"},
-    {"bid": "1C-1H-2D", "priority": 700, "p_min": 16, "p_max": 20, "s": 3, "h": 0, "d": 0, "c": 5, "result": "Turbo Fit 16+ S3"},
-    {"bid": "1C-1H-1N", "priority": 600, "p_min": 16, "p_max": 20, "s": 3, "h": 0, "d": 0, "c": 5, "result": "1N no fit 16+ S<4"},
-    {"bid": "1C-1H-2S", "priority": 500, "p_min": 16, "p_max": 20, "s": 4, "h": 0, "d": 0, "c": 4, "result": "Medium Fit 14-15 S4"},
-    {"bid": "1C-1H-3C", "priority": 400, "p_min": 14, "p_max": 15, "s": 3, "h": 0, "d": 0, "c": 6, "special": "AK AQ KQ in C", "result": "Medium Fit 14-15 C6"},
-    {"bid": "1C-1H-1S", "priority": 300, "p_min": 11, "p_max": 13, "s": 2, "h": 5, "d": 3, "c": 2, "result": "weak NT or H4"},
-    {"bid": "1C-1H-2C", "priority": 200, "p_min": 11, "p_max": 15, "s": 3, "h": 0, "d": 5, "c": 6, "result": "minimum 11-15 C6"},
-
-    # --- กลุ่ม Show: 1C-1S และ 1C-1N ---
-    {"bid": "1C-1S", "status": "decision", "p_min": 6, "p_max": 10, "s_min": 1, "s_max": 3, "h_min": 1, "h_max": 3, "d_min": 5, "d_max": 5, "c_min": 2, "c_max": 5},
-    {"bid": "1C-1N", "status": "show", "p_min": 13, "p_max": 29, "s_min": 4, "h_min": 4, "d_min": 0},
-    {"bid": "1C-1N-2C", "priority": 1000, "type": "Balanced", "p_min": 17, "p_max": 19, "s": 2, "h": 2, "d": 5, "c": 2, "result": "Big NT"},
-    {"bid": "1C-1N-2C", "priority": 900, "type": "Balanced", "p_min": 11, "p_max": 13, "s": 2, "h": 5, "d": 5, "c": 2, "result": "weak NT"},
-    {"bid": "1C-1N-2C", "priority": 800, "type": "not Balanced", "p_min": 11, "p_max": 20, "s": 4, "h": 4, "d": 0, "c": 4, "result": "4-4-1-4"},
-    {"bid": "1C-1N-2D", "priority": 700, "p_min": 11, "p_max": 20, "s": 4, "h": 4, "d": 4, "c": 4, "result": "Transfer H [C5H4]"},
-    {"bid": "1C-1N-2H", "priority": 600, "p_min": 11, "p_max": 20, "s": 4, "h": 3, "d": 4, "c": 4, "result": "Transfer S [C5S4]"},
-    {"bid": "1C-1N-2S", "priority": 500, "p_min": 11, "p_max": 20, "s": 3, "h": 3, "d": 4, "c": 4, "result": "Transfer C [C6]"},
-    {"bid": "1C-1N-2N", "priority": 400, "p_min": 16, "p_max": 20, "s": 0, "h": 1, "d": 3, "c": 4, "special": "1345", "result": "Transfer D [1345]"},
-    {"bid": "1C-1N-3C", "priority": 300, "p_min": 16, "p_max": 20, "s": 0, "h": 3, "d": 0, "c": 4, "special": "3145", "result": "Transfer D [3145]"},
-    {"bid": "1C-1N-3D", "priority": 200, "p_min": 16, "p_max": 20, "s": 4, "h": 2, "d": 2, "c": 4, "special": "2245", "result": "Transfer D [2245]"}
 ]
+
+# ฟังก์ชันดึงช่วงแต้มจากตาราง
+def get_response_range(response_str):
+    for row in EXACT_BRIDGE_TABLE:
+        if row.get("bid") == f"1C-{response_str}" or row.get("bid") == response_str:
+            if "p_min" in row and "p_max" in row:
+                return {"min": row["p_min"], "max": row["p_max"]}
+    return {"min": 6, "max": 10}
 def opener_rebid_1c(response, hcp, shape, extra_info=None):
-    s, h, d, c = shape
-    response_str = str(response).upper().strip() # แปลงเป็นสตริงเพื่อความปลอดภัย
-    resp_range = get_response_range(response_str)
-    min_resp = resp_range["min"]
-    max_resp = resp_range["max"]
+    if extra_info is None:
+        extra_info = {}
     
-    # 1. ดึงช่วงแต้มของฝั่งผู้ตอบจากตาราง EXACT_BRIDGE_TABLE หรือใช้ค่ามาตรฐาน
-    resp_range = get_response_range(response)
-    min_resp = resp_range["min"]
-    max_resp = resp_range["max"]
-    
-    # 2. คำนวณแต้มแจกแจง (Distribution Points) ของคนเปิด 17 HCP
-    min_len = min(shape)
-    dist_points = 0
-    if min_len == 0: dist_points += 5
-    elif min_len == 1: dist_points += 3
-    elif min_len == 2: dist_points += 1
-    
-    opener_total = hcp + dist_points
-    min_total = opener_total + min_resp
-    max_total = opener_total + max_resp
-    
-    GAME_ZONE = 25
-    SLAM_ZONE = 33
+    s, h, d, c = shape_lengths(shape)
+    balanced = is_balanced(shape)
+    response_str = str(response or "").upper().strip()
 
-    # 3. ตรวจสอบ Major Fit (สมมติว่าถ้าผู้ตอบตอบ 1S/2S หรือ 1H/2H แล้วเรามีชุดนั้น 4+ ใบ)
-    # เช็ค Major Fit โดยใช้ response_str ที่ปลอดภัย
-    fit_suit = None
-    if response_str in ["1S", "2S"] and s >= 4:
-        fit_suit = "S"
-    elif response_str in ["1H", "2H"] and h >= 4:
-        fit_suit = "H"
-    # --- กรณีมี Major Fit ---
-    if fit_suit:
-        if min_total >= SLAM_ZONE:
-            return f"6{fit_suit}", f"Decision: Major Slam (Min: {min_total})"
-        if min_total >= GAME_ZONE:
-            return f"4{fit_suit}", f"Decision: Major Game (Min: {min_total})"
-        if max_total < GAME_ZONE:
-            return f"2{fit_suit}", f"Decision: Max ({max_total}) below game, sign off"
-        # แต้มคาเกี่ยว (Min ยังไม่ถึง 25 แต่ Max ถึง 25+) -> ลีลา / ชวนเกม (Game Try)
-        return f"3{fit_suit}", f"Decision: Game Try / Invitational (Min:{min_total}, Max:{max_total})"
-
-    # --- กรณีไม่มี Major Fit ---
-    # ถ้าผู้ตอบตอบ 2C / 2D / 2N หรืออื่นๆ และแต้มถึงเกมแบบชัวร์ๆ
-    if min_total >= GAME_ZONE:
-        if response in ["2N", "3N"] or c >= 5:
-            return "3N", f"Decision: NT Game (Min: {min_total})"
-        return "3N", f"Decision: Game reached (Min: {min_total})"
-    
-    # ถ้าแต้มยังไม่ถึงเกมแน่นอน (Max รวมยังไม่ถึง 25) -> หยุดต่ำๆ หรือซัพพอร์ตต่ำ
-    if max_total < GAME_ZONE:
-        if response == "2C":
-            return "PASS", f"Decision: Pass, max points ({max_total}) below game"
-        return "2C", f"Decision: Sign off / Low rebid"
-
-    # เคสคาเกี่ยว (Borderline) ไม่มี Fit แต่แต้มลุ้นเกมได้ -> ชวนเกมผ่าน NT หรือชุดยาว
-    if response == "2C" and c >= 5:
-        return "3C", f"Decision: Minor Game Try / Invitational (Min:{min_total}, Max:{max_total})"
-    
-    return "2N", f"Decision: Invitational Game Try (Min:{min_total}, Max:{max_total})"
     # ----------------------------------------------------
     # 1. GROUP SHOW: 1C - 1D
     # ----------------------------------------------------
-    if response == "1D":
+    if response_str == "1D":
         if 17 <= hcp <= 19 and balanced and h == 4:
             return "2N", "2N FIT 16+ H4 Balanced"
         if 16 <= hcp <= 20 and not balanced and h >= 4:
@@ -1083,8 +1000,8 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
             return "1N", "1N no fit 16+ H<4"
         if 14 <= hcp <= 15 and h == 4:
             return "2H", "Medium Fit 14-15 H4"
-        if 14 <= hcp <= 15 and h < 3 and c >= 6 and c_honors >= 2:
-            return "3C", "Medium Fit 14-15 C6 AK AQ KQ in C"
+        if 14 <= hcp <= 15 and h < 3 and c >= 6:
+            return "3C", "Medium Fit 14-15 C6"
         if balanced or (11 <= hcp <= 13 and h == 4):
             return "1H", "weak NT or H4"
         if 11 <= hcp <= 15 and s == 4 and not balanced:
@@ -1096,7 +1013,7 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
     # ----------------------------------------------------
     # 2. GROUP SHOW: 1C - 1H
     # ----------------------------------------------------
-    elif response == "1H":
+    elif response_str == "1H":
         if 17 <= hcp <= 19 and balanced and s == 4:
             return "2N", "2N FIT 16+ S4 Balanced"
         if 16 <= hcp <= 20 and not balanced and s >= 4:
@@ -1107,7 +1024,7 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
             return "1N", "1N no fit 16+ S<4"
         if 14 <= hcp <= 15 and s == 4:
             return "2S", "Medium Fit 14-15 S4"
-        if 14 <= hcp <= 15 and s < 3 and c >= 6 and c_honors >= 2:
+        if 14 <= hcp <= 15 and s < 3 and c >= 6:
             return "3C", "Medium Fit 14-15 good C6"
         if balanced or (11 <= hcp <= 13 and s == 4):
             return "1S", "weak NT or S4"
@@ -1118,7 +1035,7 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
     # ----------------------------------------------------
     # 3. GROUP SHOW: 1C - 1N
     # ----------------------------------------------------
-    elif response == "1N":
+    elif response_str == "1N":
         if 17 <= hcp <= 19 and balanced:
             return "2C", "Big NT"
         if 11 <= hcp <= 13 and balanced:
@@ -1140,72 +1057,58 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
         return "PASS", "no good bid for 1C-1N"
 
     # ----------------------------------------------------
-    # 4. GROUP DECISION: ดึงช่วงแต้มจากตารางมาคำนวณเอง
+    # 4. GROUP DECISION: คำนวณช่วงแต้มและลีลาอัตโนมัติ
     # ----------------------------------------------------
-def get_response_range(response_str):
-    for row in EXACT_BRIDGE_TABLE:
-        if row.get("bid") == f"1C-{response_str}" or row.get("bid") == response_str:
-            if "p_min" in row and "p_max" in row:
-                return {"min": row["p_min"], "max": row["p_max"]}
-    return {"min": 6, "max": 10}
-    resp_range = get_response_range(response)
-    min_resp = resp_range["min"]
-    max_resp = resp_range["max"]
-    
-    # คำนวณแต้มแจกแจง (Distribution Points) ของคนเปิด
-    suit_lengths = [s, h, d, c]
-    min_len = min(suit_lengths)
-    dist_points = 0
-    if min_len == 0: dist_points += 5
-    elif min_len == 1: dist_points += 3
-    
-    opener_total = hcp + dist_points
-    min_total = opener_total + min_resp
-    max_total = opener_total + max_resp
-    
-    SLAM_ZONE = 33
-    GAME_ZONE = 25
+    else:
+        resp_range = get_response_range(response_str)
+        min_resp = resp_range["min"]
+        max_resp = resp_range["max"]
+        
+        # คำนวณแต้มแจกแจง (Distribution Points) ของคนเปิด
+        suit_lengths = [s, h, d, c]
+        min_len = min(suit_lengths)
+        dist_points = 0
+        if min_len == 0: dist_points += 5
+        elif min_len == 1: dist_points += 3
+        elif min_len == 2: dist_points += 1
+        
+        opener_total = hcp + dist_points
+        min_total = opener_total + min_resp
+        max_total = opener_total + max_resp
+        
+        SLAM_ZONE = 33
+        GAME_ZONE = 25
 
-    # เช็ค Major Fit
-    fit_suit = None
-    if s >= 4: fit_suit = "S"
-    elif h >= 4: fit_suit = "H"
+        # เช็ค Major Fit
+        fit_suit = None
+        if s >= 4: fit_suit = "S"
+        elif h >= 4: fit_suit = "H"
 
-    # ถ้ามี Major Fit ให้ใช้กฎ 4M
-    if fit_suit:
-        if min_total >= SLAM_ZONE:
-            return f"6{fit_suit}", f"Decision: Major Slam (Min: {min_total})"
-        if min_total >= GAME_ZONE:
-            return f"4{fit_suit}", f"Decision: Major Game (Min: {min_total})"
-        if max_total < GAME_ZONE:
-            return f"2{fit_suit}", f"Decision: Max ({max_total}) below game, sign off"
-        if max_total >= GAME_ZONE and min_total < GAME_ZONE:
-            return f"3{fit_suit}", f"Decision: Borderline, Game Try (Min:{min_total}, Max:{max_total})"
-        return f"4{fit_suit}", f"Decision: Max reaches Game, bid 4{fit_suit}"
+        if fit_suit:
+            if min_total >= SLAM_ZONE:
+                return f"6{fit_suit}", f"Decision: Major Slam (Min: {min_total})"
+            if min_total >= GAME_ZONE:
+                return f"4{fit_suit}", f"Decision: Major Game (Min: {min_total})"
+            if max_total < GAME_ZONE:
+                return f"2{fit_suit}", f"Decision: Max ({max_total}) below game, sign off"
+            return f"3{fit_suit}", f"Decision: Game Try / Invitational (Min:{min_total}, Max:{max_total})"
 
-    # ถ้าไม่มี Major Fit -> เช็คชุดยาวพิเศษ (Minor Fit / Long Suit เช่น C ยาว 6-7 ใบ)
-    if c >= 6 and max_total >= GAME_ZONE:
-        if min_total >= SLAM_ZONE:
-            return "6C", f"Decision: Club Slam (Min: {min_total})"
-        if min_total >= GAME_ZONE:
+        if c >= 6 and max_total >= GAME_ZONE:
+            if min_total >= SLAM_ZONE:
+                return "6C", f"Decision: Club Slam (Min: {min_total})"
             return "5C", f"Decision: Club Game 5C (Min: {min_total})"
-        return "5C", f"Decision: Long Club Game (Max: {max_total})"
 
-    # กรณีปกติ มองหา NT ตามลำดับความสำคัญ (3NT > 5m)
-    nt_min = hcp + min_resp
-    nt_max = hcp + max_resp
-    
-    if nt_min >= SLAM_ZONE:
-        return "6N", f"Decision: NT Slam (Min: {nt_min})"
-    if nt_min >= GAME_ZONE:
-        return "3N", f"Decision: NT Game (Min: {nt_min})"
-    if nt_max < GAME_ZONE:
-        return "PASS", f"Decision: Max ({nt_max}) below game, stop low"
-    if nt_max >= GAME_ZONE:
+        nt_min = hcp + min_resp
+        nt_max = hcp + max_resp
+        
+        if nt_min >= SLAM_ZONE:
+            return "6N", f"Decision: NT Slam (Min: {nt_min})"
+        if nt_min >= GAME_ZONE:
+            return "3N", f"Decision: NT Game (Min: {nt_min})"
+        if nt_max < GAME_ZONE:
+            return "PASS", f"Decision: Max ({nt_max}) below game, stop low"
+        
         return "3N", f"Decision: Max reaches game, bid 3NT"
-
-    return "PASS", "Decision default fallback"
-
 
 # ==========================================
 # OPENER REBID AFTER 1D (NEW VERSION)
