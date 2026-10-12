@@ -978,6 +978,10 @@ def get_response_range(response_str):
             if "p_min" in row and "p_max" in row:
                 return {"min": row["p_min"], "max": row["p_max"]}
     return {"min": 6, "max": 10}
+# ==========================================
+# OPENER REBID AFTER 1C (SHOW RULES + SMART DECISION)
+# ==========================================
+
 def opener_rebid_1c(response, hcp, shape, extra_info=None):
     if extra_info is None:
         extra_info = {}
@@ -1048,11 +1052,11 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
             return "2H", "Transfer S [C5S4]"
         if c >= 6:
             return "2S", "Transfer C [C6]"
-        if d >= 5 and s <= 1:
+        if d >= 4 and s <= 1:
             return "2N", "Transfer D [1345]"
-        if d >= 5 and h <= 1:
+        if d >= 4 and h <= 1:
             return "3C", "Transfer D [3145]"
-        if d >= 5:
+        if d >= 4:
             return "3D", "Transfer D [2245]"
         return "PASS", "no good bid for 1C-1N"
 
@@ -1064,7 +1068,7 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
         min_resp = resp_range["min"]
         max_resp = resp_range["max"]
         
-        # ดึงจำนวนใบไพ่ขั้นต่ำที่ผู้ตอบการันตีจากตาราง (ถ้าไม่มีค่ากำหนด ให้ตั้งค่าเริ่มต้นเป็น 0)
+        # ดึงจำนวนใบไพ่ขั้นต่ำที่ผู้ตอบการันตีจากตาราง
         responder_min_s = resp_range.get("s_min", 0)
         responder_min_h = resp_range.get("h_min", 0)
         
@@ -1112,9 +1116,11 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
         if nt_min >= GAME_ZONE:
             return "3N", f"Decision: NT Game (Min: {nt_min})"
         if nt_max < GAME_ZONE:
-            return "PASS", f"Decision: Max ({nt_max}) below game, stop low"
+            # ถ้าไม่มี Fit และแต้มไม่ถึงเกม ให้จอดที่ 2NT เป็นจุดปลอดภัยแทนการฝืนหรือ Pass ต่ำ
+            return "2N", f"Decision: Max ({nt_max}) below game, park at 2NT"
         
         return "3N", f"Decision: Max reaches game, bid 3NT"
+        
 # ==========================================
 # OPENER REBID AFTER 1D (NEW VERSION)
 # ==========================================
