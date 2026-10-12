@@ -1061,7 +1061,7 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
         return "PASS", "no good bid for 1C-1N"
 
     # ----------------------------------------------------
-    # 4. GROUP DECISION: คำนวณช่วงแต้มและตรวจสอบ Fit (ทั้ง Major และ Minor ทั้ง C และ D)
+    # 4. GROUP DECISION: เลือกชุดที่มี Fit 8+ และประมูลระดับต่ำที่สุดที่ทำได้ (Cheapest Bid)
     # ----------------------------------------------------
     else:
         resp_range = get_response_range(response_str)
@@ -1091,51 +1091,77 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
         responder_min_d = resp_range.get("d_min", 0)
         responder_min_c = resp_range.get("c_min", 0)
         
-        # 1. เช็ค Major Fit (ต้อง >= 8 ใบ)
+        total_s = s + responder_min_s
+        total_h = h + responder_min_h
+        total_d = d + responder_min_d
+        total_c = c + responder_min_c
+
+        # แปลงระดับการประมูลปัจจุบันของผู้ตอบเป็นตัวเลข (ลำดับความสูงต่ำของ Bid)
+        # ชุดเรียงตามลำดับ: C < D < H < S < NT
+        def suit_rank(suit_char):
+            return {"C": 1, "D": 2, "H": 3, "S": 4, "N": 5}.get(suit_char, 0)
+
+        current_level = int(response_str[0]) if response_str[0].isdigit() else 1
+        current_suit = response_str[1:] if len(response_str) > 1 else "C"
+        current_score_val = current_level * 5 + suit_rank(current_suit)
+
+        def get_cheapest_bid(target_suit):
+            # หาเลเวลเริ่มต้นที่ต่ำที่สุดที่เป็นไปได้ (เริ่มจากเลเวล 2)
+            for lvl in [2, 3, 4, 5]:
+                candidate = f"{lvl}{target_suit}"
+                cand_val = lvl * 5 + suit_rank(target_suit)
+                if cand_val > current_score_val:
+                    return candidate
+            return f"3{target_suit}"
+
+        # 1. เช็ค Major Fit (>= 8 ใบ)
         fit_suit = None
-        if (s + responder_min_s) >= 8:
-            fit_suit = "S"
-        elif (h + responder_min_h) >= 8:
-            fit_suit = "H"
+        if total_s >= 8: fit_suit = "S"
+        elif total_h >= 8: fit_suit = "H"
 
         if fit_suit:
             if min_total >= SLAM_ZONE:
-                return f"6{fit_suit}", f"Decision: Major Slam (Min: {min_total})"
+                return f"6{fit_suit}", f"Decision: Major Slam"
             if min_total >= GAME_ZONE:
-                return f"4{fit_suit}", f"Decision: Major Game (Min: {min_total})"
+                return f"4{fit_suit}", f"Decision: Major Game"
             if max_total < GAME_ZONE:
-                return f"2{fit_suit}", f"Decision: Max ({max_total}) below game, sign off"
-            return f"3{fit_suit}", f"Decision: Game Try / Invitational (Min:{min_total}, Max:{max_total})"
+                # เลือกเลเวลต่ำสุดที่ยังบิดได้สำหรับ Major Fit
+                cheapest = get_cheapest_bid(fit_suit)
+                if int(cheapest[0]) > 3: # ถ้าต่ำกว่าเกม ให้จำกัดไว้ที่ไม่เกินระดับ 3 หรือ 2 ตามความเหมาะสม
+                    cheapest = f"2{fit_suit}" if current_level < 2 else f"3{fit_suit}"
+                return cheapest, f"Decision: Major Fit 8+ below game, cheapest safe stop"
+            return f"3{fit_suit}", f"Decision: Major Game Try"
 
-        # 2. เช็ค Minor Fit: Diamond (D)
-        total_d = d + responder_min_d
+        # 2. เช็ค Minor Fit: Diamond (>= 8 ใบ)
         if total_d >= 8:
-            if min_total >= GAME_ZONE:
-                return "5D", f"Decision: Minor Game 5D (Min: {min_total})"
+            if min_total >= SLAM_ZONE: return "6D", "Decision: Diamond Slam"
+            if min_total >= GAME_ZONE: return "5D", "Decision: Diamond Game"
             if max_total < GAME_ZONE:
-                if total_d >= 8:
-                    return "3D", f"Decision: Strong Diamond fit ({total_d} cards), trump over NT"
-                return "2N", f"Decision: Max ({max_total}) below game, park at 2NT"
-            return "4D", f"Decision: Minor Invitational 4D (Min:{min_total}, Max:{max_total})"
+                cheapest = get_cheapest_bid("D")
+                # บังคับให้อยู่ในโซน Part Score (เลเวล 2 หรือ 3 ที่ต่ำที่สุดที่ยังเดินหน้าต่อได้)
+                if current_level >= 2:
+                    cheapest = f"3D" if current_level == 2 else f"4D"
+                else:
+                    cheapest = "2D"
+                return cheapest, f"Decision: Diamond Fit 8+ below game, lowest safe stop ({cheapest})"
 
-        # 3. เช็ค Minor Fit: Club (C)
-        total_c = c + responder_min_c
+        # 3. เช็ค Minor Fit: Club (>= 8 ใบ)
         if total_c >= 8:
-            if min_total >= GAME_ZONE:
-                return "5C", f"Decision: Minor Game 5C (Min: {min_total})"
+            if min_total >= SLAM_ZONE: return "6C", "Decision: Club Slam"
+            if min_total >= GAME_ZONE: return "5C", "Decision: Club Game"
             if max_total < GAME_ZONE:
-                if total_c >= 8:
-                    return "3C", f"Decision: Strong Club fit ({total_c} cards), trump over NT"
-                return "2N", f"Decision: Max ({max_total}) below game, park at 2NT"
-            return "4C", f"Decision: Minor Invitational 4C (Min:{min_total}, Max:{max_total})"
+                cheapest = get_cheapest_bid("C")
+                if current_level >= 2:
+                    cheapest = f"3C" if current_level == 2 else f"4C"
+                else:
+                    cheapest = "2C"
+                return cheapest, f"Decision: Club Fit 8+ below game, lowest safe stop ({cheapest})"
 
-        # 4. กรณีไม่มี Fit ทั้ง Major และ Minor -> เช็ค NT ปกติ
-        if nt_min >= SLAM_ZONE:
-            return "6N", f"Decision: NT Slam (Min: {nt_min})"
-        if nt_min >= GAME_ZONE:
-            return "3N", f"Decision: NT Game (Min: {nt_min})"
+        # 4. กรณีไม่มี Fit อะไรเลย -> พิจารณา NT
+        if nt_min >= SLAM_ZONE: return "6N", "Decision: NT Slam"
+        if nt_min >= GAME_ZONE: return "3N", "Decision: NT Game"
         if nt_max < GAME_ZONE:
-            return "2N", f"Decision: Max ({nt_max}) below game, park at 2NT"
+            return "2N", f"Decision: No fit, park at 2NT"
         
         return "3N", f"Decision: Max reaches game, bid 3NT"
         
