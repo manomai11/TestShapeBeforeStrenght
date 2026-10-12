@@ -1009,6 +1009,10 @@ EXACT_BRIDGE_TABLE = [
 ]
 def opener_rebid_1c(response, hcp, shape, extra_info=None):
     s, h, d, c = shape
+    response_str = str(response).upper().strip() # แปลงเป็นสตริงเพื่อความปลอดภัย
+    resp_range = get_response_range(response_str)
+    min_resp = resp_range["min"]
+    max_resp = resp_range["max"]
     
     # 1. ดึงช่วงแต้มของฝั่งผู้ตอบจากตาราง EXACT_BRIDGE_TABLE หรือใช้ค่ามาตรฐาน
     resp_range = get_response_range(response)
@@ -1030,12 +1034,12 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
     SLAM_ZONE = 33
 
     # 3. ตรวจสอบ Major Fit (สมมติว่าถ้าผู้ตอบตอบ 1S/2S หรือ 1H/2H แล้วเรามีชุดนั้น 4+ ใบ)
+    # เช็ค Major Fit โดยใช้ response_str ที่ปลอดภัย
     fit_suit = None
-    if response in ["1S", "2S"] and s >= 4:
+    if response_str in ["1S", "2S"] and s >= 4:
         fit_suit = "S"
-    elif response in ["1H", "2H"] and h >= 4:
+    elif response_str in ["1H", "2H"] and h >= 4:
         fit_suit = "H"
-
     # --- กรณีมี Major Fit ---
     if fit_suit:
         if min_total >= SLAM_ZONE:
