@@ -1021,8 +1021,8 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
         if 14 <= hcp <= 15 and s == 4:
             return "2S", "Medium Fit 14-15 S4"
         if 14 <= hcp <= 15 and s < 3 and c >= 6 and c_honors >= 2:
-            return "3C", "Medium Fit 14-15 C6 AK AQ KQ in C"
-        if balanced or (11 <= hcp <= 13 and s == 3):
+            return "3C", "Medium Fit 14-15 good C6"
+        if balanced or (11 <= hcp <= 13 and s == 4):
             return "1S", "weak NT or S4"
         if 11 <= hcp <= 15 and c >= 5:
             return "2C", "minimum 11-15 C5"
@@ -1035,9 +1035,9 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
         if 17 <= hcp <= 19 and balanced:
             return "2C", "Big NT"
         if 11 <= hcp <= 13 and balanced:
-            return "2N", "weak NT"
+            return "2C", "weak NT"
         if 11 <= hcp <= 20 and shape == "4414":
-            return "3C", "4-4-1-4"
+            return "2C", "4-4-1-4"
         if h >= 4:
             return "2D", "Transfer H [C5H4]"
         if s >= 4:
