@@ -1061,14 +1061,13 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
         return "PASS", "no good bid for 1C-1N"
 
     # ----------------------------------------------------
-    # 4. GROUP DECISION: คำนวณช่วงแต้มและตรวจสอบ Fit จากผลรวมสองฝั่ง
+    # 4. GROUP DECISION: คำนวณช่วงแต้มและตรวจสอบ Fit (ทั้ง Major และ Minor ทั้ง C และ D)
     # ----------------------------------------------------
     else:
         resp_range = get_response_range(response_str)
         min_resp = resp_range["min"]
         max_resp = resp_range["max"]
         
-        # ประกาศตัวแปรคำนวณแต้มและโซนต่างๆ ไว้ล่วงหน้าตั้งแต่ต้นบล็อก
         SLAM_ZONE = 33
         GAME_ZONE = 25
         
@@ -1086,9 +1085,10 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
         nt_min = hcp + min_resp
         nt_max = hcp + max_resp
 
-        # ดึงค่าต่ำสุดของฝั่งผู้ตอบ
+        # ดึงค่าต่ำสุดของฝั่งผู้ตอบทุกชุด
         responder_min_s = resp_range.get("s_min", 0)
         responder_min_h = resp_range.get("h_min", 0)
+        responder_min_d = resp_range.get("d_min", 0)
         responder_min_c = resp_range.get("c_min", 0)
         
         # 1. เช็ค Major Fit (ต้อง >= 8 ใบ)
@@ -1107,16 +1107,29 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
                 return f"2{fit_suit}", f"Decision: Max ({max_total}) below game, sign off"
             return f"3{fit_suit}", f"Decision: Game Try / Invitational (Min:{min_total}, Max:{max_total})"
 
-        # 2. เช็ค Minor Fit (เช่น Club 8+ ใบ)
+        # 2. เช็ค Minor Fit: Diamond (D)
+        total_d = d + responder_min_d
+        if total_d >= 8:
+            if min_total >= GAME_ZONE:
+                return "5D", f"Decision: Minor Game 5D (Min: {min_total})"
+            if max_total < GAME_ZONE:
+                if total_d >= 8:
+                    return "3D", f"Decision: Strong Diamond fit ({total_d} cards), trump over NT"
+                return "2N", f"Decision: Max ({max_total}) below game, park at 2NT"
+            return "4D", f"Decision: Minor Invitational 4D (Min:{min_total}, Max:{max_total})"
+
+        # 3. เช็ค Minor Fit: Club (C)
         total_c = c + responder_min_c
         if total_c >= 8:
             if min_total >= GAME_ZONE:
                 return "5C", f"Decision: Minor Game 5C (Min: {min_total})"
             if max_total < GAME_ZONE:
-                return "3C", f"Decision: Minor Fit 8+ with Max ({max_total}) below game, stop at 3C"
+                if total_c >= 8:
+                    return "3C", f"Decision: Strong Club fit ({total_c} cards), trump over NT"
+                return "2N", f"Decision: Max ({max_total}) below game, park at 2NT"
             return "4C", f"Decision: Minor Invitational 4C (Min:{min_total}, Max:{max_total})"
 
-        # 3. กรณีไม่มี Fit ทั้ง Major และ Minor -> เช็ค NT ปกติ
+        # 4. กรณีไม่มี Fit ทั้ง Major และ Minor -> เช็ค NT ปกติ
         if nt_min >= SLAM_ZONE:
             return "6N", f"Decision: NT Slam (Min: {nt_min})"
         if nt_min >= GAME_ZONE:
