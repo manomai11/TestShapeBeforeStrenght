@@ -1057,13 +1057,24 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
         return "PASS", "no good bid for 1C-1N"
 
     # ----------------------------------------------------
-    # 4. GROUP DECISION: คำนวณช่วงแต้มและลีลาอัตโนมัติ
+    # 4. GROUP DECISION: คำนวณช่วงแต้มและตรวจสอบ Fit จากผลรวมสองฝั่ง (ต้อง >= 8 ใบ)
     # ----------------------------------------------------
     else:
         resp_range = get_response_range(response_str)
         min_resp = resp_range["min"]
         max_resp = resp_range["max"]
         
+        # ดึงจำนวนใบไพ่ขั้นต่ำที่ผู้ตอบการันตีจากตาราง (ถ้าไม่มีค่ากำหนด ให้ตั้งค่าเริ่มต้นเป็น 0)
+        responder_min_s = resp_range.get("s_min", 0)
+        responder_min_h = resp_range.get("h_min", 0)
+        
+        # เช็ค Major Fit โดยเอาไพ่ในมือเรา + ขั้นต่ำของฝั่งผู้ตอบ ต้องได้ >= 8 ใบจริง ๆ
+        fit_suit = None
+        if (s + responder_min_s) >= 8:
+            fit_suit = "S"
+        elif (h + responder_min_h) >= 8:
+            fit_suit = "H"
+
         # คำนวณแต้มแจกแจง (Distribution Points) ของคนเปิด
         suit_lengths = [s, h, d, c]
         min_len = min(suit_lengths)
@@ -1078,11 +1089,6 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
         
         SLAM_ZONE = 33
         GAME_ZONE = 25
-
-        # เช็ค Major Fit
-        fit_suit = None
-        if s >= 4: fit_suit = "S"
-        elif h >= 4: fit_suit = "H"
 
         if fit_suit:
             if min_total >= SLAM_ZONE:
@@ -1109,7 +1115,6 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
             return "PASS", f"Decision: Max ({nt_max}) below game, stop low"
         
         return "3N", f"Decision: Max reaches game, bid 3NT"
-
 # ==========================================
 # OPENER REBID AFTER 1D (NEW VERSION)
 # ==========================================
