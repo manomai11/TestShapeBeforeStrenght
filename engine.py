@@ -961,14 +961,14 @@ def response_1c(
 
 EXACT_BRIDGE_TABLE = [
     # --- กลุ่ม Decision ---
-    {"bid": "1C-3C", "status": "decision", "p_min": 6, "p_max": 10, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 0, "d_max": 3, "c_min": 4, "c_max": 6},
-    {"bid": "1C-2N", "status": "decision", "p_min": 0, "p_max": 5, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 0, "d_max": 3, "c_min": 4, "c_max": 6},
-    {"bid": "1C-2S", "status": "decision", "p_min": 6, "p_max": 10, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 5, "d_max": 8, "c_min": 5, "c_max": 11},
-    {"bid": "1C-2D", "status": "decision", "p_min": 11, "p_max": 12, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 0, "d_max": 3, "c_min": 4, "c_max": 5},
-    {"bid": "1C-2C", "priority": 500, "status": "decision", "p_min": 6, "p_max": 10, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 0, "d_max": 3, "c_min": 6, "c_max": 13},
-    {"bid": "1C-2C", "priority": 400, "status": "decision", "p_min": 11, "p_max": 12, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 0, "d_max": 3, "c_min": 6, "c_max": 13},
-    {"bid": "1C-2H", "status": "decision", "p_min": 11, "p_max": 12, "s_min": 2, "s_max": 3, "h_min": 2, "h_max": 3, "d_min": 2, "d_max": 3, "c_min": 2, "c_max": 4},
-    {"bid": "1C-1S", "status": "decision", "p_min": 6, "p_max": 10, "s_min": 1, "s_max": 3, "h_min": 1, "h_max": 3, "d_min": 5, "d_max": 5, "c_min": 2, "c_max": 5},
+    {"bid": "1C-3C", "status": "decision", "p_min": 6, "p_max": 10, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 0, "d_max": 3, "c_min": 6, "c_max": 11},
+    {"bid": "1C-2N", "status": "decision", "p_min": 0, "p_max": 5, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 0, "d_max": 3, "c_min": 6, "c_max": 11},
+    {"bid": "1C-2S", "status": "decision", "p_min": 6, "p_max": 10, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 5, "d_max": 8, "c_min": 5, "c_max": 8},
+    {"bid": "1C-2D", "status": "decision", "p_min": 11, "p_max": 12, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 0, "d_max": 4, "c_min": 5, "c_max": 11},
+    {"bid": "1C-2C", "priority": 500, "status": "decision", "p_min": 6, "p_max": 10, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 6, "d_max": 13, "c_min": 0, "c_max": 4},
+    {"bid": "1C-2C", "priority": 400, "status": "decision", "p_min": 11, "p_max": 12, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 5, "d_max": 13, "c_min": 0, "c_max": 5},
+    {"bid": "1C-2H", "status": "decision", "p_min": 11, "p_max": 12, "s_min": 2, "s_max": 3, "h_min": 2, "h_max": 3, "d_min": 3, "d_max": 4, "c_min": 3, "c_max": 4},
+    {"bid": "1C-1S", "status": "decision", "p_min": 6, "p_max": 10, "s_min": 1, "s_max": 3, "h_min": 1, "h_max": 3, "d_min": 2, "d_max": 5, "c_min": 2, "c_max": 5},
 ]
 
 # ฟังก์ชันดึงช่วงแต้มจากตาราง
