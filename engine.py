@@ -955,10 +955,6 @@ def response_1c(
 # ==========================================
 # OPENER REBID AFTER 1C (SHOW RULES + SMART DECISION)
 # ==========================================
-  
-# ==========================================
-# BRIDGE ENGINE WITH EMBEDDED RESPONSE TABLE
-# ==========================================
 
 # ==========================================
 # BRIDGE EXACT TABLE DATABASE (Strict Matching)
@@ -1012,13 +1008,63 @@ EXACT_BRIDGE_TABLE = [
     {"bid": "1C-1N-3D", "priority": 200, "p_min": 16, "p_max": 20, "s": 4, "h": 2, "d": 2, "c": 4, "special": "2245", "result": "Transfer D [2245]"}
 ]
 def opener_rebid_1c(response, hcp, shape, extra_info=None):
-    if extra_info is None:
-        extra_info = {}
+    s, h, d, c = shape
     
-    s, h, d, c = shape_lengths(shape)
-    balanced = is_balanced(shape)
-    c_honors = extra_info.get("c_honors", 0)
+    # 1. ดึงช่วงแต้มของฝั่งผู้ตอบจากตาราง EXACT_BRIDGE_TABLE หรือใช้ค่ามาตรฐาน
+    resp_range = get_response_range(response)
+    min_resp = resp_range["min"]
+    max_resp = resp_range["max"]
+    
+    # 2. คำนวณแต้มแจกแจง (Distribution Points) ของคนเปิด 17 HCP
+    min_len = min(shape)
+    dist_points = 0
+    if min_len == 0: dist_points += 5
+    elif min_len == 1: dist_points += 3
+    elif min_len == 2: dist_points += 1
+    
+    opener_total = hcp + dist_points
+    min_total = opener_total + min_resp
+    max_total = opener_total + max_resp
+    
+    GAME_ZONE = 25
+    SLAM_ZONE = 33
 
+    # 3. ตรวจสอบ Major Fit (สมมติว่าถ้าผู้ตอบตอบ 1S/2S หรือ 1H/2H แล้วเรามีชุดนั้น 4+ ใบ)
+    fit_suit = None
+    if response in ["1S", "2S"] and s >= 4:
+        fit_suit = "S"
+    elif response in ["1H", "2H"] and h >= 4:
+        fit_suit = "H"
+
+    # --- กรณีมี Major Fit ---
+    if fit_suit:
+        if min_total >= SLAM_ZONE:
+            return f"6{fit_suit}", f"Decision: Major Slam (Min: {min_total})"
+        if min_total >= GAME_ZONE:
+            return f"4{fit_suit}", f"Decision: Major Game (Min: {min_total})"
+        if max_total < GAME_ZONE:
+            return f"2{fit_suit}", f"Decision: Max ({max_total}) below game, sign off"
+        # แต้มคาเกี่ยว (Min ยังไม่ถึง 25 แต่ Max ถึง 25+) -> ลีลา / ชวนเกม (Game Try)
+        return f"3{fit_suit}", f"Decision: Game Try / Invitational (Min:{min_total}, Max:{max_total})"
+
+    # --- กรณีไม่มี Major Fit ---
+    # ถ้าผู้ตอบตอบ 2C / 2D / 2N หรืออื่นๆ และแต้มถึงเกมแบบชัวร์ๆ
+    if min_total >= GAME_ZONE:
+        if response in ["2N", "3N"] or c >= 5:
+            return "3N", f"Decision: NT Game (Min: {min_total})"
+        return "3N", f"Decision: Game reached (Min: {min_total})"
+    
+    # ถ้าแต้มยังไม่ถึงเกมแน่นอน (Max รวมยังไม่ถึง 25) -> หยุดต่ำๆ หรือซัพพอร์ตต่ำ
+    if max_total < GAME_ZONE:
+        if response == "2C":
+            return "PASS", f"Decision: Pass, max points ({max_total}) below game"
+        return "2C", f"Decision: Sign off / Low rebid"
+
+    # เคสคาเกี่ยว (Borderline) ไม่มี Fit แต่แต้มลุ้นเกมได้ -> ชวนเกมผ่าน NT หรือชุดยาว
+    if response == "2C" and c >= 5:
+        return "3C", f"Decision: Minor Game Try / Invitational (Min:{min_total}, Max:{max_total})"
+    
+    return "2N", f"Decision: Invitational Game Try (Min:{min_total}, Max:{max_total})"
     # ----------------------------------------------------
     # 1. GROUP SHOW: 1C - 1D
     # ----------------------------------------------------
