@@ -1072,27 +1072,12 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
         responder_min_s = resp_range.get("s_min", 0)
         responder_min_h = resp_range.get("h_min", 0)
         
-        # เช็ค Major Fit โดยเอาไพ่ในมือเรา + ขั้นต่ำของฝั่งผู้ตอบ ต้องได้ >= 8 ใบจริง ๆ
+                # 1. เช็ค Major Fit (ต้อง >= 8 ใบ)
         fit_suit = None
         if (s + responder_min_s) >= 8:
             fit_suit = "S"
         elif (h + responder_min_h) >= 8:
             fit_suit = "H"
-
-        # คำนวณแต้มแจกแจง (Distribution Points) ของคนเปิด
-        suit_lengths = [s, h, d, c]
-        min_len = min(suit_lengths)
-        dist_points = 0
-        if min_len == 0: dist_points += 5
-        elif min_len == 1: dist_points += 3
-        elif min_len == 2: dist_points += 1
-        
-        opener_total = hcp + dist_points
-        min_total = opener_total + min_resp
-        max_total = opener_total + max_resp
-        
-        SLAM_ZONE = 33
-        GAME_ZONE = 25
 
         if fit_suit:
             if min_total >= SLAM_ZONE:
@@ -1103,11 +1088,19 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
                 return f"2{fit_suit}", f"Decision: Max ({max_total}) below game, sign off"
             return f"3{fit_suit}", f"Decision: Game Try / Invitational (Min:{min_total}, Max:{max_total})"
 
-        if c >= 6 and max_total >= GAME_ZONE:
-            if min_total >= SLAM_ZONE:
-                return "6C", f"Decision: Club Slam (Min: {min_total})"
-            return "5C", f"Decision: Club Game 5C (Min: {min_total})"
+        # 2. เช็ค Minor Fit (เช่น Club 8+ ใบ จากมือเรา + ผู้ตอบ)
+        responder_min_c = resp_range.get("c_min", 0)
+        total_c = c + responder_min_c
+        
+        if total_c >= 8:
+            if min_total >= GAME_ZONE:
+                return "5C", f"Decision: Minor Game 5C (Min: {min_total})"
+            if max_total < GAME_ZONE:
+                # มี Fit 8 ใบแต่แต้มไม่ถึงเกม -> จอดที่ 3C อย่างปลอดภัย
+                return "3C", f"Decision: Minor Fit 8+ with Max ({max_total}) below game, stop at 3C"
+            return "4C", f"Decision: Minor Invitational 4C (Min:{min_total}, Max:{max_total})"
 
+        # 3. กรณีไม่มี Fit ทั้ง Major และ Minor -> เช็ค NT ปกติ
         nt_min = hcp + min_resp
         nt_max = hcp + max_resp
         
@@ -1116,7 +1109,6 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
         if nt_min >= GAME_ZONE:
             return "3N", f"Decision: NT Game (Min: {nt_min})"
         if nt_max < GAME_ZONE:
-            # ถ้าไม่มี Fit และแต้มไม่ถึงเกม ให้จอดที่ 2NT เป็นจุดปลอดภัยแทนการฝืนหรือ Pass ต่ำ
             return "2N", f"Decision: Max ({nt_max}) below game, park at 2NT"
         
         return "3N", f"Decision: Max reaches game, bid 3NT"
