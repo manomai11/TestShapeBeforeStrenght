@@ -1,17 +1,13 @@
 # ==========================================
 # SHAPE BEFORE STRENGTH
-# ENGINE V1
-# OPENING ONLY + 1NT
+# ENGINE V1 (CENTRALIZED DECISION + SHOW RULES)
 # ==========================================
 
 BALANCED_SHAPES = {
-
     "4333","3433","3343","3334",
-
     "4432","4423","4342","4243",
     "4324","4234","3442","2443",
     "3424","2434","3244","2344",
-
     "5332","5323","5233",
     "3532","3523","2533",
     "3352","3253","2353",
@@ -19,11 +15,7 @@ BALANCED_SHAPES = {
 }
 
 SPECIAL_D4C5 = {
-    "4045",
-    "0445",
-    "3145",
-    "1345",
-    "2245"
+    "4045", "0445", "3145", "1345", "2245"
 }
 
 # ==========================================
@@ -31,30 +23,14 @@ SPECIAL_D4C5 = {
 # ==========================================
 
 def shape_lengths(shape):
-
-    return (
-        int(shape[0]),
-        int(shape[1]),
-        int(shape[2]),
-        int(shape[3])
-    )
-
+    return (int(shape[0]), int(shape[1]), int(shape[2]), int(shape[3]))
 
 def is_balanced(shape):
-
     return shape in BALANCED_SHAPES
 
-
 def has_short(shape):
-
-    s,h,d,c = shape_lengths(shape)
-
-    return (
-        s <= 1 or
-        h <= 1 or
-        d <= 1 or
-        c <= 1
-    )
+    s, h, d, c = shape_lengths(shape)
+    return s <= 1 or h <= 1 or d <= 1 or c <= 1
 
 # ==========================================
 # CENTRALIZED DECISION ENGINE (ใช้ร่วมกันทุกการเปิด)
@@ -132,18 +108,15 @@ def evaluate_central_decision(opener_hcp, opener_shape, response_range_dict, cur
         
         # --- GAME TRY / INVITATION ZONE (L < 25 แต่ M >= 25) [รู้แล้วว่ามี M Fit] ---
         if min_total < GAME_ZONE_MIN and max_total >= GAME_ZONE_MIN:
-            # - 2N (เหนือ H ทรัมพ์ หรือตามตกลง) = ดำสั้น และทรัมพ์ 6+ ใบ
             if fit_suit == "H" and (s <= 1 or d <= 1 or c <= 1) and opener_trump_len >= 6:
                 short_suit = "S" if s <= 1 else ("D" if d <= 1 else "C")
                 return "2N", f"Decision: Game Try (Short {short_suit}, Trump 6+)"
             
-            # - 3m = Minor นั้นสั้น และทรัมพ์ 6+ ใบ
             if d <= 1 and opener_trump_len >= 6 and fit_suit != "D":
                 return "3D", "Decision: Game Try (Short D, Trump 6+)"
             if c <= 1 and opener_trump_len >= 6 and fit_suit != "C":
                 return "3C", "Decision: Game Try (Short C, Trump 6+)"
             
-            # - 2M+1 (ยกระดับทรัมพ์ขึ้น 1 ขั้น) = Ask Honor and Min/Max (Priority ต่ำสุด)
             ask_bid = f"3{fit_suit}" if fit_suit == "H" else "3S"
             return ask_bid, "Decision: Game Try Ask Honor & Min/Max (Low Priority)"
             
@@ -153,7 +126,7 @@ def evaluate_central_decision(opener_hcp, opener_shape, response_range_dict, cur
         return f"4{fit_suit}", f"Decision: Major Game"
 
     # ----------------------------------------------------
-    # 2. กรณีมี MINOR FIT (Diamonds หรือ Clubs >= 8 ใบ)
+    # 2. กรณีมี MINOR FIT
     # ----------------------------------------------------
     minor_fit_suit = None
     if total_d >= 8: minor_fit_suit = "D"
@@ -162,36 +135,29 @@ def evaluate_central_decision(opener_hcp, opener_shape, response_range_dict, cur
     if minor_fit_suit:
         if min_total >= SLAM_ZONE: 
             return f"6{minor_fit_suit}", f"Decision: Minor Slam"
-        
         if min_total >= 28 and dist_points > 12:
             return f"5{minor_fit_suit}", f"Decision: 5{minor_fit_suit} chosen over 3N"
-            
         if GAME_ZONE_MIN <= min_total <= GAME_ZONE_MAX:
             if nt_min >= GAME_ZONE_MIN:
                 return "3N", f"Decision: NT Game preferred over 5{minor_fit_suit}"
             return f"5{minor_fit_suit}", f"Decision: Minor Game 5{minor_fit_suit}"
-            
         if min_total < GAME_ZONE_MIN and max_total >= GAME_ZONE_MIN:
             cheapest = get_cheapest_bid(minor_fit_suit)
-            return cheapest, f"Decision: Minor Game Invite / Try ({cheapest})"
-            
+            return cheapest, f"Decision: Minor Game Invite / Try"
         if max_total < GAME_ZONE_MIN:
             cheapest = get_cheapest_bid(minor_fit_suit)
-            return cheapest, f"Decision: Minor Fit 8+ below game, lowest safe stop"
+            return cheapest, f"Decision: Minor Fit below game, lowest safe stop"
 
     # ----------------------------------------------------
-    # 3. กรณีไม่มี FIT อะไรเลย (No Fit / Balanced / Unbalanced)
+    # 3. กรณีไม่มี FIT อะไรเลย
     # ----------------------------------------------------
     if nt_min >= SLAM_ZONE: return "6N", "Decision: NT Slam"
     if GAME_ZONE_MIN <= nt_min <= GAME_ZONE_MAX: return "3N", "Decision: NT Game"
     
-    # --- GAME TRY / INVITATION ZONE (L < 25 แต่ M >= 25) [ยังไม่รู้ว่ามี M Fit แน่ชัด] ---
     if min_total < GAME_ZONE_MIN and max_total >= GAME_ZONE_MIN:
         if balanced:
-            # 2N = Game Invite (Max ไปเกม, Min ผ่าน)
             return "2N", "Decision: Game Invite (Balanced, Max goes to game)"
         else:
-            # New Suit Forcing / 4th Suit GF (บังคับไม่ให้ผ่าน เพื่อลีลาหาข้อมูลต่อ)
             unbid_suit = "S" if s >= 4 else ("H" if h >= 4 else ("D" if d >= 4 else "C"))
             return get_cheapest_bid(unbid_suit), "Decision: New Suit Forcing / 4th Suit Game Force"
             
@@ -199,7 +165,7 @@ def evaluate_central_decision(opener_hcp, opener_shape, response_range_dict, cur
         return "2N", f"Decision: No fit, park at 2NT"
     
     return "3N", f"Decision: Max reaches game, bid 3NT"
-
+    
 # ==========================================
 # OPENING
 # ==========================================
@@ -1189,36 +1155,20 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
     # ----------------------------------------------------
 
     elif response_str == "1S":
-        c_honors = extra_info.get("c_honors", 0) # ดึงค่า Honors ในชุด C เผื่อไว้ใช้
-
-        # Rule 1: 11-13 S5 -> Pass (priority 1100)
         if 11 <= hcp <= 13 and s >= 5:
             return "PASS", "Minimum S5"
-
-        # Rule 2: 17-19 balanced หรือ 16+ D4 -> 2D (priority 1000)
         if (17 <= hcp <= 19 and balanced) or (hcp >= 16 and d >= 4):
             return "2D", "Big NT or 16+ D4"
-
-        # Rule 3: 16+ S4 or second suit <4 S not bad suit -> 2S (priority 900)
         if hcp >= 16 and s >= 4:
-            return "2S", "16+ SH4 or stop"
-
-        # Rule 4: 16+ H4 or second suit <4 H not bad suit -> 2H (priority 800)
+            return "2S", "16+ SH4"
         if hcp >= 16 and h >= 4:
-            return "2H", "16+ H4 or stop"
-
-        # Rule 5: 14-15 C6+ M<4 (AKQ >= 2) -> 3C (priority 700)
+            return "2H", "16+ H4"
         if 14 <= hcp <= 15 and c >= 6 and s < 4 and h < 4 and c_honors >= 2:
             return "3C", "Medium 14-15 C6"
-
-        # Rule 6: 11-15 C5+ -> 2C (priority 600)
         if 11 <= hcp <= 15 and c >= 5:
             return "2C", "Minimum 11-15 C5+"
-
-        # Rule 7: Weak NT หรือ 4414 -> 1N
         if balanced or shape == "4414":
             return "1N", "weak NT or 4414"
-
     # ----------------------------------------------------
     # 3. GROUP SHOW: 1C - 1N
     # ----------------------------------------------------
