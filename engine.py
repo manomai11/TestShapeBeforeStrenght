@@ -1068,9 +1068,11 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
         min_resp = resp_range["min"]
         max_resp = resp_range["max"]
         
-        SLAM_ZONE = 33
-        GAME_ZONE = 25
+        SLAM_ZONE = 32
+        GAME_ZONE_MIN = 25
+        GAME_ZONE_MAX = 31
         
+        # คำนวณ Distribution Points ของฝั่ง Opener
         suit_lengths = [s, h, d, c]
         min_len = min(suit_lengths)
         dist_points = 0
@@ -1096,8 +1098,6 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
         total_d = d + responder_min_d
         total_c = c + responder_min_c
 
-        # แปลงระดับการประมูลปัจจุบันของผู้ตอบเป็นตัวเลข (ลำดับความสูงต่ำของ Bid)
-        # ชุดเรียงตามลำดับ: C < D < H < S < NT
         def suit_rank(suit_char):
             return {"C": 1, "D": 2, "H": 3, "S": 4, "N": 5}.get(suit_char, 0)
 
@@ -1106,7 +1106,6 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
         current_score_val = current_level * 5 + suit_rank(current_suit)
 
         def get_cheapest_bid(target_suit):
-            # หาเลเวลเริ่มต้นที่ต่ำที่สุดที่เป็นไปได้ (เริ่มจากเลเวล 2)
             for lvl in [2, 3, 4, 5]:
                 candidate = f"{lvl}{target_suit}"
                 cand_val = lvl * 5 + suit_rank(target_suit)
@@ -1122,45 +1121,45 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
         if fit_suit:
             if min_total >= SLAM_ZONE:
                 return f"6{fit_suit}", f"Decision: Major Slam"
-            if min_total >= GAME_ZONE:
-                return f"4{fit_suit}", f"Decision: Major Game"
-            if max_total < GAME_ZONE:
-                # เลือกเลเวลต่ำสุดที่ยังบิดได้สำหรับ Major Fit
+            if GAME_ZONE_MIN <= min_total <= GAME_ZONE_MAX:
+                return f"4{fit_suit}", f"Decision: Major Game (4{fit_suit} > 3N)"
+            if max_total < GAME_ZONE_MIN:
                 cheapest = get_cheapest_bid(fit_suit)
-                if int(cheapest[0]) > 3: # ถ้าต่ำกว่าเกม ให้จำกัดไว้ที่ไม่เกินระดับ 3 หรือ 2 ตามความเหมาะสม
+                if int(cheapest[0]) > 3:
                     cheapest = f"2{fit_suit}" if current_level < 2 else f"3{fit_suit}"
                 return cheapest, f"Decision: Major Fit 8+ below game, cheapest safe stop"
-            return f"3{fit_suit}", f"Decision: Major Game Try"
+            return f"4{fit_suit}", f"Decision: Major Game"
 
-        # 2. เช็ค Minor Fit: Diamond (>= 8 ใบ)
-        if total_d >= 8:
-            if min_total >= SLAM_ZONE: return "6D", "Decision: Diamond Slam"
-            if min_total >= GAME_ZONE: return "5D", "Decision: Diamond Game"
-            if max_total < GAME_ZONE:
-                cheapest = get_cheapest_bid("D")
-                # บังคับให้อยู่ในโซน Part Score (เลเวล 2 หรือ 3 ที่ต่ำที่สุดที่ยังเดินหน้าต่อได้)
+        # 2. เช็ค Minor Fit (Diamonds หรือ Clubs >= 8 ใบ)
+        minor_fit_suit = None
+        if total_d >= 8: minor_fit_suit = "D"
+        elif total_c >= 8: minor_fit_suit = "C"
+
+        if minor_fit_suit:
+            if min_total >= SLAM_ZONE: 
+                return f"6{minor_fit_suit}", f"Decision: Minor Slam"
+            
+            # เช็คเงื่อนไขเกม 5m vs 3N: Total >= 28 และ Distribution Points > 12 ถึงเลือก 5m
+            if min_total >= 28 and dist_points > 12:
+                return f"5{minor_fit_suit}", f"Decision: 5{minor_fit_suit} chosen over 3N (Dist > 12 & Total >= 28)"
+            elif GAME_ZONE_MIN <= min_total <= GAME_ZONE_MAX:
+                # ถ้าแต้มอยู่ในโซนเกมแต่ยังไม่เข้าเงื่อนไข 5m ด้านบน ให้ลองพิจารณา 3N ก่อนถ้าเป็นไปได้ หรือเลือก 5m ตามเหมาะสม
+                if nt_min >= GAME_ZONE_MIN:
+                    return "3N", f"Decision: NT Game preferred over 5{minor_fit_suit}"
+                return f"5{minor_fit_suit}", f"Decision: Minor Game 5{minor_fit_suit}"
+            
+            if max_total < GAME_ZONE_MIN:
+                cheapest = get_cheapest_bid(minor_fit_suit)
                 if current_level >= 2:
-                    cheapest = f"3D" if current_level == 2 else f"4D"
+                    cheapest = f"3{minor_fit_suit}" if current_level == 2 else f"4{minor_fit_suit}"
                 else:
-                    cheapest = "2D"
-                return cheapest, f"Decision: Diamond Fit 8+ below game, lowest safe stop ({cheapest})"
+                    cheapest = f"2{minor_fit_suit}"
+                return cheapest, f"Decision: Minor Fit 8+ below game, lowest safe stop ({cheapest})"
 
-        # 3. เช็ค Minor Fit: Club (>= 8 ใบ)
-        if total_c >= 8:
-            if min_total >= SLAM_ZONE: return "6C", "Decision: Club Slam"
-            if min_total >= GAME_ZONE: return "5C", "Decision: Club Game"
-            if max_total < GAME_ZONE:
-                cheapest = get_cheapest_bid("C")
-                if current_level >= 2:
-                    cheapest = f"3C" if current_level == 2 else f"4C"
-                else:
-                    cheapest = "2C"
-                return cheapest, f"Decision: Club Fit 8+ below game, lowest safe stop ({cheapest})"
-
-        # 4. กรณีไม่มี Fit อะไรเลย -> พิจารณา NT
+        # 3. กรณีไม่มี Fit อะไรเลย -> พิจารณา NT
         if nt_min >= SLAM_ZONE: return "6N", "Decision: NT Slam"
-        if nt_min >= GAME_ZONE: return "3N", "Decision: NT Game"
-        if nt_max < GAME_ZONE:
+        if GAME_ZONE_MIN <= nt_min <= GAME_ZONE_MAX: return "3N", "Decision: NT Game"
+        if nt_max < GAME_ZONE_MIN:
             return "2N", f"Decision: No fit, park at 2NT"
         
         return "3N", f"Decision: Max reaches game, bid 3NT"
