@@ -124,9 +124,8 @@ def evaluate_central_decision(opener_hcp, opener_shape, response_range_dict, cur
             cheapest = get_cheapest_bid(fit_suit)
             return cheapest, f"Decision: Major Fit 8+ below game, cheapest safe stop"
         return f"4{fit_suit}", f"Decision: Major Game"
-
     # ----------------------------------------------------
-    # 2. กรณีมี MINOR FIT
+    # 2. กรณีมี MINOR FIT (ปรับปรุงใหม่ ให้รัดกุมขึ้น ไม่รีบกระโดดไป 5 ทันที)
     # ----------------------------------------------------
     minor_fit_suit = None
     if total_d >= 8: minor_fit_suit = "D"
@@ -135,15 +134,21 @@ def evaluate_central_decision(opener_hcp, opener_shape, response_range_dict, cur
     if minor_fit_suit:
         if min_total >= SLAM_ZONE: 
             return f"6{minor_fit_suit}", f"Decision: Minor Slam"
-        if min_total >= 28 and dist_points > 12:
-            return f"5{minor_fit_suit}", f"Decision: 5{minor_fit_suit} chosen over 3N"
+        
+        # ถ้าแต้มสูงมากชัวร์ๆ (29+) ถึงค่อยลุยระดับ 5
+        if min_total >= 29 and dist_points > 12:
+            return f"5{minor_fit_suit}", f"Decision: Strong Minor Game 5{minor_fit_suit}"
+        
+        # ถ้าอยู่ในช่วงโซนเกมปกติ (25-28 แต้ม) ให้ซบที่ 3N หรือแค่ระดับ 4 เพื่อความปลอดภัย ป้องกันแต้มไม่ดี
         if GAME_ZONE_MIN <= min_total <= GAME_ZONE_MAX:
             if nt_min >= GAME_ZONE_MIN:
-                return "3N", f"Decision: NT Game preferred over 5{minor_fit_suit}"
-            return f"5{minor_fit_suit}", f"Decision: Minor Game 5{minor_fit_suit}"
+                return "3N", f"Decision: NT Game preferred over 5{minor_fit_suit} (Safer)"
+            return f"4{minor_fit_suit}", f"Decision: Minor Game Invite / Safe Stop at 4"
+            
         if min_total < GAME_ZONE_MIN and max_total >= GAME_ZONE_MIN:
             cheapest = get_cheapest_bid(minor_fit_suit)
-            return cheapest, f"Decision: Minor Game Invite / Try"
+            return cheapest, f"Decision: Minor Game Try / Invitational"
+            
         if max_total < GAME_ZONE_MIN:
             cheapest = get_cheapest_bid(minor_fit_suit)
             return cheapest, f"Decision: Minor Fit below game, lowest safe stop"
