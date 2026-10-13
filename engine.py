@@ -1108,7 +1108,6 @@ EXACT_BRIDGE_TABLE = [
     {"bid": "1C-2C", "priority": 500, "status": "decision", "p_min": 6, "p_max": 10, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 6, "d_max": 13, "c_min": 0, "c_max": 4},
     {"bid": "1C-2C", "priority": 400, "status": "decision", "p_min": 11, "p_max": 12, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 5, "d_max": 13, "c_min": 0, "c_max": 5},
     {"bid": "1C-2H", "status": "decision", "p_min": 11, "p_max": 12, "s_min": 2, "s_max": 3, "h_min": 2, "h_max": 3, "d_min": 3, "d_max": 4, "c_min": 3, "c_max": 4},
-    {"bid": "1C-1S", "status": "decision", "p_min": 6, "p_max": 10, "s_min": 1, "s_max": 3, "h_min": 1, "h_max": 3, "d_min": 2, "d_max": 5, "c_min": 2, "c_max": 5},
 ]
 
 # ฟังก์ชันดึงช่วงแต้มจากตาราง
@@ -1184,6 +1183,37 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
         if 11 <= hcp <= 15 and c >= 5:
             return "2C", "minimum 11-15 C5"
         return "1S", "weak NT or S4"
+    # ----------------------------------------------------
+    # CASE: 1C - 1S
+    # ----------------------------------------------------
+    elif response == "1S":
+        # Rule 1: 11-13 S5 -> Pass (priority 1100)
+        if 11 <= hcp <= 13 and s >= 5:
+            return "PASS", "Minimum S5"
+
+        # Rule 2: 17-19 balanced หรือ 16+ D4 -> 2D (priority 1000)
+        if (17 <= hcp <= 19 and balanced) or (hcp >= 16 and d >= 4):
+            return "2D", "Big NT or 16+ D4"
+
+        # Rule 3: 16+ S4 or second suit <4 S not bad suit -> 2S (priority 900)
+        if hcp >= 16 and s >= 4:
+            return "2S", "16+ SH4 or stop"
+
+        # Rule 4: 16+ H4 or second suit <4 H not bad suit -> 2H (priority 800)
+        if hcp >= 16 and h >= 4:
+            return "2H", "16+ H4 or stop"
+
+        # Rule 5: 14-15 C6+ M<4 (AKQ >= 2) -> 3C (priority 700)
+        if 14 <= hcp <= 15 and c >= 6 and s < 4 and h < 4 and c_honors >= 2:
+            return "3C", "Medium 14-15 C6"
+
+        # Rule 6: 11-15 C5+ -> 2C (priority 600)
+        if 11 <= hcp <= 15 and c >= 5:
+            return "2C", "Minimum 11-15 C5+"
+
+        # Rule 7: Weak NT หรือ 4414 -> 1N
+        if balanced or shape == "4414":
+            return "1N", "weak NT or 4414"
 
     # ----------------------------------------------------
     # 3. GROUP SHOW: 1C - 1N
