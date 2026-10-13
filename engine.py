@@ -56,6 +56,124 @@ def has_short(shape):
         c <= 1
     )
 
+# ==========================================
+# CENTRALIZED DECISION ENGINE (ใช้ร่วมกันทุกการเปิด)
+# ==========================================
+
+def evaluate_central_decision(opener_hcp, opener_shape, response_range_dict, current_bid_str):
+    s, h, d, c = shape_lengths(opener_shape)
+    balanced = is_balanced(opener_shape)
+    response_str = str(current_bid_str or "").upper().strip()
+
+    min_resp = response_range_dict.get("min", response_range_dict.get("p_min", 6))
+    max_resp = response_range_dict.get("max", response_range_dict.get("p_max", 10))
+    
+    resp_s = response_range_dict.get("s_min", 0)
+    resp_h = response_range_dict.get("h_min", 0)
+    resp_d = response_range_dict.get("d_min", 0)
+    resp_c = response_range_dict.get("c_min", 0)
+
+    total_s = s + resp_s
+    total_h = h + resp_h
+    total_d = d + resp_d
+    total_c = c + resp_c
+
+    suit_lengths = [s, h, d, c]
+    min_len = min(suit_lengths)
+    dist_points = 0
+    if min_len == 0: dist_points += 5
+    elif min_len == 1: dist_points += 3
+    elif min_len == 2: dist_points += 1
+
+    opener_total = opener_hcp + dist_points
+    min_total = opener_total + min_resp
+    max_total = opener_total + max_resp
+    
+    nt_min = opener_hcp + min_resp
+    nt_max = opener_hcp + max_resp
+
+    SLAM_ZONE = 32
+    GAME_ZONE_MIN = 25
+    GAME_ZONE_MAX = 31
+
+    def suit_rank(suit_char):
+        return {"C": 1, "D": 2, "H": 3, "S": 4, "N": 5}.get(suit_char, 0)
+
+    current_level = int(response_str[0]) if response_str and response_str[0].isdigit() else 1
+    current_suit = response_str[1:] if len(response_str) > 1 else "C"
+    current_score_val = current_level * 5 + suit_rank(current_suit)
+
+    def get_cheapest_bid(target_suit):
+        for lvl in [2, 3, 4, 5]:
+            candidate = f"{lvl}{target_suit}"
+            cand_val = lvl * 5 + suit_rank(target_suit)
+            if cand_val > current_score_val:
+                return candidate
+        return f"3{target_suit}"
+
+    # 1. เช็ค Major Fit (>= 8 ใบ)
+    fit_suit = None
+    if total_s >= 8: fit_suit = "S"
+    elif total_h >= 8: fit_suit = "H"
+
+    if fit_suit:
+        if min_total >= SLAM_ZONE:
+            return f"6{fit_suit}", f"Decision: Major Slam"
+        if GAME_ZONE_MIN <= min_total <= GAME_ZONE_MAX:
+            return f"4{fit_suit}", f"Decision: Major Game (4{fit_suit} > 3N)"
+        
+        # Game Try / Invitation Zone (L < 25 แต่ M >= 25)
+        if min_total < GAME_ZONE_MIN and max_total >= GAME_ZONE_MIN:
+            if s >= 6 or h >= 6 or d >= 6 or c >= 6:
+                if d <= 1 and fit_suit != "D": return f"3D", "Decision: Game Try (Short D, 6+ Trump)"
+                if c <= 1 and fit_suit != "C": return f"3C", "Decision: Game Try (Short C, 6+ Trump)"
+                return f"2N", "Decision: Game Try (Short suit, 6+ Trump)"
+            return f"3{fit_suit}", "Decision: Game Try Ask Honor / Min-Max"
+            
+        if max_total < GAME_ZONE_MIN:
+            cheapest = get_cheapest_bid(fit_suit)
+            return cheapest, f"Decision: Major Fit 8+ below game, cheapest safe stop"
+        return f"4{fit_suit}", f"Decision: Major Game"
+
+    # 2. เช็ค Minor Fit (Diamonds หรือ Clubs >= 8 ใบ)
+    minor_fit_suit = None
+    if total_d >= 8: minor_fit_suit = "D"
+    elif total_c >= 8: minor_fit_suit = "C"
+
+    if minor_fit_suit:
+        if min_total >= SLAM_ZONE: 
+            return f"6{minor_fit_suit}", f"Decision: Minor Slam"
+        
+        if min_total >= 28 and dist_points > 12:
+            return f"5{minor_fit_suit}", f"Decision: 5{minor_fit_suit} chosen over 3N (Dist > 12 & Total >= 28)"
+            
+        if GAME_ZONE_MIN <= min_total <= GAME_ZONE_MAX:
+            if nt_min >= GAME_ZONE_MIN:
+                return "3N", f"Decision: NT Game preferred over 5{minor_fit_suit}"
+            return f"5{minor_fit_suit}", f"Decision: Minor Game 5{minor_fit_suit}"
+            
+        if min_total < GAME_ZONE_MIN and max_total >= GAME_ZONE_MIN:
+            cheapest = get_cheapest_bid(minor_fit_suit)
+            return cheapest, f"Decision: Minor Game Invite / Try ({cheapest})"
+            
+        if max_total < GAME_ZONE_MIN:
+            cheapest = get_cheapest_bid(minor_fit_suit)
+            return cheapest, f"Decision: Minor Fit 8+ below game, lowest safe stop ({cheapest})"
+
+    # 3. กรณีไม่มี Fit อะไรเลย -> พิจารณา NT
+    if nt_min >= SLAM_ZONE: return "6N", "Decision: NT Slam"
+    if GAME_ZONE_MIN <= nt_min <= GAME_ZONE_MAX: return "3N", "Decision: NT Game"
+    
+    if min_total < GAME_ZONE_MIN and max_total >= GAME_ZONE_MIN:
+        if balanced:
+            return "2N", "Decision: Game Invite (Balanced)"
+        else:
+            return get_cheapest_bid("C"), "Decision: New Suit Game Force"
+            
+    if nt_max < GAME_ZONE_MIN:
+        return "2N", f"Decision: No fit, park at 2NT"
+    
+    return "3N", f"Decision: Max reaches game, bid 3NT"
 
 # ==========================================
 # OPENING
@@ -991,6 +1109,12 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
     balanced = is_balanced(shape)
     response_str = str(response or "").upper().strip()
 
+def opener_rebid_1c(response, hcp, shape, extra_info=None):
+    if extra_info is None:
+        extra_info = {}
+    
+    response_str = str(response or "").upper().strip()
+
     # ----------------------------------------------------
     # 1. GROUP SHOW: 1C - 1D
     # ----------------------------------------------------
@@ -1257,7 +1381,31 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
         return "3N", f"Decision: Max reaches game, bid 3NT"
         
 # ==========================================
-# OPENER REBID AFTER 1D (NEW VERSION)
+# BRIDGE EXACT TABLE DATABASE (1D REBID)
+# ==========================================
+
+EXACT_BRIDGE_TABLE_1D = [
+    # --- กลุ่ม Decision ---
+    {"bid": "1D-3D", "status": "decision", "priority": 500, "type_hand": "not Balanced", "p_min": 6, "p_max": 9, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 4, "d_max": 9, "c_min": 0, "c_max": 5},
+    {"bid": "1D-2S", "status": "decision", "type_hand": "not Balanced", "p_min": 10, "p_max": 12, "s_min": 0, "s_max": 2, "h_min": 0, "h_max": 3, "d_min": 0, "d_max": 3, "c_min": 5, "c_max": 6, "special": 13}, # C>D
+    {"bid": "1D-3C", "status": "decision", "type_hand": "not Balanced", "p_min": 10, "p_max": 12, "s_min": 0, "s_max": 2, "h_min": 0, "h_max": 3, "d_min": 0, "d_max": 3, "c_min": 5, "c_max": 9},
+    {"bid": "1D-2N", "status": "decision", "p_min": 0, "p_max": 5, "s_min": 0, "s_max": 5, "h_min": 0, "h_max": 3, "d_min": 0, "d_max": 3, "c_min": 5, "c_max": 9},
+    {"bid": "1D-2H", "status": "decision", "p_min": 11, "p_max": 12, "s_min": 2, "s_max": 1, "h_min": 2, "h_max": 3, "d_min": 2, "d_max": 3, "c_min": 2, "c_max": 5},
+    {"bid": "1D-2D", "status": "decision", "type_hand": "Balanced", "p_min": 6, "p_max": 10, "s_min": 2, "s_max": 4, "h_min": 2, "h_max": 3, "d_min": 3, "d_max": 3, "c_min": 2, "c_min_max": 5},
+    {"bid": "1D-2C", "status": "decision", "priority": 600, "type_hand": "Balanced", "p_min": 6, "p_max": 10, "s_min": 3, "s_max": 4, "h_min": 3, "h_max": 3, "d_min": 2, "d_max": 3, "c_min": 2, "c_max": 5},
+    {"bid": "1D-2C", "status": "decision", "priority": 500, "p_min": 6, "p_max": 10, "s_min": 0, "s_max": 4, "h_min": 0, "h_max": 3, "d_min": 3, "d_max": 3, "c_min": 6, "c_max": 6},
+
+def get_table_row_1d(response_str, prefix="1D"):
+    key = f"{prefix}-{response_str}".upper()
+    matching_rows = [r for r in EXACT_BRIDGE_TABLE_1D if r.get("bid").upper() == key]
+    if not matching_rows:
+        return None
+    # เรียงตาม priority สูงสุดก่อน
+    matching_rows.sort(key=lambda x: x.get("priority", 0), reverse=True)
+    return matching_rows[0]
+
+# ==========================================
+# OPENER REBID AFTER 1D (SHOW RULES + CENTRAL DECISION)
 # ==========================================
 
 def opener_rebid_1d(response, hcp, shape, extra_info=None):
@@ -1266,205 +1414,117 @@ def opener_rebid_1d(response, hcp, shape, extra_info=None):
     
     s, h, d, c = shape_lengths(shape)
     balanced = is_balanced(shape)
-    d_honors = extra_info.get("d_honors", 0) # จำนวนตัว A, K, Q ในชุด D
+    response_str = str(response or "").upper().strip()
+    
+    # ดึงข้อมูลจากตาราง 1D
+    row = get_table_row_1d(response_str, "1D")
+    if not row:
+        return "PASS", "no matching rule for 1D rebid"
 
-    # ----------------------------------------------------
-    # CASE: 1D - 1H
-    # ----------------------------------------------------
-    if response == "1H":
-        # Rule 1: 16-20 4441 or 1444 -> 2N (priority 1000)
-        if 16 <= hcp <= 20 and shape in ["4441", "1444"]:
-            return "2N", "2N Fit 16+ 4441"
-        # Rule 2: 16+ H4 -> 2S (priority 900)
-        if hcp >= 16 and h >= 4:
-            return "2S", "Power Fit 16+ H4"
-        # Rule 3: 16+ H=3 -> 2D (priority 800)
-        if hcp >= 16 and h == 3:
+    status = row.get("status", "show")
+
+    # ==========================================
+    # 1. โซน DECISION -> ส่งให้ฟังก์ชันกลางคำนวณอัตโนมัติ
+    # ==========================================
+    if status == "decision":
+        return evaluate_central_decision(hcp, shape, row, response_str)
+
+    # ==========================================
+    # 2. โซน SHOW -> ใช้ Rule ตามตารางที่คุณออกแบบ
+    # ==========================================
+    d_honors = extra_info.get("d_honors", 0) # จำนวนตัว A, K, Q ในชุด D
+    
+    if response_str == "1H":
+        # Rule 1: 1D - 1H - 2N (16-20, 1444)
+        if 16 <= hcp <= 20 and shape == "1444":
+            return "2N", "2N FIT 16+ H4 1444"
+        # Rule 2: 1D - 1H - 3C (16-20, 4441)
+        if 16 <= hcp <= 20 and shape == "4441":
+            return "3C", "2N FIT 16+ H4 4441"
+        # Rule 3: 1D - 1H - 2S (16-20, H4 unbalanced)
+        if hcp >= 16 and h >= 4 and not balanced:
+            return "2S", "Power Fit 16+ H4 unbalanced"
+        # Rule 4: 1D - 1H - 2D (16-20, H3)
+        if hcp >= 16 and h == 3 and not balanced:
             return "2D", "Turbo Fit 16+ H3"
-        # Rule 4: 16+ H<3 -> 1N (priority 700)
+        # Rule 5: 1D - 1H - 1N (16-20, H<3) หรือ (11-15, S<4, H<4, D6+)ตามที่เพิ่มใหม่
         if hcp >= 16 and h < 3:
             return "1N", "1N no Fit 16+ H<3"
-        # Rule 5: 14-15 H4 -> 3H (priority 600)
+        if 11 <= hcp <= 15 and s < 4 and h < 4 and d >= 6 and c < 4:
+            return "1N", "1N minimum 11-15 S<4 H<4 D6+"
+        # Rule 6: 1D - 1H - 3H (14-15, H4)
         if 14 <= hcp <= 15 and h >= 4:
-            return "3H", "Medium raise 14-15 H4"
-        # Rule 6: 11-13 H4 -> 2H (priority 500)
-        if 11 <= hcp <= 13 and h >= 4:
-            return "2H", "Minimum raise 11-13 H4"
-        # Rule 7: 14-15 H<3 D6 (2 top from 3 i.e., >=2 honors) -> 3D (priority 400)
+            return "3H", "Medium Fit 14-15 H4"
+        # Rule 7: 1D - 1H - 3D (14-15, H<3, D6 good)
         if 14 <= hcp <= 15 and h < 3 and d >= 6 and d_honors >= 2:
-            return "3D", "Medium 14-15 good D"
-        # Rule 8: 11-15 S4 -> 1S (priority 300)
+            return "3D", "Medium 14-15 good D6"
+        # Rule 8: 1D - 1H - 2H (11-13, H4)
+        if 11 <= hcp <= 13 and h >= 4:
+            return "2H", "minimum Fit 11-13 H4"
+        # Rule 9: 1D - 1H - 1S (11-15, S4)
         if 11 <= hcp <= 15 and s >= 4:
-            return "1S", "minimum S4"
-        # Rule 9: 11-15 D6+ -> 1N (priority 200)
-        if 11 <= hcp <= 15 and d >= 6:
-            return "1N", "Minimum D6"
-        # Rule 10: 11-15 C4+ -> 2C (priority 100)
+            return "1S", "minimum 11-15 S4"
+        # Rule 10: 1D - 1H - 2C (11-15, C4+)
         if 11 <= hcp <= 15 and c >= 4:
-            return "2C", "Minimum 2m"
+            return "2C", "minimum 11-15 2m"
 
-    # ----------------------------------------------------
-    # CASE: 1D - 1S
-    # ----------------------------------------------------
-    elif response == "1S":
-        # Rule 1: 16-20 4441 or 4144 -> 2N (priority 1000)
-        if 16 <= hcp <= 20 and shape in ["4441", "4144"]:
-            return "2N", "2N Fit 16+ 4441"
-        # Rule 2: 16+ S4 -> 2H (priority 900)
-        if hcp >= 16 and s >= 4:
-            return "2H", "Power Fit 16+ S4"
-        # Rule 3: 16+ S=3 -> 2D (priority 800)
-        if hcp >= 16 and s == 3:
+    elif response_str == "1S":
+        # Rule 1: 1D - 1S - 2N (16-20, 4144)
+        if 16 <= hcp <= 20 and shape == "4144":
+            return "2N", "2N FIT 16+ 4144"
+        # Rule 2: 1D - 1S - 3C (16-20, 4441)
+        if 16 <= hcp <= 20 and shape == "4441":
+            return "3C", "2N FIT 16+ 4441"
+        # Rule 3: 1D - 1S - 2H (16-20, S4 unbalanced)
+        if hcp >= 16 and s >= 4 and not balanced:
+            return "2H", "Power Fit 16+ S4 unbalanced"
+        # Rule 4: 1D - 1S - 2D (16-20, S3)
+        if hcp >= 16 and s == 3 and not balanced:
             return "2D", "Turbo Fit 16+ S3"
-        # Rule 4: 16+ SH<3 -> 1N (priority 700)
-        if hcp >= 16 and s < 3 and h < 3:
+        # Rule 5: 1D - 1S - 1N (16-20, S<3, H<3) หรือเงื่อนไข 1N ช่วง 11-15 ตามที่เพิ่มใหม่
+        if hcp >= 16 and s < 3 and h < 5 and c < 4:
             return "1N", "1N no Fit 16+ S<3"
-        # Rule 5: 14-15 S4 -> 3S (priority 600)
+        if 11 <= hcp <= 15 and s < 3 and h == 4 and d >= 5 and c < 4:
+            return "1N", "1N minimum 11-15 S<3 H=4 D5+"
+        if 11 <= hcp <= 15 and s < 3 and h < 4 and d >= 6:
+            return "1N", "1N minimum 11-15 S<3 H<4 D6+"
+        # Rule 6: 1D - 1S - 3S (14-15, S4)
         if 14 <= hcp <= 15 and s >= 4:
-            return "3S", "Medium raise 14-15 S4"
-        # Rule 6: 11-13 S4 -> 2S (priority 500)
-        if 11 <= hcp <= 13 and s >= 4:
-            return "2S", "Minimum raise 11-13 S4"
-        # Rule 7: 14-15 S<3 D6 (2 top from 3) -> 3D (priority 400)
+            return "3S", "Medium Fit 14-15 S4"
+        # Rule 7: 1D - 1S - 3D (14-15, S<3, D6)
         if 14 <= hcp <= 15 and s < 3 and d >= 6 and d_honors >= 2:
-            return "3D", "Medium 14-15 good D"
-        # Rule 8: 11-15 C4 -> 1S (priority 300) [ตามเงื่อนไขระบุ 1S หรือปรับตามความเหมาะสม]
+            return "3D", "Medium 14-15 good D6"
+        # Rule 8: 1D - 1S - 2S (11-13, S4)
+        if 11 <= hcp <= 13 and s >= 4:
+            return "2S", "minimum 11-13 S4"
+        # Rule 9: 1D - 1S - 2C (11-15, C4)
         if 11 <= hcp <= 15 and c >= 4:
-            return "1S", "minimum 2m"
-        # Rule 9: 11-15 D6+ or H4D5 -> 1N (priority 200)
-        if 11 <= hcp <= 15 and (d >= 6 or (h >= 4 and d >= 5)):
-            return "1N", "Minimum D6 or H4D5"
+            return "2C", "minimum 11-15 C4"
 
-    # ----------------------------------------------------
-    # CASE: 1D - 1NT
-    # ----------------------------------------------------
-    elif response == "1N":
-        # Rule 1: 4441/4144/1444 or 11-15 D>=4 C>=4 -> 2C (priority 800)
-        if shape in ["4441", "4144", "1444"] or (11 <= hcp <= 15 and d >= 4 and c >= 4):
-            return "2C", "any 4441 or minimum 2m"
-        # Rule 2: D5 H4+ -> 2D (priority 700)
+    elif response_str == "1N":
+        # Rule 1: 1D - 1N - 2C (any 4441 or balanced M>=4 or not balanced min 2m)
+        if (shape in ["4441", "4144", "1444"]) or 11 <= hcp <= and d ==4 and c == 5:
+            return "2C", "any 4441 or D4C5 "
+        # Rule 2: 1D - 1N - 2D (D5 H4+)
         if d >= 5 and h >= 4:
-            return "2D", "D5H4"
-        # Rule 3: D5 S4+ -> 2H (priority 600)
+            return "2D", "Transfer H [C5H4]"
+        # Rule 3: 1D - 1N - 2H (D5 S4+)
         if d >= 5 and s >= 4:
-            return "2H", "D5S4"
-        # Rule 4: C4+ -> 2S (priority 500)
-        if c >= 4:
-            return "2S", "extra 2m"
-        # Rule 5: D6+ have short -> 2N (priority 400)
+            return "2H", "Transfer S [C5S4]"
+        # Rule 4: 1D - 1N - 2S (C4+)
+        if d >= 5 and c >= 4:
+            return "2S", "Transfer C [C4]"
+        # Rule 5: 1D - 1N - 2N (D6 with short)
         if d >= 6 and has_short(shape):
-            return "2N", "D6 have short"
-        # Rule 6: D6+ no short -> 3C (priority 300)
+            return "2N", "Transfer D6 with short"
+        # Rule 6: 1D - 1N - 3C (D6 no short)
         if d >= 6:
-            return "3C", "D6 no short"
+            return "3C", "Transfer D6 no short"
 
-    # ----------------------------------------------------
-    # CASE: 1D - 2C
-    # ----------------------------------------------------
-    elif response == "2C":
-        # Rule 1: 16+ -> 2H (priority 500)
-        if hcp >= 16:
-            return "2H", "Extra asking"
-        # Rule 2: 11-15 D6+ C<=1 -> 2D (priority 400)
-        if 11 <= hcp <= 15 and d >= 6 and c <= 1:
-            return "2D", "Minimum D6+"
-        # Rule 3: 14-15 C>=3 -> 3C (priority 300)
-        if 14 <= hcp <= 15 and c >= 3:
-            return "3C", "Medium raised"
-        # Rule 4: Pass -> PASS
-        return "PASS", "good luck partner"
+    return "PASS", f"No rule matched for show status: {response_str}"
 
-    # ----------------------------------------------------
-    # CASE: 1D - 2D
-    # ----------------------------------------------------
-    elif response == "2D":
-        # Rule 1: 16+ -> 2H (priority 500)
-        if hcp >= 16:
-            return "2H", "Asking"
-        # Rule 2: 14-15 D5+ -> 3D (priority 400)
-        if 14 <= hcp <= 15 and d >= 5:
-            return "3D", "Medium raised"
-        # Rule 3: ที่เหลือ -> Pass (priority 300)
-        return "PASS", "ทนไว้อย่าซน"
 
-    # ----------------------------------------------------
-    # CASE: 1D - 2H
-    # ----------------------------------------------------
-    elif response == "2H":
-        # Rule 1: 13+ any -> 2S (priority 500)
-        if hcp >= 13:
-            return "2S", "13+ Asking"
-        # Rule 2: 11-12 C4+ -> 3C (priority 400)
-        if 11 <= hcp <= 12 and c >= 4:
-            return "3C", "P/C"
-        # Rule 3: 11-12 D6 -> 3D (priority 300)
-        if 11 <= hcp <= 12 and d >= 6:
-            return "3D", "11-12 D6"
-        # Rule 4: 11-12 C<4 -> 2N (priority 200)
-        if 11 <= hcp <= 12 and c < 4:
-            return "2N", "P/C"
-
-    # ----------------------------------------------------
-    # CASE: 1D - 2S
-    # ----------------------------------------------------
-    elif response == "2S":
-        # Rule 1: stop in M -> 3N
-        # Rule 2: 14+ Stop S no stop in H -> 3S (priority 500)
-        if hcp >= 14:
-            return "3S", "show Stop"
-        # Rule 3: 14+ -> 3H (priority 400)
-        if hcp >= 14:
-            return "3H", "slam interest or stop H"
-        # Rule 4: 11-13 4441 -> 2N (priority 300)
-        if 11 <= hcp <= 13 and shape == "4441":
-            return "2N", "11-13 4441"
-        # Rule 5: 11-12 C3+ -> 3C (priority 200)
-        if 11 <= hcp <= 12 and c >= 3:
-            return "3C", "11-13 C3+"
-        # Rule 6: 11-13 D6 -> 3D (priority 100)
-        if 11 <= hcp <= 13 and d >= 6:
-            return "3D", "11-13 D6"
-
-    # ----------------------------------------------------
-    # CASE: 1D - 2N
-    # ----------------------------------------------------
-    elif response == "2N":
-        # Rule 1: 11+ -> 3D (priority 200)
-        if hcp >= 11:
-            return "3D", "อดทนไว้"
-
-    # ----------------------------------------------------
-    # CASE: 1D - 3C
-    # ----------------------------------------------------
-    elif response == "3C":
-        # Rule 1: 14+ stop H or waiting -> 3H (priority 400)
-        if hcp >= 14:
-            return "3H", "interest slam or stop"
-        # Rule 2: 14+ Stop S no stop H -> 3S (priority 300)
-        if hcp >= 14:
-            return "3S", "show stop"
-        # Rule 3: Stop M -> 3N
-        # Rule 4: minimum -> 3D
-        return "3D", "minimum"
-
-    # ----------------------------------------------------
-    # CASE: 1D - 3D
-    # ----------------------------------------------------
-    elif response == "3D":
-        # Rule 1: 17+ stop M -> 3N (priority 500)
-        if hcp >= 17:
-            return "3N", "stop M"
-        # Rule 2: 16+ stop S no stop H -> 3S (priority 400)
-        if hcp >= 16:
-            return "3S", "show stop"
-        # Rule 3: 16+ stop H or waiting -> 3H (priority 300)
-        if hcp >= 16:
-            return "3H", "16+ กำลังหาเกม"
-        # Rule 4: เหลือ -> PASS
-        return "PASS", "อดทนไว้"
-
-    return "PASS", "no good bid for 1D rebid"
-
+    
 # ==========================================
 # OPENER REBID AFTER 1H 
 # ==========================================
