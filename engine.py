@@ -1211,13 +1211,13 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
 EXACT_BRIDGE_TABLE_1D = [
     # --- กลุ่ม Decision ---
     {"bid": "1D-3D", "status": "decision", "priority": 500, "type_hand": "not Balanced", "p_min": 6, "p_max": 9, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 4, "d_max": 9, "c_min": 0, "c_max": 5},
-    {"bid": "1D-2S", "status": "decision", "type_hand": "not Balanced", "p_min": 10, "p_max": 12, "s_min": 0, "s_max": 2, "h_min": 0, "h_max": 3, "d_min": 0, "d_max": 3, "c_min": 5, "c_max": 6, "special": 13}, # C>D
-    {"bid": "1D-3C", "status": "decision", "type_hand": "not Balanced", "p_min": 10, "p_max": 12, "s_min": 0, "s_max": 2, "h_min": 0, "h_max": 3, "d_min": 0, "d_max": 3, "c_min": 5, "c_max": 9},
-    {"bid": "1D-2N", "status": "decision", "p_min": 0, "p_max": 5, "s_min": 0, "s_max": 5, "h_min": 0, "h_max": 3, "d_min": 0, "d_max": 3, "c_min": 5, "c_max": 9},
-    {"bid": "1D-2H", "status": "decision", "p_min": 11, "p_max": 12, "s_min": 2, "s_max": 1, "h_min": 2, "h_max": 3, "d_min": 2, "d_max": 3, "c_min": 2, "c_max": 5},
-    {"bid": "1D-2D", "status": "decision", "type_hand": "Balanced", "p_min": 6, "p_max": 10, "s_min": 2, "s_max": 4, "h_min": 2, "h_max": 3, "d_min": 3, "d_max": 3, "c_min": 2, "c_min_max": 5},
-    {"bid": "1D-2C", "status": "decision", "priority": 600, "type_hand": "Balanced", "p_min": 6, "p_max": 10, "s_min": 3, "s_max": 4, "h_min": 3, "h_max": 3, "d_min": 2, "d_max": 3, "c_min": 2, "c_max": 5},
-    {"bid": "1D-2C", "status": "decision", "priority": 500, "p_min": 6, "p_max": 10, "s_min": 0, "s_max": 4, "h_min": 0, "h_max": 3, "d_min": 3, "d_max": 3, "c_min": 6, "c_max": 6},
+    {"bid": "1D-2S", "status": "decision", "type_hand": "not Balanced", "p_min": 10, "p_max": 12, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 0, "d_max": 4, "c_min": 5, "c_max": 13,
+    {"bid": "1D-3C", "status": "decision", "type_hand": "not Balanced", "p_min": 10, "p_max": 12, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 5, "d_max": 9, "c_min": 0, "c_max": 5},
+    {"bid": "1D-2N", "status": "decision", "p_min": 0, "p_max": 5, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 5, "d_max": 9, "c_min": 0, "c_max": 5},
+    {"bid": "1D-2H", "status": "decision", "p_min": 11, "p_max": 12, "s_min": 2, "s_max": 3, "h_min": 2, "h_max": 3, "d_min": 2, "d_max": 5, "c_min": 2, "c_max": 5},
+    {"bid": "1D-2D", "status": "decision", "type_hand": "Balanced", "p_min": 6, "p_max": 10, "s_min": 2, "s_max": 3, "h_min": 2, "h_max": 3, "d_min": 3, "d_max": 4, "c_min": 3, "c_min_max": 4},
+    {"bid": "1D-2C", "status": "decision", "priority": 600, "type_hand": "Balanced", "p_min": 6, "p_max": 10, "s_min": 3, "s_max": 3, "h_min": 3, "h_max": 3, "d_min": 2, "d_max": 2, "c_min": 5, "c_max": 5},
+    {"bid": "1D-2C", "status": "decision", "priority": 500, "p_min": 6, "p_max": 10, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 0, "d_max": 3, "c_min": 6, "c_max": 13},
 ]
 
 def get_table_row_1d(response_str, prefix="1D"):
