@@ -111,31 +111,50 @@ def evaluate_central_decision(opener_hcp, opener_shape, response_range_dict, cur
                 return candidate
         return f"3{target_suit}"
 
-    # 1. เช็ค Major Fit (>= 8 ใบ)
+    # ตรวจสอบ Trump Fit (Major สำคัญกว่า Minor)
     fit_suit = None
-    if total_s >= 8: fit_suit = "S"
-    elif total_h >= 8: fit_suit = "H"
+    opener_trump_len = 0
+    if total_s >= 8: 
+        fit_suit = "S"
+        opener_trump_len = s
+    elif total_h >= 8: 
+        fit_suit = "H"
+        opener_trump_len = h
 
+    # ----------------------------------------------------
+    # 1. กรณีมี MAJOR FIT (>= 8 ใบ)
+    # ----------------------------------------------------
     if fit_suit:
         if min_total >= SLAM_ZONE:
             return f"6{fit_suit}", f"Decision: Major Slam"
         if GAME_ZONE_MIN <= min_total <= GAME_ZONE_MAX:
-            return f"4{fit_suit}", f"Decision: Major Game (4{fit_suit} > 3N)"
+            return f"4{fit_suit}", f"Decision: Major Game"
         
-        # Game Try / Invitation Zone (L < 25 แต่ M >= 25)
+        # --- GAME TRY / INVITATION ZONE (L < 25 แต่ M >= 25) [รู้แล้วว่ามี M Fit] ---
         if min_total < GAME_ZONE_MIN and max_total >= GAME_ZONE_MIN:
-            if s >= 6 or h >= 6 or d >= 6 or c >= 6:
-                if d <= 1 and fit_suit != "D": return f"3D", "Decision: Game Try (Short D, 6+ Trump)"
-                if c <= 1 and fit_suit != "C": return f"3C", "Decision: Game Try (Short C, 6+ Trump)"
-                return f"2N", "Decision: Game Try (Short suit, 6+ Trump)"
-            return f"3{fit_suit}", "Decision: Game Try Ask Honor / Min-Max"
+            # - 2N (เหนือ H ทรัมพ์ หรือตามตกลง) = ดำสั้น และทรัมพ์ 6+ ใบ
+            if fit_suit == "H" and (s <= 1 or d <= 1 or c <= 1) and opener_trump_len >= 6:
+                short_suit = "S" if s <= 1 else ("D" if d <= 1 else "C")
+                return "2N", f"Decision: Game Try (Short {short_suit}, Trump 6+)"
+            
+            # - 3m = Minor นั้นสั้น และทรัมพ์ 6+ ใบ
+            if d <= 1 and opener_trump_len >= 6 and fit_suit != "D":
+                return "3D", "Decision: Game Try (Short D, Trump 6+)"
+            if c <= 1 and opener_trump_len >= 6 and fit_suit != "C":
+                return "3C", "Decision: Game Try (Short C, Trump 6+)"
+            
+            # - 2M+1 (ยกระดับทรัมพ์ขึ้น 1 ขั้น) = Ask Honor and Min/Max (Priority ต่ำสุด)
+            ask_bid = f"3{fit_suit}" if fit_suit == "H" else "3S"
+            return ask_bid, "Decision: Game Try Ask Honor & Min/Max (Low Priority)"
             
         if max_total < GAME_ZONE_MIN:
             cheapest = get_cheapest_bid(fit_suit)
             return cheapest, f"Decision: Major Fit 8+ below game, cheapest safe stop"
         return f"4{fit_suit}", f"Decision: Major Game"
 
-    # 2. เช็ค Minor Fit (Diamonds หรือ Clubs >= 8 ใบ)
+    # ----------------------------------------------------
+    # 2. กรณีมี MINOR FIT (Diamonds หรือ Clubs >= 8 ใบ)
+    # ----------------------------------------------------
     minor_fit_suit = None
     if total_d >= 8: minor_fit_suit = "D"
     elif total_c >= 8: minor_fit_suit = "C"
@@ -145,7 +164,7 @@ def evaluate_central_decision(opener_hcp, opener_shape, response_range_dict, cur
             return f"6{minor_fit_suit}", f"Decision: Minor Slam"
         
         if min_total >= 28 and dist_points > 12:
-            return f"5{minor_fit_suit}", f"Decision: 5{minor_fit_suit} chosen over 3N (Dist > 12 & Total >= 28)"
+            return f"5{minor_fit_suit}", f"Decision: 5{minor_fit_suit} chosen over 3N"
             
         if GAME_ZONE_MIN <= min_total <= GAME_ZONE_MAX:
             if nt_min >= GAME_ZONE_MIN:
@@ -158,17 +177,23 @@ def evaluate_central_decision(opener_hcp, opener_shape, response_range_dict, cur
             
         if max_total < GAME_ZONE_MIN:
             cheapest = get_cheapest_bid(minor_fit_suit)
-            return cheapest, f"Decision: Minor Fit 8+ below game, lowest safe stop ({cheapest})"
+            return cheapest, f"Decision: Minor Fit 8+ below game, lowest safe stop"
 
-    # 3. กรณีไม่มี Fit อะไรเลย -> พิจารณา NT
+    # ----------------------------------------------------
+    # 3. กรณีไม่มี FIT อะไรเลย (No Fit / Balanced / Unbalanced)
+    # ----------------------------------------------------
     if nt_min >= SLAM_ZONE: return "6N", "Decision: NT Slam"
     if GAME_ZONE_MIN <= nt_min <= GAME_ZONE_MAX: return "3N", "Decision: NT Game"
     
+    # --- GAME TRY / INVITATION ZONE (L < 25 แต่ M >= 25) [ยังไม่รู้ว่ามี M Fit แน่ชัด] ---
     if min_total < GAME_ZONE_MIN and max_total >= GAME_ZONE_MIN:
         if balanced:
-            return "2N", "Decision: Game Invite (Balanced)"
+            # 2N = Game Invite (Max ไปเกม, Min ผ่าน)
+            return "2N", "Decision: Game Invite (Balanced, Max goes to game)"
         else:
-            return get_cheapest_bid("C"), "Decision: New Suit Game Force"
+            # New Suit Forcing / 4th Suit GF (บังคับไม่ให้ผ่าน เพื่อลีลาหาข้อมูลต่อ)
+            unbid_suit = "S" if s >= 4 else ("H" if h >= 4 else ("D" if d >= 4 else "C"))
+            return get_cheapest_bid(unbid_suit), "Decision: New Suit Forcing / 4th Suit Game Force"
             
     if nt_max < GAME_ZONE_MIN:
         return "2N", f"Decision: No fit, park at 2NT"
@@ -1071,9 +1096,6 @@ def response_1c(
     return "PASS","no good bid"
     
 # ==========================================
-# OPENER REBID AFTER 1C (SHOW RULES + SMART DECISION)
-# ==========================================
-# ==========================================
 # BRIDGE EXACT TABLE DATABASE (Strict Matching)
 # ==========================================
 
@@ -1097,8 +1119,9 @@ def get_response_range(response_str):
                 # ส่งค่าทั้งหมดใน row กลับไปเลย เพื่อให้ดึง s_min, c_min ได้ครบ
                 return row 
     return {"p_min": 6, "p_max": 10, "s_min": 0, "h_min": 0, "d_min": 0, "c_min": 0}
+
 # ==========================================
-# OPENER REBID AFTER 1C (SHOW RULES + SMART DECISION)
+# OPENER REBID AFTER 1C (SHOW RULES + CENTRAL DECISION)
 # ==========================================
 
 def opener_rebid_1c(response, hcp, shape, extra_info=None):
@@ -1109,11 +1132,12 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
     balanced = is_balanced(shape)
     response_str = str(response or "").upper().strip()
 
-def opener_rebid_1c(response, hcp, shape, extra_info=None):
-    if extra_info is None:
-        extra_info = {}
+    # ดึงข้อมูลจากตาราง EXACT_BRIDGE_TABLE (ถ้ามีตรงกับเคส Decision)
+    row = get_response_range(response_str) # ฟังก์ชันนี้คืนค่า row ทั้งก้อนตามที่เราแก้ไปก่อนหน้านี้
     
-    response_str = str(response or "").upper().strip()
+    # เช็คว่าเป็นสถานะ Decision หรือไม่ (ถ้า row มี key status เป็น decision)
+    if isinstance(row, dict) and row.get("status") == "decision":
+        return evaluate_central_decision(hcp, shape, row, response_str)
 
     # ----------------------------------------------------
     # 1. GROUP SHOW: 1C - 1D
@@ -1185,200 +1209,6 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
             return "3D", "Transfer D [2245]"
         return "PASS", "no good bid for 1C-1N"
 
-    # ----------------------------------------------------
-    # 4. GROUP DECISION: เลือกชุดที่มี Fit 8+ และประมูลระดับต่ำที่สุดที่ทำได้ (Cheapest Bid)
-    # ----------------------------------------------------
-    else:
-        resp_range = get_response_range(response_str)
-        min_resp = resp_range.get("p_min", 6)
-        max_resp = resp_range.get("p_max", 10)
-        
-        SLAM_ZONE = 32
-        GAME_ZONE_MIN = 25
-        GAME_ZONE_MAX = 31
-        
-        # คำนวณ Distribution Points ของฝั่ง Opener
-        suit_lengths = [s, h, d, c]
-        min_len = min(suit_lengths)
-        dist_points = 0
-        if min_len == 0: dist_points += 5
-        elif min_len == 1: dist_points += 3
-        elif min_len == 2: dist_points += 1
-        
-        opener_total = hcp + dist_points
-        min_total = opener_total + min_resp
-        max_total = opener_total + max_resp
-        
-        nt_min = hcp + min_resp
-        nt_max = hcp + max_resp
-
-        # ดึงค่าต่ำสุดของฝั่งผู้ตอบทุกชุดจาก row ที่ดึงมาตรงๆ
-        responder_min_s = resp_range.get("s_min", 0)
-        responder_min_h = resp_range.get("h_min", 0)
-        responder_min_d = resp_range.get("d_min", 0)
-        responder_min_c = resp_range.get("c_min", 0)
-        
-        total_s = s + responder_min_s
-        total_h = h + responder_min_h
-        total_d = d + responder_min_d
-        total_c = c + responder_min_c
-
-        def suit_rank(suit_char):
-            return {"C": 1, "D": 2, "H": 3, "S": 4, "N": 5}.get(suit_char, 0)
-
-        current_level = int(response_str[0]) if response_str[0].isdigit() else 1
-        current_suit = response_str[1:] if len(response_str) > 1 else "C"
-        current_score_val = current_level * 5 + suit_rank(current_suit)
-
-        def get_cheapest_bid(target_suit):
-            for lvl in [2, 3, 4, 5]:
-                candidate = f"{lvl}{target_suit}"
-                cand_val = lvl * 5 + suit_rank(target_suit)
-                if cand_val > current_score_val:
-                    return candidate
-            return f"3{target_suit}"
-
-        # 1. เช็ค Major Fit (>= 8 ใบ)
-        fit_suit = None
-        if total_s >= 8: fit_suit = "S"
-        elif total_h >= 8: fit_suit = "H"
-
-        if fit_suit:
-            if min_total >= SLAM_ZONE:
-                return f"6{fit_suit}", f"Decision: Major Slam"
-            if GAME_ZONE_MIN <= min_total <= GAME_ZONE_MAX:
-                return f"4{fit_suit}", f"Decision: Major Game (4{fit_suit} > 3N)"
-        # ----------------------------------------------------
-        # GAME TRY / INVITATION ZONE (L < 25 แต่ M >= 25)
-        # ----------------------------------------------------
-        if min_total < GAME_ZONE_MIN and max_total >= GAME_ZONE_MIN:
-            
-            # กรณีที่ 1: รู้แน่ชัดแล้วว่ามี Major Fit อยู่ (เช่น Fit 8+ ใน H หรือ S)
-            if fit_suit:
-                # เช็คว่าเรามีคุณสมบัติทำ Game Try แบบไหนได้บ้าง
-                # สมมติเรามีชุดทรัมพ์ยาว 6+ ใบ และมีชุดสั้น (Singleton/Void)
-                if s >= 6 or h >= 6 or d >= 6 or c >= 6:
-                    # ถ้ามีชุดสั้นใน Minor ให้เสนอ 3m ตามกฎ
-                    if d <= 1 and fit_suit != "D": return f"3D", "Decision: Game Try (Short D, 6+ Trump)"
-                    if c <= 1 and fit_suit != "C": return f"3C", "Decision: Game Try (Short C, 6+ Trump)"
-                    # ถ้ามีชุดสั้น หรืออยากใช้ 2NT บอกชุดสั้น
-                    return f"2N", "Decision: Game Try (Short suit, 6+ Trump)"
-                
-                # ถ้าไม่มีชุดสั้นชัดเจน อาจจะใช้การถาม Honor/Min-Max (2M+1) เป็น Priority ต่ำสุด
-                next_level_bid = f"3{fit_suit}" # หรือระดับที่สูงกว่า 1 ขั้น
-                return next_level_bid, "Decision: Game Try Ask Honor / Min-Max (Low priority)"
-
-            # กรณีที่ 2: ยังไม่คอนเฟิร์มว่ามี Fit แต่แต้มก้ำกึ่ง (Game Invite ปกติ)
-            else:
-                # ถ้าทรงไพ่เปิดโอกาส หรือไม่มีชุดอื่นให้บิด ให้ใช้ 2NT เป็น Game Invite
-                if balanced:
-                    return "2N", "Decision: Game Invite (Balanced, Max goes to game)"
-                else:
-                    # ใช้ New Suit ทำ Forcing เพื่อหาข้อมูลต่อ ไม่ยอมให้เพื่อนผ่านง่ายๆ
-                    # (เลือกชุดยาวรองลงมา หรือชุดธรรมชาติที่มี)
-                    return cheapest_unbid_suit, "Decision: New Suit Game Force / Explore"
-            
-            if max_total < GAME_ZONE_MIN:
-                cheapest = get_cheapest_bid(fit_suit)
-                if int(cheapest[0]) > 3:
-                    cheapest = f"2{fit_suit}" if current_level < 2 else f"3{fit_suit}"
-                return cheapest, f"Decision: Major Fit 8+ below game, cheapest safe stop"
-            return f"4{fit_suit}", f"Decision: Major Game"
-
-        # 2. เช็ค Minor Fit (Diamonds หรือ Clubs >= 8 ใบ)
-        minor_fit_suit = None
-        if total_d >= 8: minor_fit_suit = "D"
-        elif total_c >= 8: minor_fit_suit = "C"
-
-        if minor_fit_suit:
-            if min_total >= SLAM_ZONE: 
-                return f"6{minor_fit_suit}", f"Decision: Minor Slam"
-            
-            # เช็คเงื่อนไขเกม 5m vs 3N: Total >= 28 และ Distribution Points > 12 ถึงเลือก 5m
-            if min_total >= 28 and dist_points > 12:
-                return f"5{minor_fit_suit}", f"Decision: 5{minor_fit_suit} chosen over 3N (Dist > 12 & Total >= 28)"
-            elif GAME_ZONE_MIN <= min_total <= GAME_ZONE_MAX:
-                # ถ้าแต้มอยู่ในโซนเกมแต่ยังไม่เข้าเงื่อนไข 5m ด้านบน ให้ลองพิจารณา 3N ก่อนถ้าเป็นไปได้ หรือเลือก 5m ตามเหมาะสม
-                if nt_min >= GAME_ZONE_MIN:
-                    return "3N", f"Decision: NT Game preferred over 5{minor_fit_suit}"
-                return f"5{minor_fit_suit}", f"Decision: Minor Game 5{minor_fit_suit}"
-
-        # ----------------------------------------------------
-        # GAME TRY / INVITATION ZONE (L < 25 แต่ M >= 25)
-        # ----------------------------------------------------
-        if min_total < GAME_ZONE_MIN and max_total >= GAME_ZONE_MIN:
-            
-            # กรณีที่ 1: รู้แน่ชัดแล้วว่ามี Major Fit อยู่ (เช่น Fit 8+ ใน H หรือ S)
-            if fit_suit:
-                # เช็คว่าเรามีคุณสมบัติทำ Game Try แบบไหนได้บ้าง
-                # สมมติเรามีชุดทรัมพ์ยาว 6+ ใบ และมีชุดสั้น (Singleton/Void)
-                if s >= 6 or h >= 6 or d >= 6 or c >= 6:
-                    # ถ้ามีชุดสั้นใน Minor ให้เสนอ 3m ตามกฎ
-                    if d <= 1 and fit_suit != "D": return f"3D", "Decision: Game Try (Short D, 6+ Trump)"
-                    if c <= 1 and fit_suit != "C": return f"3C", "Decision: Game Try (Short C, 6+ Trump)"
-                    # ถ้ามีชุดสั้น หรืออยากใช้ 2NT บอกชุดสั้น
-                    return f"2N", "Decision: Game Try (Short suit, 6+ Trump)"
-                
-                # ถ้าไม่มีชุดสั้นชัดเจน อาจจะใช้การถาม Honor/Min-Max (2M+1) เป็น Priority ต่ำสุด
-                next_level_bid = f"3{fit_suit}" # หรือระดับที่สูงกว่า 1 ขั้น
-                return next_level_bid, "Decision: Game Try Ask Honor / Min-Max (Low priority)"
-
-            # กรณีที่ 2: ยังไม่คอนเฟิร์มว่ามี Fit แต่แต้มก้ำกึ่ง (Game Invite ปกติ)
-            else:
-                # ถ้าทรงไพ่เปิดโอกาส หรือไม่มีชุดอื่นให้บิด ให้ใช้ 2NT เป็น Game Invite
-                if balanced:
-                    return "2N", "Decision: Game Invite (Balanced, Max goes to game)"
-                else:
-                    # ใช้ New Suit ทำ Forcing เพื่อหาข้อมูลต่อ ไม่ยอมให้เพื่อนผ่านง่ายๆ
-                    # (เลือกชุดยาวรองลงมา หรือชุดธรรมชาติที่มี)
-                    return cheapest_unbid_suit, "Decision: New Suit Game Force / Explore"            
-            
-            if max_total < GAME_ZONE_MIN:
-                cheapest = get_cheapest_bid(minor_fit_suit)
-                if current_level >= 2:
-                    cheapest = f"3{minor_fit_suit}" if current_level == 2 else f"4{minor_fit_suit}"
-                else:
-                    cheapest = f"2{minor_fit_suit}"
-                return cheapest, f"Decision: Minor Fit 8+ below game, lowest safe stop ({cheapest})"
-
-        # 3. กรณีไม่มี Fit อะไรเลย -> พิจารณา NT
-        if nt_min >= SLAM_ZONE: return "6N", "Decision: NT Slam"
-        if GAME_ZONE_MIN <= nt_min <= GAME_ZONE_MAX: return "3N", "Decision: NT Game"
-
-        # ----------------------------------------------------
-        # GAME TRY / INVITATION ZONE (L < 25 แต่ M >= 25)
-        # ----------------------------------------------------
-        if min_total < GAME_ZONE_MIN and max_total >= GAME_ZONE_MIN:
-            
-            # กรณีที่ 1: รู้แน่ชัดแล้วว่ามี Major Fit อยู่ (เช่น Fit 8+ ใน H หรือ S)
-            if fit_suit:
-                # เช็คว่าเรามีคุณสมบัติทำ Game Try แบบไหนได้บ้าง
-                # สมมติเรามีชุดทรัมพ์ยาว 6+ ใบ และมีชุดสั้น (Singleton/Void)
-                if s >= 6 or h >= 6 or d >= 6 or c >= 6:
-                    # ถ้ามีชุดสั้นใน Minor ให้เสนอ 3m ตามกฎ
-                    if d <= 1 and fit_suit != "D": return f"3D", "Decision: Game Try (Short D, 6+ Trump)"
-                    if c <= 1 and fit_suit != "C": return f"3C", "Decision: Game Try (Short C, 6+ Trump)"
-                    # ถ้ามีชุดสั้น หรืออยากใช้ 2NT บอกชุดสั้น
-                    return f"2N", "Decision: Game Try (Short suit, 6+ Trump)"
-                
-                # ถ้าไม่มีชุดสั้นชัดเจน อาจจะใช้การถาม Honor/Min-Max (2M+1) เป็น Priority ต่ำสุด
-                next_level_bid = f"3{fit_suit}" # หรือระดับที่สูงกว่า 1 ขั้น
-                return next_level_bid, "Decision: Game Try Ask Honor / Min-Max (Low priority)"
-
-            # กรณีที่ 2: ยังไม่คอนเฟิร์มว่ามี Fit แต่แต้มก้ำกึ่ง (Game Invite ปกติ)
-            else:
-                # ถ้าทรงไพ่เปิดโอกาส หรือไม่มีชุดอื่นให้บิด ให้ใช้ 2NT เป็น Game Invite
-                if balanced:
-                    return "2N", "Decision: Game Invite (Balanced, Max goes to game)"
-                else:
-                    # ใช้ New Suit ทำ Forcing เพื่อหาข้อมูลต่อ ไม่ยอมให้เพื่อนผ่านง่ายๆ
-                    # (เลือกชุดยาวรองลงมา หรือชุดธรรมชาติที่มี)
-                    return cheapest_unbid_suit, "Decision: New Suit Game Force / Explore"
-        
-        if nt_max < GAME_ZONE_MIN:
-            return "2N", f"Decision: No fit, park at 2NT"
-        
-        return "3N", f"Decision: Max reaches game, bid 3NT"
         
 # ==========================================
 # BRIDGE EXACT TABLE DATABASE (1D REBID)
