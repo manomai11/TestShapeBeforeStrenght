@@ -1230,7 +1230,7 @@ def get_table_row_1d(response_str, prefix="1D"):
     return matching_rows[0]
 
 # ==========================================
-# OPENER REBID AFTER 1D (SHOW RULES + CENTRAL DECISION)
+# OPENER REBID AFTER 1D (CLEAN DISPATCHER)
 # ==========================================
 
 def opener_rebid_1d(response, hcp, shape, extra_info=None):
@@ -1241,127 +1241,75 @@ def opener_rebid_1d(response, hcp, shape, extra_info=None):
     balanced = is_balanced(shape)
     response_str = str(response or "").upper().strip()
 
-    
-    response_str = str(response or "").upper().strip()
-    
-    # ----------------------------------------------------
-    # 1. ถ้าระบบส่งสถานะ Show มา (1H, 1S, 1N) ให้แยกมาทำฟังก์ชัน Show ทันที
-    # ----------------------------------------------------
-    if response_str in ["1H", "1S", "1N"]:
-        return handle_show_rebid_1d(response_str, hcp, shape, extra_info)
-    
-    # ----------------------------------------------------
-    # 2. ถ้าเป็นระดับ 2 ขึ้นไป ค่อยไปเช็คตาราง Decision กลาง
-    # ----------------------------------------------------
+    # 1. ดึงข้อมูลจากตาราง 1D มาเช็กเป็นอันดับแรกเพื่อดูสถานะ (Decision หรือ Show)
     row = get_table_row_1d(response_str, "1D")
+    
+    # ถ้าในตารางระบุว่าเป็น decision ให้ส่งเข้าฟังก์ชันกลางทันที
     if row and row.get("status") == "decision":
         return evaluate_central_decision(hcp, shape, row, response_str)
-        
-    return "PASS", f"No rule matched for response: {response_str}"
-    
-    # ดึงข้อมูลจากตาราง 1D
-    row = get_table_row_1d(response_str, "1D")
-    if not row:
-        return "PASS", "no matching rule for 1D rebid"
 
-    status = row.get("status", "show")
-
-    # ==========================================
-    # 1. โซน DECISION -> ส่งให้ฟังก์ชันกลางคำนวณอัตโนมัติ
-    # ==========================================
-    if status == "decision":
-        return evaluate_central_decision(hcp, shape, row, response_str)
-
-
-    # ==========================================
-    # 2. โซน SHOW -> ใช้ Rule ตามตารางที่คุณออกแบบ
-    # ==========================================
+    # 2. โซน SHOW -> ใช้กฎเดิมทั้งหมดแบบ 100% ไม่มีการแก้ไขเงื่อนไขใดๆ
     d_honors = extra_info.get("d_honors", 0) # จำนวนตัว A, K, Q ในชุด D
     
     if response_str == "1H":
-        # Rule 1: 1D - 1H - 2N (16-20, 1444)
         if 16 <= hcp <= 20 and shape == "1444":
             return "2N", "2N FIT 16+ H4 1444"
-        # Rule 2: 1D - 1H - 3C (16-20, 4441)
         if 16 <= hcp <= 20 and shape == "4441":
             return "3C", "2N FIT 16+ H4 4441"
-        # Rule 3: 1D - 1H - 2S (16-20, H4 unbalanced)
         if hcp >= 16 and h >= 4 and not balanced:
             return "2S", "Power Fit 16+ H4 unbalanced"
-        # Rule 4: 1D - 1H - 2D (16-20, H3)
         if hcp >= 16 and h == 3 and not balanced:
             return "2D", "Turbo Fit 16+ H3"
-        # Rule 5: 1D - 1H - 1N (16-20, H<3) หรือ (11-15, S<4, H<4, D6+)ตามที่เพิ่มใหม่
         if hcp >= 16 and h < 3:
             return "1N", "1N no Fit 16+ H<3"
         if 11 <= hcp <= 15 and s < 4 and h < 4 and d >= 6 and c < 4:
             return "1N", "1N minimum 11-15 S<4 H<4 D6+"
-        # Rule 6: 1D - 1H - 3H (14-15, H4)
         if 14 <= hcp <= 15 and h >= 4:
             return "3H", "Medium Fit 14-15 H4"
-        # Rule 7: 1D - 1H - 3D (14-15, H<3, D6 good)
         if 14 <= hcp <= 15 and h < 3 and d >= 6 and d_honors >= 2:
             return "3D", "Medium 14-15 good D6"
-        # Rule 8: 1D - 1H - 2H (11-13, H4)
         if 11 <= hcp <= 13 and h >= 4:
             return "2H", "minimum Fit 11-13 H4"
-        # Rule 9: 1D - 1H - 1S (11-15, S4)
         if 11 <= hcp <= 15 and s >= 4:
             return "1S", "minimum 11-15 S4"
-        # Rule 10: 1D - 1H - 2C (11-15, C4+)
         if 11 <= hcp <= 15 and c >= 4:
             return "2C", "minimum 11-15 2m"
 
     elif response_str == "1S":
-        # Rule 1: 1D - 1S - 2N (16-20, 4144)
         if 16 <= hcp <= 20 and shape == "4144":
             return "2N", "2N FIT 16+ 4144"
-        # Rule 2: 1D - 1S - 3C (16-20, 4441)
         if 16 <= hcp <= 20 and shape == "4441":
             return "3C", "2N FIT 16+ 4441"
-        # Rule 3: 1D - 1S - 2H (16-20, S4 unbalanced)
         if hcp >= 16 and s >= 4 and not balanced:
             return "2H", "Power Fit 16+ S4 unbalanced"
-        # Rule 4: 1D - 1S - 2D (16-20, S3)
         if hcp >= 16 and s == 3 and not balanced:
             return "2D", "Turbo Fit 16+ S3"
-        # Rule 5: 1D - 1S - 1N (16-20, S<3, H<3) หรือเงื่อนไข 1N ช่วง 11-15 ตามที่เพิ่มใหม่
         if hcp >= 16 and s < 3 and h < 5 and c < 4:
             return "1N", "1N no Fit 16+ S<3"
         if 11 <= hcp <= 15 and s < 3 and h == 4 and d >= 5 and c < 4:
             return "1N", "1N minimum 11-15 S<3 H=4 D5+"
         if 11 <= hcp <= 15 and s < 3 and h < 4 and d >= 6:
             return "1N", "1N minimum 11-15 S<3 H<4 D6+"
-        # Rule 6: 1D - 1S - 3S (14-15, S4)
         if 14 <= hcp <= 15 and s >= 4:
             return "3S", "Medium Fit 14-15 S4"
-        # Rule 7: 1D - 1S - 3D (14-15, S<3, D6)
         if 14 <= hcp <= 15 and s < 3 and d >= 6 and d_honors >= 2:
             return "3D", "Medium 14-15 good D6"
-        # Rule 8: 1D - 1S - 2S (11-13, S4)
         if 11 <= hcp <= 13 and s >= 4:
             return "2S", "minimum 11-13 S4"
-        # Rule 9: 1D - 1S - 2C (11-15, C4)
         if 11 <= hcp <= 15 and c >= 4:
             return "2C", "minimum 11-15 C4"
 
     elif response_str == "1N":
-        # Rule 1: 1D - 1N - 2C (any 4441 or balanced M>=4 or not balanced min 2m)
         if (shape in ["4441", "4144", "1444"]) or (11 <= hcp <= 20 and d == 4 and c == 5):
             return "2C", "any 4441 or D4C5 "
-        # Rule 2: 1D - 1N - 2D (D5 H4+)
         if d >= 5 and h >= 4:
             return "2D", "Transfer H [C5H4]"
-        # Rule 3: 1D - 1N - 2H (D5 S4+)
         if d >= 5 and s >= 4:
             return "2H", "Transfer S [C5S4]"
-        # Rule 4: 1D - 1N - 2S (C4+)
         if d >= 5 and c >= 4:
             return "2S", "Transfer C [C4]"
-        # Rule 5: 1D - 1N - 2N (D6 with short)
         if d >= 6 and has_short(shape):
             return "2N", "Transfer D6 with short"
-        # Rule 6: 1D - 1N - 3C (D6 no short)
         if d >= 6:
             return "3C", "Transfer D6 no short"
 
