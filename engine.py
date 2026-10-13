@@ -33,7 +33,7 @@ def has_short(shape):
     return s <= 1 or h <= 1 or d <= 1 or c <= 1
 
 # ==========================================
-# CENTRALIZED DECISION ENGINE (ใช้ร่วมกันทุกการเปิด)
+# CENTRALIZED DECISION ENGINE (ฉบับรวมตรรกะเช็คชุดรั่วและหนีตาย)
 # ==========================================
 
 def evaluate_central_decision(opener_hcp, opener_shape, response_range_dict, current_bid_str):
@@ -87,9 +87,9 @@ def evaluate_central_decision(opener_hcp, opener_shape, response_range_dict, cur
                 return candidate
         return f"3{target_suit}"
 
-    # ตรวจสอบ Trump Fit ทั้งหมด (Major และ Minor)
+    # ตรวจสอบ Trump Fit ทั้งหมด
     fit_suit = None
-    fit_type = None # "Major" หรือ "Minor"
+    fit_type = None 
     opener_trump_len = 0
 
     if total_s >= 8: 
@@ -109,68 +109,58 @@ def evaluate_central_decision(opener_hcp, opener_shape, response_range_dict, cur
         fit_type = "Minor"
         opener_trump_len = c
 
+    # เช็คว่ามี "ชุดรั่ว" (Bad Suit / Unstopped Short Suit เสี่ยงโดนถล่ม) หรือไม่
+    has_bad_suit = (s <= 1 or h <= 1 or d <= 1 or c <= 1)
+
     # ----------------------------------------------------
-    # กฎกลาง: ถ้ามี TRUMP FIT (>= 8 ใบ) แล้วแต้มสูงสุดยังไม่ถึงเกม -> PASS ทันทีทั้ง M และ m
+    # กฎกลาง: ถ้ามี TRUMP FIT แต้มไม่ถึงเกม -> PASS
     # ----------------------------------------------------
     if fit_suit and max_total < GAME_ZONE_MIN:
         return "PASS", f"Decision: {fit_type} Fit 8+ below game (Max {max_total}pts), safe to PASS"
 
     # ----------------------------------------------------
-    # 1. กรณีมี MAJOR FIT (>= 8 ใบ ที่แต้มถึงเกมหรือโซนชวนเล่นต่อ)
+    # 1. กรณีมี MAJOR FIT (>= 8 ใบ)
     # ----------------------------------------------------
     if fit_type == "Major":
         if min_total >= SLAM_ZONE:
             return f"6{fit_suit}", f"Decision: Major Slam"
         if GAME_ZONE_MIN <= min_total <= GAME_ZONE_MAX:
             return f"4{fit_suit}", f"Decision: Major Game"
-        
-        if min_total < GAME_ZONE_MIN and max_total >= GAME_ZONE_MIN:
-            if fit_suit == "H" and (s <= 1 or d <= 1 or c <= 1) and opener_trump_len >= 6:
-                short_suit = "S" if s <= 1 else ("D" if d <= 1 else "C")
-                return "2N", f"Decision: Game Try (Short {short_suit}, Trump 6+)"
-            
-            if d <= 1 and opener_trump_len >= 6 and fit_suit != "D":
-                return "3D", "Decision: Game Try (Short D, Trump 6+)"
-            if c <= 1 and opener_trump_len >= 6 and fit_suit != "C":
-                return "3C", "Decision: Game Try (Short C, Trump 6+)"
-            
-            ask_bid = f"3{fit_suit}" if fit_suit == "H" else "3S"
-            return ask_bid, "Decision: Game Try Ask Honor & Min/Max (Low Priority)"
-            
         return f"4{fit_suit}", f"Decision: Major Game"
 
     # ----------------------------------------------------
-    # 2. กรณีมี MINOR FIT (>= 8 ใบ ที่แต้มถึงเกมหรือโซนชวนเล่นต่อ)
+    # 2. กรณีมี MINOR FIT (>= 8 ใบ)
     # ----------------------------------------------------
     if fit_type == "Minor":
         if min_total >= SLAM_ZONE: 
             return f"6{fit_suit}", f"Decision: Minor Slam"
             
-        if min_total >= 29 and dist_points > 12:
-            return f"5{fit_suit}", f"Decision: Strong Minor Game 5{fit_suit}"
-            
         if GAME_ZONE_MIN <= min_total <= GAME_ZONE_MAX:
+            # ถ้ามีชุดรั่วอันตราย หนีตายไปเล่น 5m (Minor Game) แทนการเสี่ยง 3NT
+            if has_bad_suit:
+                return f"5{fit_suit}", f"Decision: Escape to 5{fit_suit} (Minor Game) because of Bad Suit / Unstopped risk"
+            
             if nt_min >= GAME_ZONE_MIN:
-                return "3N", f"Decision: NT Game preferred over 5{fit_suit} (Safer)"
-            return f"4{fit_suit}", f"Decision: Minor Game Invite / Safe Stop at 4"
+                return "3N", f"Decision: NT Game preferred over 5{fit_suit} (Safer 9 tricks)"
+            return f"4{fit_suit}", f"Decision: Minor Game Safe Stop"
             
         if min_total < GAME_ZONE_MIN and max_total >= GAME_ZONE_MIN:
             cheapest = get_cheapest_bid(fit_suit)
             return cheapest, f"Decision: Minor Game Try / Invitational"
 
     # ----------------------------------------------------
-    # 3. กรณีไม่มี FIT อะไรเลย
+    # 3. กรณีไม่มี FIT อะไรเลย (พิจารณา NT หรือเช็ค Stopper)
     # ----------------------------------------------------
     if nt_min >= SLAM_ZONE: return "6N", "Decision: NT Slam"
-    if GAME_ZONE_MIN <= nt_min <= GAME_ZONE_MAX: return "3N", "Decision: NT Game"
     
-    if min_total < GAME_ZONE_MIN and max_total >= GAME_ZONE_MIN:
-        if balanced:
-            return "2N", "Decision: Game Invite (Balanced, Max goes to game)"
-        else:
-            unbid_suit = "S" if s >= 4 else ("H" if h >= 4 else ("D" if d >= 4 else "C"))
-            return get_cheapest_bid(unbid_suit), "Decision: New Suit Forcing / 4th Suit Game Force"
+    if GAME_ZONE_MIN <= nt_min <= GAME_ZONE_MAX:
+        # ถ้ามีชุดรั่วและแต้มอยู่ในโซนเกม แต่ยังไม่ชัวร์เรื่องตัวหยุด ให้บิด New Suit เช็ค Stop ก่อน
+        if has_bad_suit and current_level < 3:
+            unbid_suit = "S" if s <= 1 else ("H" if h <= 1 else ("D" if d <= 1 else "C"))
+            return get_cheapest_bid(unbid_suit), "Decision: Seeking Stopper / New Suit Forcing before 3NT"
             
+        return "3N", "Decision: NT Game (Stoppers checked / Safe)"
+    
     if nt_max < GAME_ZONE_MIN:
         return "2N", f"Decision: No fit, park at 2NT"
     
