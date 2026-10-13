@@ -87,26 +87,43 @@ def evaluate_central_decision(opener_hcp, opener_shape, response_range_dict, cur
                 return candidate
         return f"3{target_suit}"
 
-    # ตรวจสอบ Trump Fit (Major สำคัญกว่า Minor)
+    # ตรวจสอบ Trump Fit ทั้งหมด (Major และ Minor)
     fit_suit = None
+    fit_type = None # "Major" หรือ "Minor"
     opener_trump_len = 0
+
     if total_s >= 8: 
         fit_suit = "S"
+        fit_type = "Major"
         opener_trump_len = s
     elif total_h >= 8: 
         fit_suit = "H"
+        fit_type = "Major"
         opener_trump_len = h
+    elif total_d >= 8: 
+        fit_suit = "D"
+        fit_type = "Minor"
+        opener_trump_len = d
+    elif total_c >= 8: 
+        fit_suit = "C"
+        fit_type = "Minor"
+        opener_trump_len = c
 
     # ----------------------------------------------------
-    # 1. กรณีมี MAJOR FIT (>= 8 ใบ)
+    # กฎกลาง: ถ้ามี TRUMP FIT (>= 8 ใบ) แล้วแต้มสูงสุดยังไม่ถึงเกม -> PASS ทันทีทั้ง M และ m
     # ----------------------------------------------------
-    if fit_suit:
+    if fit_suit and max_total < GAME_ZONE_MIN:
+        return "PASS", f"Decision: {fit_type} Fit 8+ below game (Max {max_total}pts), safe to PASS"
+
+    # ----------------------------------------------------
+    # 1. กรณีมี MAJOR FIT (>= 8 ใบ ที่แต้มถึงเกมหรือโซนชวนเล่นต่อ)
+    # ----------------------------------------------------
+    if fit_type == "Major":
         if min_total >= SLAM_ZONE:
             return f"6{fit_suit}", f"Decision: Major Slam"
         if GAME_ZONE_MIN <= min_total <= GAME_ZONE_MAX:
             return f"4{fit_suit}", f"Decision: Major Game"
         
-        # --- GAME TRY / INVITATION ZONE (L < 25 แต่ M >= 25) [รู้แล้วว่ามี M Fit] ---
         if min_total < GAME_ZONE_MIN and max_total >= GAME_ZONE_MIN:
             if fit_suit == "H" and (s <= 1 or d <= 1 or c <= 1) and opener_trump_len >= 6:
                 short_suit = "S" if s <= 1 else ("D" if d <= 1 else "C")
@@ -120,38 +137,26 @@ def evaluate_central_decision(opener_hcp, opener_shape, response_range_dict, cur
             ask_bid = f"3{fit_suit}" if fit_suit == "H" else "3S"
             return ask_bid, "Decision: Game Try Ask Honor & Min/Max (Low Priority)"
             
-        if max_total < GAME_ZONE_MIN:
-            cheapest = get_cheapest_bid(fit_suit)
-            return cheapest, f"Decision: Major Fit 8+ below game, cheapest safe stop"
         return f"4{fit_suit}", f"Decision: Major Game"
-    # ----------------------------------------------------
-    # 2. กรณีมี MINOR FIT (ปรับปรุงใหม่ ให้รัดกุมขึ้น ไม่รีบกระโดดไป 5 ทันที)
-    # ----------------------------------------------------
-    minor_fit_suit = None
-    if total_d >= 8: minor_fit_suit = "D"
-    elif total_c >= 8: minor_fit_suit = "C"
 
-    if minor_fit_suit:
+    # ----------------------------------------------------
+    # 2. กรณีมี MINOR FIT (>= 8 ใบ ที่แต้มถึงเกมหรือโซนชวนเล่นต่อ)
+    # ----------------------------------------------------
+    if fit_type == "Minor":
         if min_total >= SLAM_ZONE: 
-            return f"6{minor_fit_suit}", f"Decision: Minor Slam"
-        
-        # ถ้าแต้มสูงมากชัวร์ๆ (29+) ถึงค่อยลุยระดับ 5
+            return f"6{fit_suit}", f"Decision: Minor Slam"
+            
         if min_total >= 29 and dist_points > 12:
-            return f"5{minor_fit_suit}", f"Decision: Strong Minor Game 5{minor_fit_suit}"
-        
-        # ถ้าอยู่ในช่วงโซนเกมปกติ (25-28 แต้ม) ให้ซบที่ 3N หรือแค่ระดับ 4 เพื่อความปลอดภัย ป้องกันแต้มไม่ดี
+            return f"5{fit_suit}", f"Decision: Strong Minor Game 5{fit_suit}"
+            
         if GAME_ZONE_MIN <= min_total <= GAME_ZONE_MAX:
             if nt_min >= GAME_ZONE_MIN:
-                return "3N", f"Decision: NT Game preferred over 5{minor_fit_suit} (Safer)"
-            return f"4{minor_fit_suit}", f"Decision: Minor Game Invite / Safe Stop at 4"
+                return "3N", f"Decision: NT Game preferred over 5{fit_suit} (Safer)"
+            return f"4{fit_suit}", f"Decision: Minor Game Invite / Safe Stop at 4"
             
         if min_total < GAME_ZONE_MIN and max_total >= GAME_ZONE_MIN:
-            cheapest = get_cheapest_bid(minor_fit_suit)
+            cheapest = get_cheapest_bid(fit_suit)
             return cheapest, f"Decision: Minor Game Try / Invitational"
-            
-        if max_total < GAME_ZONE_MIN:
-            cheapest = get_cheapest_bid(minor_fit_suit)
-            return cheapest, f"Decision: Minor Fit below game, lowest safe stop"
 
     # ----------------------------------------------------
     # 3. กรณีไม่มี FIT อะไรเลย
@@ -170,6 +175,7 @@ def evaluate_central_decision(opener_hcp, opener_shape, response_range_dict, cur
         return "2N", f"Decision: No fit, park at 2NT"
     
     return "3N", f"Decision: Max reaches game, bid 3NT"
+
     
 # ==========================================
 # OPENING
