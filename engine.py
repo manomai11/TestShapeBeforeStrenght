@@ -1317,7 +1317,7 @@ def opener_rebid_1d(response, hcp, shape, extra_info=None):
 
     elif response_str == "1N":
         # Rule 1: 1D - 1N - 2C (any 4441 or balanced M>=4 or not balanced min 2m)
-        if (shape in ["4441", "4144", "1444"]) or 11 <= hcp <= and d ==4 and c == 5:
+        if (shape in ["4441", "4144", "1444"]) or 11 <= hcp <= 20 and d ==4 and c == 5:
             return "2C", "any 4441 or D4C5 "
         # Rule 2: 1D - 1N - 2D (D5 H4+)
         if d >= 5 and h >= 4:
