@@ -976,8 +976,9 @@ def get_response_range(response_str):
     for row in EXACT_BRIDGE_TABLE:
         if row.get("bid") == f"1C-{response_str}" or row.get("bid") == response_str:
             if "p_min" in row and "p_max" in row:
-                return {"min": row["p_min"], "max": row["p_max"]}
-    return {"min": 6, "max": 10}
+                # ส่งค่าทั้งหมดใน row กลับไปเลย เพื่อให้ดึง s_min, c_min ได้ครบ
+                return row 
+    return {"p_min": 6, "p_max": 10, "s_min": 0, "h_min": 0, "d_min": 0, "c_min": 0}
 # ==========================================
 # OPENER REBID AFTER 1C (SHOW RULES + SMART DECISION)
 # ==========================================
@@ -1065,8 +1066,8 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
     # ----------------------------------------------------
     else:
         resp_range = get_response_range(response_str)
-        min_resp = resp_range["min"]
-        max_resp = resp_range["max"]
+        min_resp = resp_range.get("p_min", 6)
+        max_resp = resp_range.get("p_max", 10)
         
         SLAM_ZONE = 32
         GAME_ZONE_MIN = 25
@@ -1087,7 +1088,7 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
         nt_min = hcp + min_resp
         nt_max = hcp + max_resp
 
-        # ดึงค่าต่ำสุดของฝั่งผู้ตอบทุกชุด
+        # ดึงค่าต่ำสุดของฝั่งผู้ตอบทุกชุดจาก row ที่ดึงมาตรงๆ
         responder_min_s = resp_range.get("s_min", 0)
         responder_min_h = resp_range.get("h_min", 0)
         responder_min_d = resp_range.get("d_min", 0)
