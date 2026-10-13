@@ -1183,10 +1183,14 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
         if 11 <= hcp <= 15 and c >= 5:
             return "2C", "minimum 11-15 C5"
         return "1S", "weak NT or S4"
+        
     # ----------------------------------------------------
     # CASE: 1C - 1S
     # ----------------------------------------------------
-    elif response == "1S":
+
+    elif response_str == "1S":
+        c_honors = extra_info.get("c_honors", 0) # ดึงค่า Honors ในชุด C เผื่อไว้ใช้
+
         # Rule 1: 11-13 S5 -> Pass (priority 1100)
         if 11 <= hcp <= 13 and s >= 5:
             return "PASS", "Minimum S5"
