@@ -1124,6 +1124,36 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
                 return f"6{fit_suit}", f"Decision: Major Slam"
             if GAME_ZONE_MIN <= min_total <= GAME_ZONE_MAX:
                 return f"4{fit_suit}", f"Decision: Major Game (4{fit_suit} > 3N)"
+        # ----------------------------------------------------
+        # GAME TRY / INVITATION ZONE (L < 25 แต่ M >= 25)
+        # ----------------------------------------------------
+        if min_total < GAME_ZONE_MIN and max_total >= GAME_ZONE_MIN:
+            
+            # กรณีที่ 1: รู้แน่ชัดแล้วว่ามี Major Fit อยู่ (เช่น Fit 8+ ใน H หรือ S)
+            if fit_suit:
+                # เช็คว่าเรามีคุณสมบัติทำ Game Try แบบไหนได้บ้าง
+                # สมมติเรามีชุดทรัมพ์ยาว 6+ ใบ และมีชุดสั้น (Singleton/Void)
+                if s >= 6 or h >= 6 or d >= 6 or c >= 6:
+                    # ถ้ามีชุดสั้นใน Minor ให้เสนอ 3m ตามกฎ
+                    if d <= 1 and fit_suit != "D": return f"3D", "Decision: Game Try (Short D, 6+ Trump)"
+                    if c <= 1 and fit_suit != "C": return f"3C", "Decision: Game Try (Short C, 6+ Trump)"
+                    # ถ้ามีชุดสั้น หรืออยากใช้ 2NT บอกชุดสั้น
+                    return f"2N", "Decision: Game Try (Short suit, 6+ Trump)"
+                
+                # ถ้าไม่มีชุดสั้นชัดเจน อาจจะใช้การถาม Honor/Min-Max (2M+1) เป็น Priority ต่ำสุด
+                next_level_bid = f"3{fit_suit}" # หรือระดับที่สูงกว่า 1 ขั้น
+                return next_level_bid, "Decision: Game Try Ask Honor / Min-Max (Low priority)"
+
+            # กรณีที่ 2: ยังไม่คอนเฟิร์มว่ามี Fit แต่แต้มก้ำกึ่ง (Game Invite ปกติ)
+            else:
+                # ถ้าทรงไพ่เปิดโอกาส หรือไม่มีชุดอื่นให้บิด ให้ใช้ 2NT เป็น Game Invite
+                if balanced:
+                    return "2N", "Decision: Game Invite (Balanced, Max goes to game)"
+                else:
+                    # ใช้ New Suit ทำ Forcing เพื่อหาข้อมูลต่อ ไม่ยอมให้เพื่อนผ่านง่ายๆ
+                    # (เลือกชุดยาวรองลงมา หรือชุดธรรมชาติที่มี)
+                    return cheapest_unbid_suit, "Decision: New Suit Game Force / Explore"
+            
             if max_total < GAME_ZONE_MIN:
                 cheapest = get_cheapest_bid(fit_suit)
                 if int(cheapest[0]) > 3:
@@ -1148,6 +1178,36 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
                 if nt_min >= GAME_ZONE_MIN:
                     return "3N", f"Decision: NT Game preferred over 5{minor_fit_suit}"
                 return f"5{minor_fit_suit}", f"Decision: Minor Game 5{minor_fit_suit}"
+
+        # ----------------------------------------------------
+        # GAME TRY / INVITATION ZONE (L < 25 แต่ M >= 25)
+        # ----------------------------------------------------
+        if min_total < GAME_ZONE_MIN and max_total >= GAME_ZONE_MIN:
+            
+            # กรณีที่ 1: รู้แน่ชัดแล้วว่ามี Major Fit อยู่ (เช่น Fit 8+ ใน H หรือ S)
+            if fit_suit:
+                # เช็คว่าเรามีคุณสมบัติทำ Game Try แบบไหนได้บ้าง
+                # สมมติเรามีชุดทรัมพ์ยาว 6+ ใบ และมีชุดสั้น (Singleton/Void)
+                if s >= 6 or h >= 6 or d >= 6 or c >= 6:
+                    # ถ้ามีชุดสั้นใน Minor ให้เสนอ 3m ตามกฎ
+                    if d <= 1 and fit_suit != "D": return f"3D", "Decision: Game Try (Short D, 6+ Trump)"
+                    if c <= 1 and fit_suit != "C": return f"3C", "Decision: Game Try (Short C, 6+ Trump)"
+                    # ถ้ามีชุดสั้น หรืออยากใช้ 2NT บอกชุดสั้น
+                    return f"2N", "Decision: Game Try (Short suit, 6+ Trump)"
+                
+                # ถ้าไม่มีชุดสั้นชัดเจน อาจจะใช้การถาม Honor/Min-Max (2M+1) เป็น Priority ต่ำสุด
+                next_level_bid = f"3{fit_suit}" # หรือระดับที่สูงกว่า 1 ขั้น
+                return next_level_bid, "Decision: Game Try Ask Honor / Min-Max (Low priority)"
+
+            # กรณีที่ 2: ยังไม่คอนเฟิร์มว่ามี Fit แต่แต้มก้ำกึ่ง (Game Invite ปกติ)
+            else:
+                # ถ้าทรงไพ่เปิดโอกาส หรือไม่มีชุดอื่นให้บิด ให้ใช้ 2NT เป็น Game Invite
+                if balanced:
+                    return "2N", "Decision: Game Invite (Balanced, Max goes to game)"
+                else:
+                    # ใช้ New Suit ทำ Forcing เพื่อหาข้อมูลต่อ ไม่ยอมให้เพื่อนผ่านง่ายๆ
+                    # (เลือกชุดยาวรองลงมา หรือชุดธรรมชาติที่มี)
+                    return cheapest_unbid_suit, "Decision: New Suit Game Force / Explore"            
             
             if max_total < GAME_ZONE_MIN:
                 cheapest = get_cheapest_bid(minor_fit_suit)
@@ -1160,6 +1220,37 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
         # 3. กรณีไม่มี Fit อะไรเลย -> พิจารณา NT
         if nt_min >= SLAM_ZONE: return "6N", "Decision: NT Slam"
         if GAME_ZONE_MIN <= nt_min <= GAME_ZONE_MAX: return "3N", "Decision: NT Game"
+
+        # ----------------------------------------------------
+        # GAME TRY / INVITATION ZONE (L < 25 แต่ M >= 25)
+        # ----------------------------------------------------
+        if min_total < GAME_ZONE_MIN and max_total >= GAME_ZONE_MIN:
+            
+            # กรณีที่ 1: รู้แน่ชัดแล้วว่ามี Major Fit อยู่ (เช่น Fit 8+ ใน H หรือ S)
+            if fit_suit:
+                # เช็คว่าเรามีคุณสมบัติทำ Game Try แบบไหนได้บ้าง
+                # สมมติเรามีชุดทรัมพ์ยาว 6+ ใบ และมีชุดสั้น (Singleton/Void)
+                if s >= 6 or h >= 6 or d >= 6 or c >= 6:
+                    # ถ้ามีชุดสั้นใน Minor ให้เสนอ 3m ตามกฎ
+                    if d <= 1 and fit_suit != "D": return f"3D", "Decision: Game Try (Short D, 6+ Trump)"
+                    if c <= 1 and fit_suit != "C": return f"3C", "Decision: Game Try (Short C, 6+ Trump)"
+                    # ถ้ามีชุดสั้น หรืออยากใช้ 2NT บอกชุดสั้น
+                    return f"2N", "Decision: Game Try (Short suit, 6+ Trump)"
+                
+                # ถ้าไม่มีชุดสั้นชัดเจน อาจจะใช้การถาม Honor/Min-Max (2M+1) เป็น Priority ต่ำสุด
+                next_level_bid = f"3{fit_suit}" # หรือระดับที่สูงกว่า 1 ขั้น
+                return next_level_bid, "Decision: Game Try Ask Honor / Min-Max (Low priority)"
+
+            # กรณีที่ 2: ยังไม่คอนเฟิร์มว่ามี Fit แต่แต้มก้ำกึ่ง (Game Invite ปกติ)
+            else:
+                # ถ้าทรงไพ่เปิดโอกาส หรือไม่มีชุดอื่นให้บิด ให้ใช้ 2NT เป็น Game Invite
+                if balanced:
+                    return "2N", "Decision: Game Invite (Balanced, Max goes to game)"
+                else:
+                    # ใช้ New Suit ทำ Forcing เพื่อหาข้อมูลต่อ ไม่ยอมให้เพื่อนผ่านง่ายๆ
+                    # (เลือกชุดยาวรองลงมา หรือชุดธรรมชาติที่มี)
+                    return cheapest_unbid_suit, "Decision: New Suit Game Force / Explore"
+        
         if nt_max < GAME_ZONE_MIN:
             return "2N", f"Decision: No fit, park at 2NT"
         
