@@ -1211,6 +1211,7 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
 EXACT_BRIDGE_TABLE_1D = [
     # --- กลุ่ม Decision ---
     {"bid": "1D-3D", "status": "decision", "priority": 500, "type_hand": "not Balanced", "p_min": 6, "p_max": 9, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 4, "d_max": 9, "c_min": 0, "c_max": 5},
+    {"bid": "1D-3C", "status": "decision", "type_hand": "not Balanced", "p_min": 10, "p_max": 12, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 5, "d_max": 9, "c_min": 0, "c_max": 5},
     {"bid": "1D-2S", "status": "decision", "type_hand": "not Balanced", "p_min": 10, "p_max": 12, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 0, "d_max": 4, "c_min": 5, "c_max": 13,
     {"bid": "1D-3C", "status": "decision", "type_hand": "not Balanced", "p_min": 10, "p_max": 12, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 5, "d_max": 9, "c_min": 0, "c_max": 5},
     {"bid": "1D-2N", "status": "decision", "p_min": 0, "p_max": 5, "s_min": 0, "s_max": 3, "h_min": 0, "h_max": 3, "d_min": 5, "d_max": 9, "c_min": 0, "c_max": 5},
