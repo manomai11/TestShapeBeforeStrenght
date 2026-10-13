@@ -1208,7 +1208,8 @@ EXACT_BRIDGE_TABLE_1D = [
     {"bid": "1D-2D", "status": "decision", "type_hand": "Balanced", "p_min": 6, "p_max": 10, "s_min": 2, "s_max": 4, "h_min": 2, "h_max": 3, "d_min": 3, "d_max": 3, "c_min": 2, "c_min_max": 5},
     {"bid": "1D-2C", "status": "decision", "priority": 600, "type_hand": "Balanced", "p_min": 6, "p_max": 10, "s_min": 3, "s_max": 4, "h_min": 3, "h_max": 3, "d_min": 2, "d_max": 3, "c_min": 2, "c_max": 5},
     {"bid": "1D-2C", "status": "decision", "priority": 500, "p_min": 6, "p_max": 10, "s_min": 0, "s_max": 4, "h_min": 0, "h_max": 3, "d_min": 3, "d_max": 3, "c_min": 6, "c_max": 6},
-    # ==========================================
+]
+# ==========================================
 # SHAPE BEFORE STRENGTH
 # ENGINE V1 (CENTRALIZED DECISION + SHOW RULES)
 # ==========================================
