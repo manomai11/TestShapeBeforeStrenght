@@ -33,12 +33,12 @@ def has_short(shape):
     return s <= 1 or h <= 1 or d <= 1 or c <= 1
 
 # ==========================================
-# CENTRALIZED DECISION ENGINE (ฉบับรวมตรรกะเช็คชุดรั่วและหนีตาย)
+# CENTRALIZED DECISION ENGINE (ฉบับปรับแก้การชวนเกม Minor Fit)
 # ==========================================
 
 def evaluate_central_decision(opener_hcp, opener_shape, response_range_dict, current_bid_str):
     s, h, d, c = shape_lengths(opener_shape)
-    balanced = is_balanced(opener_shape)
+    balanced = is_balanced(shape)
     response_str = str(current_bid_str or "").upper().strip()
 
     min_resp = response_range_dict.get("min", response_range_dict.get("p_min", 6))
@@ -109,14 +109,14 @@ def evaluate_central_decision(opener_hcp, opener_shape, response_range_dict, cur
         fit_type = "Minor"
         opener_trump_len = c
 
-    # เช็คว่ามี "ชุดรั่ว" (Bad Suit / Unstopped Short Suit เสี่ยงโดนถล่ม) หรือไม่
+    # เช็คว่ามีชุดรั่วหรือทรงไพ่เสี่ยงอันตรายหรือไม่
     has_bad_suit = (s <= 1 or h <= 1 or d <= 1 or c <= 1)
 
     # ----------------------------------------------------
-    # กฎกลาง: ถ้ามี TRUMP FIT แต้มไม่ถึงเกม -> PASS
+    # กฎกลาง: เฉพาะ Major Fit เท่านั้นที่ถ้าแต้มต่ำกว่าเกมมากๆ แล้วบังคับจบ (PASS)
     # ----------------------------------------------------
-    if fit_suit and max_total < GAME_ZONE_MIN:
-        return "PASS", f"Decision: {fit_type} Fit 8+ below game (Max {max_total}pts), safe to PASS"
+    if fit_type == "Major" and max_total < GAME_ZONE_MIN:
+        return "PASS", f"Decision: Major Fit below game (Max {max_total}pts), safe to PASS"
 
     # ----------------------------------------------------
     # 1. กรณีมี MAJOR FIT (>= 8 ใบ)
@@ -136,36 +136,34 @@ def evaluate_central_decision(opener_hcp, opener_shape, response_range_dict, cur
             return f"6{fit_suit}", f"Decision: Minor Slam"
             
         if GAME_ZONE_MIN <= min_total <= GAME_ZONE_MAX:
-            # ถ้ามีชุดรั่วอันตราย หนีตายไปเล่น 5m (Minor Game) แทนการเสี่ยง 3NT
             if has_bad_suit:
-                return f"5{fit_suit}", f"Decision: Escape to 5{fit_suit} (Minor Game) because of Bad Suit / Unstopped risk"
-            
+                return f"5{fit_suit}", f"Decision: Escape to 5{fit_suit} because of Bad Suit / Unstopped risk"
             if nt_min >= GAME_ZONE_MIN:
                 return "3N", f"Decision: NT Game preferred over 5{fit_suit} (Safer 9 tricks)"
             return f"4{fit_suit}", f"Decision: Minor Game Safe Stop"
             
-        if min_total < GAME_ZONE_MIN and max_total >= GAME_ZONE_MIN:
-            cheapest = get_cheapest_bid(fit_suit)
-            return cheapest, f"Decision: Minor Game Try / Invitational"
+        # ถ้าแต้มยังไม่ถึงเกมชัวร์ แต่ขยับเข้ามาอยู่ในโซนลุ้น (เช่น แต้มรวมสูงสุดถึงเกณฑ์ชวน หรือมือเรามีความแข็งระดับปานกลางขึ้นไป)
+        # แทนที่จะ PASS ให้เปิดทางบิด 3 ของชุด Minor นั้น เพื่อทำหน้าที่ "ชวนเกม" (Game Try / Invitational)
+        if max_total >= GAME_ZONE_MIN or opener_hcp >= 11:
+            return f"3{fit_suit}", f"Decision: Minor Game Try / Invitational (Bid 3{fit_suit} to invite)"
+            
+        return "PASS", f"Decision: Minor Fit minimum values, safe to PASS"
 
     # ----------------------------------------------------
-    # 3. กรณีไม่มี FIT อะไรเลย (พิจารณา NT หรือเช็ค Stopper)
+    # 3. กรณีไม่มี FIT อะไรเลย
     # ----------------------------------------------------
     if nt_min >= SLAM_ZONE: return "6N", "Decision: NT Slam"
     
     if GAME_ZONE_MIN <= nt_min <= GAME_ZONE_MAX:
-        # ถ้ามีชุดรั่วและแต้มอยู่ในโซนเกม แต่ยังไม่ชัวร์เรื่องตัวหยุด ให้บิด New Suit เช็ค Stop ก่อน
         if has_bad_suit and current_level < 3:
             unbid_suit = "S" if s <= 1 else ("H" if h <= 1 else ("D" if d <= 1 else "C"))
             return get_cheapest_bid(unbid_suit), "Decision: Seeking Stopper / New Suit Forcing before 3NT"
-            
         return "3N", "Decision: NT Game (Stoppers checked / Safe)"
     
     if nt_max < GAME_ZONE_MIN:
         return "2N", f"Decision: No fit, park at 2NT"
     
     return "3N", f"Decision: Max reaches game, bid 3NT"
-
     
 # ==========================================
 # OPENING
