@@ -1118,10 +1118,12 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
     elif response == "2C":
         if 17 <= hcp <= 19 and balanced:
             return "2N", "BiG NT"
-        if hcp >= 16:
-            return "2H", "16+ Forcing"
+
         if 14 <= hcp <= 15 and c >= 6 and c_honors >= 2:
             return "3C", "Medium 14-15 C6"
+        if hcp >= 16:
+            return "2H", "16+ Forcing"
+
         if 11 <= hcp <= 13 and c >= 6 and d == 0:
             return "PASS", "Minimum Long C"
         if 14 <= hcp <= 15:
@@ -1136,7 +1138,7 @@ def opener_rebid_1c(response, hcp, shape, extra_info=None):
             return "2N", "BiG NT"
         if hcp >= 14:
             return "2H", "14+ GF"
-        if (11 <= hcp <= 13 and c <= 2) or (hcp == 13 and c == 3):
+        if (11 <= hcp <= 12 and c <= 2) or (hcp == 13 and c == 3):
             return "2S", "waiting"
         if 11 <= hcp <= 12 and c >= 3:
             return "3C", "To play"
@@ -1401,10 +1403,7 @@ def opener_rebid_1d(response, hcp, shape, extra_info=None):
 # ==========================================
 
 def opener_rebid_1h(response, hcp, shape, extra_info=None):
-    """
-    ฟังก์ชันคำนวณ Opener Rebid หลังจากเปิด 1H 
-    ตามกฎที่คุณระบุเพิ่มเติมเข้ามา
-    """
+
     if extra_info is None:
         extra_info = {}
     
@@ -1416,15 +1415,15 @@ def opener_rebid_1h(response, hcp, shape, extra_info=None):
     # CASE: 1H - 1S
     # ----------------------------------------------------
     if response == "1S":
-        # Rule 1: 4H priority 1000 (13-15 H6+ m5 AKQ ของ 2 ชุดยาว ต้องมี 4+)
-        if 13 <= hcp <= 15 and h >= 6 and (d >= 5 or c >= 5) and extra_info.get("akq_honors", 0) >= 1:
-            return "4H", "H6m5 AKQ"
-        # Rule 2: 4C priority 950 (13-15 C6+ AKQ ของ 2 ชุดยาว ต้องมี 4+)
-        if 13 <= hcp <= 15 and c >= 6 and extra_info.get("akq_honors", 0) >= 1:
-            return "4C", "C6H5 AKQ"
-        # Rule 3: 4D priority 930 (13-15 D6+ AKQ ของ 2 ชุดยาว ต้องมี 4+)
-        if 13 <= hcp <= 15 and d >= 6 and extra_info.get("akq_honors", 0) >= 1:
-            return "4D", "D6H5 AKQ"
+        # Rule 1: 4H priority 1000 (13-15 H6+ m5 )
+        if 13 <= hcp <= 15 and h >= 6 and (d >= 5 or c >= 5):
+            return "4H", "H6m5"
+        # Rule 2: 4C priority 950 (13-15 C6+)
+        if 13 <= hcp <= 15 and c >= 6:
+            return "4C", "C6H5"
+        # Rule 3: 4D priority 930 (13-15 D6+)
+        if 13 <= hcp <= 15 and d >= 6:
+            return "4D", "D6H5"
         # Rule 4: 3H priority 900 (11-15 H7)
         if 11 <= hcp <= 15 and h >= 7:
             return "3H", "minimum H7"
@@ -1449,6 +1448,7 @@ def opener_rebid_1h(response, hcp, shape, extra_info=None):
         # Rule 11: 1N priority 300 (11-15 D4+ or 16+ any)
         if (11 <= hcp <= 15 and d >= 4) or hcp >= 16:
             return "1N", "minimum D or Extra any"
+        return "2N", "Error"
 
     # ----------------------------------------------------
     # CASE: 1H - 1NT (1N)
@@ -1506,6 +1506,8 @@ def opener_rebid_1h(response, hcp, shape, extra_info=None):
             return "3C", "Transfer Last suit with short Lo"
         if d == 4:
             return "3D", "Transfer Last suit with no short"
+            
+        return "3H", "17-19 Balanced"
 
     # ----------------------------------------------------
     # CASE: 1H - 2D
