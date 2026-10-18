@@ -11,6 +11,7 @@ from engine import (
     response_1c,
     opener_rebid_1c,
     opener_rebid_1d,
+    opener_rebid_1h,
 )
 
 # ==================================================
@@ -185,6 +186,29 @@ def get_next_question_data(mode_type):
                 
             # 3. บันทึก Sequence ไว้แสดงผล
             st.session_state.current_auction_context = f"1D ➔ {resp}"
+
+        elif mode_type == "opener_1h_rebid":
+            # 1. เช็คก่อนว่ามือนี้เปิด 1D จริงไหม ถ้าไม่ใช่ให้สุ่มใหม่
+            opening_check = opening_bid(hcp, shape)
+            if not opening_check or opening_check[0] != "1H":
+                continue
+             # 2. สุ่ม Response ตามน้ำหนักที่กำหนด
+            responses = ["1S", "1N", "2C", "2D", "2H", "2S", "2N", "3C", "3D", "3H", "3S", "3N", "4C", "4H"]
+            weights   = [ 15,   12,   16,   11,    8,    2,    8,    8,    4,    2,    4,    4,    4,     2 ]
+            
+            resp = random.choices(responses, weights=weights, k=1)[0]
+            
+            # --- เติม 2 บรรทัดนี้เพิ่มเข้าไปครับ ---
+            h_cards = hand["H"]
+            h_honors = sum(1 for card in h_cards if card in ["A", "K", "Q"])
+            
+            extra_info = {"h_honors": h_honors}
+            
+            ans = opener_rebid_1h(resp, hcp, shape, extra_info)
+            if not ans:
+                continue
+            # 3. บันทึก Sequence ไว้แสดงผล                       
+            st.session_state.current_auction_context = f"1H ➔ {resp}"
             
         elif mode_type == "opening":
             ans = opening_bid(hcp, shape)
