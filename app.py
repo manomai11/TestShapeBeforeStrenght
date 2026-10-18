@@ -201,13 +201,13 @@ def get_next_question_data(mode_type):
             
             # --- เพิ่มเช็ค Honor ในชุดอื่น ๆ สำหรับเคส Rebid ท้ายๆ ---
             s_cards = hand["S"]
-            has_s_honor = any(card in ["A", "K", "Q", "J"] for card in s_cards)
+            has_s_honor = any(card in ["K", "Q", "J"] for card in s_cards)
             
             c_cards = hand["C"]
-            has_c_honor = any(card in ["A", "K", "Q", "J"] for card in c_cards)
+            has_c_honor = any(card in ["K", "Q", "J"] for card in c_cards)
             
             d_cards = hand["D"]
-            has_d_honor = any(card in ["A", "K", "Q", "J"] for card in d_cards)
+            has_d_honor = any(card in ["K", "Q", "J"] for card in d_cards)
 
             extra_info = {
                 "h_honors": h_honors,
@@ -735,6 +735,25 @@ elif st.session_state.page in [
 - 3C 11-12 C4+ (11-12 C5)
 - 3D 11-13 D6  (11-12 D5)
                 """  # <--- ปิดด้วยเครื่องหมายคำพูด 3 ตัวและใส่คอมมาให้ถูกต้อง
+
+                "opener_1h_rebid": """
+**Opener 1H Rebid Rules:**
+- 1H - 1S
+- 1N 11-15 D4+ or 16+ any
+- 2C 11-15 C4+ 
+- 2D 11-15 S4
+- 2H 14-16 H6 no S4
+ 3m 15-17 m5
+- 1H - 1N
+- 2C 11-15 C4+ or 16+ any
+- 2D 11-15 D4+
+- 2H 14-16 H6
+- 2S 11-13 S3+
+- 2N 14-15 S5+
+- 3m 15-17 m5
+- 1H - 2D
+- 2H 11-13 other Game Try
+                """,  # <--- ปิดด้วยเครื่องหมายคำพูด 3 ตัวและใส่คอมมาให้ถูกต้อง
             }
             return sheets.get(mode, "หลักการ Shape Before Strength: หา Fit & Shape ก่อนแต้ม")
 
