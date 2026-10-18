@@ -743,7 +743,7 @@ elif st.session_state.page in [
 - 2C 11-15 C4+ 
 - 2D 11-15 S4
 - 2H 14-16 H6 no S4
- 3m 15-17 m5
+- 3m 15-17 m5
 - 1H - 1N
 - 2C 11-15 C4+ or 16+ any
 - 2D 11-15 D4+
