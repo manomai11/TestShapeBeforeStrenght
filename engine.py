@@ -1411,9 +1411,9 @@ def opener_rebid_1h(response, hcp, shape, extra_info=None):
     balanced = is_balanced(shape)
     has_short_suit = has_short(shape)
     s_honors = extra_info.get("s_honors", 0) # จำนวนตัว A, K, Q ในชุด D
-   # has_s_honor = extra_info.get("has_s_honor", False)
-   # has_c_honor = extra_info.get("has_c_honor", False)
-   # has_d_honor = extra_info.get("has_d_honor", False)
+    has_s_honor = extra_info.get("has_s_honor", False)
+    has_c_honor = extra_info.get("has_c_honor", False)
+    has_d_honor = extra_info.get("has_d_honor", False)
     
     # ----------------------------------------------------
     # CASE: 1H - 1S
