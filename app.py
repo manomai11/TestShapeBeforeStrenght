@@ -6,12 +6,12 @@ import streamlit as st
 from engine import (
     opening_bid,
     response_1nt,
-    response_1major,
+    response_1major,  # <-- เพิ่มบรรทัดนี้เข้าไปครับ
     response_1d,
     response_1c,
     opener_rebid_1c,
     opener_rebid_1d,
-    opener_rebid_1h,  # <-- เติมคอมมาตรงนี้ครับ
+    opener_rebid_1h,
 )
 
 # ==================================================
