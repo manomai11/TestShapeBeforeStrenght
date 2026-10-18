@@ -1410,6 +1410,7 @@ def opener_rebid_1h(response, hcp, shape, extra_info=None):
     s, h, d, c = shape_lengths(shape)
     balanced = is_balanced(shape)
     has_short_suit = has_short(shape)
+    s_honors = extra_info.get("s_honors", 0) # จำนวนตัว A, K, Q ในชุด D
     
     # ----------------------------------------------------
     # CASE: 1H - 1S
@@ -1569,7 +1570,7 @@ def opener_rebid_1h(response, hcp, shape, extra_info=None):
             return "4H", "not interest slam 13-15 no short"
         if hcp >= 16 or (hcp >= 13 and has_short_suit):
             return "3C", "อาจไม่เกมถ้าสั้น C or good hand"
-        if 11 <= hcp <= 12 and s <= 3 and extra_info.get("has_c_honor", False):
+        if 11 <= hcp <= 12 and c <= 3 and extra_info.get("has_c_honor", False):
             return "3C", "อาจไม่เกมถ้าสั้น C"
         if 11 <= hcp <= 12 and s <= 3 and extra_info.get("has_s_honor", False):
             return "3H", "อาจไม่เกมถ้าสั้น S"
@@ -1624,25 +1625,34 @@ def opener_rebid_1h(response, hcp, shape, extra_info=None):
     # CASE: 1H - 3S
     # ----------------------------------------------------
     elif response == "3S":
-        if extra_info.get("has_black_honor", False):
-            return "4H", "มี K/KJ/KQ/QJ ในชุดดำ"
-        return "3N", "no K or Q ในชุดดำ or 15+"
+        # ถ้าแต้มน้อย 11-14 และมีแต้มเสียในชุด S ( มี Honor ในชุด S)
+        if 11 <= hcp <= 14 and extra_info.get("has_s_honor", False):
+            return "4H", "11-14 HCP มีแต้มเสียในชุด S ลงจบที่ 4H"
+        
+        # เคสที่เหลือทั้งหมด บิด 3NC สนใจสแลม
+        return "3N", "สนใจสแลม บิด 3N"
 
     # ----------------------------------------------------
     # CASE: 1H - 3N
     # ----------------------------------------------------
     elif response == "3N":
-        if extra_info.get("has_c_honor", False):
-            return "4H", "มี K/KJ/KQ/QJ ในชุด C"
-        return "3N", "no K or Q ในชุด C or 15+"
+        # ถ้าแต้มน้อย 11-14 และมีแต้มเสียในชุด C ( มี Honor ในชุด C)
+        if 11 <= hcp <= 14 and extra_info.get("has_c_honor", False):
+            return "4H", "11-14 HCP มีแต้มเสียในชุด C ลงจบที่ 4H"
+        
+        # เคสที่เหลือทั้งหมด บิด 4C สนใจสแลม
+        return "4C", "สนใจสแลม บิด 4C"
 
     # ----------------------------------------------------
     # CASE: 1H - 4C
     # ----------------------------------------------------
     elif response == "4C":
-        if extra_info.get("has_d_honor", False):
-            return "4H", "มี K/KJ/KQ/QJ ในชุด D"
-        return "3N", "no K or Q ในชุด D or 15+"
+        # ถ้าแต้มน้อย 11-14 และมีแต้มเสียในชุด D (มี Honor ในชุด D)
+        if 11 <= hcp <= 14 and extra_info.get("has_d_honor", False):
+            return "4H", "11-14 HCP มีแต้มเสียในชุด D ลงจบที่ 4H"
+        
+        # เคสที่เหลือทั้งหมด บิด 4D สนใจสแลม
+        return "4D", "สนใจสแลม บิด 4D"
 
     # ----------------------------------------------------
     # CASE: 1H - 4H
