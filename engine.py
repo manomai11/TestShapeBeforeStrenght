@@ -124,7 +124,7 @@ def opening_bid(hcp, shape):
     if 17 <= hcp <= 20:
 
         if s >= 5 and h >= 5:
-            return "2D","Multi 17-20 M55"
+            return "2D","Multi 17-20 2M ตัวนี้เอาไว้ช่วยลดความหมายตอนเปิด 1M ไม่ให้สับสน"
     # ----------------------------
     # WEAK MAJOR
     # ----------------------------
@@ -147,7 +147,7 @@ def opening_bid(hcp, shape):
         and d <= 4
         and c <= 4
     ):
-        return "2S","11-13 S6"
+        return "2S","11-13 S6 ตัวนี้ช่วยตอบปัญหาตอน 1S rebid 2S = 14-16 ทำให้ช่วงแต้มเคลียร์แต่จะไม่ได้เล่น weak 2 suit"
 
     # ----------------------------
     # 2H
@@ -160,7 +160,7 @@ def opening_bid(hcp, shape):
         and d <= 4
         and c <= 4
     ):
-        return "2H","11-13 H6"
+        return "2H","11-13 H6 ตัวนี้ช่วยตอบปัญหาตอน 1S rebid 2S = 14-16 ทำให้ช่วงแต้มเคลียร์แต่จะไม่ได้เล่น weak 2 suit"
 
     # ----------------------------
     # BALANCED
@@ -171,7 +171,7 @@ def opening_bid(hcp, shape):
         if 17 <= hcp <= 19:
 
             if s >= 5:
-                return "1S","11+ S5"
+                return "1S","11+ S5 "
 
             if h >= 5:
                 return "1H","11+ H5"
@@ -219,10 +219,10 @@ def opening_bid(hcp, shape):
     if shape in SPECIAL_D4C5:
 
         if 11 <= hcp <= 15:
-            return "1D","11+ D4+ unbalanced"
+            return "1D","11-15 D4C5 เปิด 1D เตรียมรีบิด 2C"
 
         if hcp >= 16:
-            return "1C","11-15 D4C5 เปิด 1D เตรียมรีบิด 2C"
+            return "1C","16+ D4C5 เปิด 1C เตรียมรีบิด 1N or 2D[Turbo Fit]"
 
     # ----------------------------
     # LONGER MINOR
@@ -231,9 +231,9 @@ def opening_bid(hcp, shape):
     if 11 <= hcp <= 20:
 
         if c > d:
-            return "1C","11+ C4+ unbalanced"
+            return "1C","11+ C5+ unbalanced"
 
-        return "1D","11+ D4+ unbalanced"
+        return "1D","11+ D5+ unbalanced"
 
     return "PASS","0-10 no good bid"
 
@@ -248,40 +248,45 @@ def response_1nt(hcp, shape):
 
     # 3D
     if hcp >= 9 and s >= 5 and h >= 5:
-        return "3D"," GF 9+ M55"
+        return "3D"," GF 9+ M55  <== ตัดปัญหา GF 2M จบในมี่เดียว"
 
     # 10+ M5 oM=4
     if hcp >= 10:
 
         if s >= 5 and h == 4:
-            return "2C","GF 10+ M5+ and oM4"
+            return "2C","GF 10+ M5+ and oM4 <== 2C จะแยกไพ่เกม 2M54/64 ใบออกจาก Transfer เพื่อลดภาระ 1N-3C ที่เกิดบ่อยกว่า ทำให้ซ่อนไพ่ได้ดีกว่า"
 
         if h >= 5 and s == 4:
-            return "2C","GF 10+ M5+ and oM4"
+            return "2C","GF 10+ M5+ and oM4 <== 2C จะแยกไพ่เกม 2M54/64 ใบออกจาก Transfer เพื่อลดภาระ 1N-3C ที่เกิดบ่อยกว่า ทำให้ซ่อนไพ่ได้ดีกว่า"
 
     # 8-9 M55 / M5m5
 
     if 8 <= hcp <= 9:
 
         if s >= 5 and h >= 5:
-            return "2C","Constructive 8-9 55 atleast 1M"
+            return "2C","Constructive 8 hcp 2M <== เปิด14-16[15-17] ไพ่แนวนี้ควรแยกมาให้ชัดกัน over bid"
 
         if (
             (s >= 5 or h >= 5)
             and
             (d >= 5 or c >= 5)
         ):
-            return "2C","Constructive 8-9 55 atleast 1M"
+            return "2C","Constructive 8-9 55 atleast 1M <== เปิด14-16[15-17] ไพ่แนวนี้ควรแยกมาให้ชัดกัน over bid"
+    
+    # m55
+
+    if d >= 5 and c >= 5:
+        return "2D","m55 <==  ซ่อนไว้กับ transfer H  เตรียมบอก 2S ในรีบิดต่อไป"
 
     # 9 M5-6
 
     if hcp == 9:
 
         if s >= 5:
-            return "2C","GI 9 Hcp S5-6 ใบ"
+            return "2C","GI 9 Hcp S5-6 ใบ <== 2C จะแยกไพ่ชวนเกม M5-6 ใบออกจาก Transfer  เพื่อลดการชวนเกมออกให้ชวนเกมที่ระดีล 2 ได้"
 
         if h >= 5:
-            return "2C","GI 9 Hcp S5-6 ใบ"
+            return "2C","GI 9 Hcp S5-6 ใบ <== 2C จะแยกไพ่ชวนเกม M5-6 ใบออกจาก Transfer  เพื่อลดการชวนเกมออกให้ชวนเกมที่ระดีล 2 ได้"
 
     # Texas S
 
@@ -314,26 +319,6 @@ def response_1nt(hcp, shape):
     if hcp >= 11 and shape in ["3145", "3154"]:
         return "3H","GF m54 with singleton H"
 
-    # m55
-
-    if d >= 5 and c >= 5:
-        return "2D","m55"
-
-    # 3NT
-
-    if (
-        10 <= hcp <= 12
-        and max(s, h) < 3
-        and max(d, c) >= 6
-    ):
-        return "3N","To Play"
-
-    if (
-        11 <= hcp <= 15
-        and shape in ["2254", "2245"]
-    ):
-        return "3N","To Play"
-
     # Transfer S
 
     if (
@@ -361,7 +346,22 @@ def response_1nt(hcp, shape):
         return "3C","ASk M with no M5 not interest slam"
 
     elif hcp == 10 and (s >= 3 or h >= 3) and min(d, c) == 6:
-        return "3C","ASk M with no M5 not interest slam"
+        return "3C","ASk M with no M5 not interest slam <==  ไพ่ 63 1.หา M5-3 2.อาจสร้างความไขว้เขวให้คนลีดได้"
+
+    # 3NT
+
+    if (
+        10 <= hcp <= 12
+        and max(s, h) < 3
+        and max(d, c) >= 6
+    ):
+        return "3N","To Play"
+
+    if (
+        11 <= hcp <= 15
+        and shape in ["2254", "2245"]
+    ):
+        return "3N","To Play"
 
     # D route
 
@@ -395,7 +395,7 @@ def response_1nt(hcp, shape):
         and c < 6
         and not (d >= 5 and c >= 5)
     ):
-        return "2C","16+ M<5"
+        return "2C","16+ M<5 <= 2C Slam interest คัดไพ่ 1M or m6 or m55 มราไปจามทางของตัวเอง"
 
     # 10
 
@@ -407,7 +407,7 @@ def response_1nt(hcp, shape):
         and c < 6
         and not (d >= 5 and c >= 5)
     ):
-        return "2C","Game invited"
+        return "2C","Game invited <==  เล่นจริงใครอยากชวน 9 แต้มก็ตามใจแต่แนะนำว่าควรมี ชุด 5ใบ เพราะเราเริ่ม overvid แล้ว"
 
     return "PASS","no good bid"
 
