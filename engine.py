@@ -1569,46 +1569,42 @@ def opener_rebid_1h(response, hcp, shape, extra_info=None):
     # CASE: 1H - 2N
     # ----------------------------------------------------
     elif response == "2N":
-        if 13 <= hcp <= 15 and not has_short_suit:
-            return "4H", "not interest slam 13-15 no short"
+
         if hcp >= 16 or (hcp >= 13 and has_short_suit):
             return "3C", "อาจไม่เกมถ้าสั้น C or good hand"
-        if 11 <= hcp <= 12 and c <= 3 and extra_info.get("has_c_honor", False):
-            return "3C", "อาจไม่เกมถ้าสั้น C"
+
         if 11 <= hcp <= 12 and s <= 3 and extra_info.get("has_s_honor", False):
             return "3H", "อาจไม่เกมถ้าสั้น S"
         if 11 <= hcp <= 12 and d <= 3 and extra_info.get("has_d_honor", False):
             return "3D", "อาจไม่เกมถ้าสั้น D"
 
+        if 11 <= hcp <= 12 and c <= 3 and extra_info.get("has_c_honor", False):
+            return "3C", "อาจไม่เกมถ้าสั้น C"
+            
+        return "4H"," game not slame"
+
     # ----------------------------------------------------
     # CASE: 1H - 3C
     # ----------------------------------------------------
     elif response == "3C":
-        if has_short_suit:
-            return "4H", "minimum with short"
+        
         if hcp >= 16 and d <= 1:
             return "4C", "splinter Transfer"
         if hcp >= 16 and c <= 1:
             return "3N", "splinter Transfer"
         if hcp >= 16 and s <= 1:
             return "3S", "splinter S"
-        if hcp >= 14 and not has_short_suit:
+        if hcp >= 14:
             return "3D", "สนใจเกมถ้า 10-12"
         if 11 <= hcp <= 13 and not has_short_suit:
             return "3H", "bad hand"
+        return "4H", 11-13 with short"
 
     # ----------------------------------------------------
     # CASE: 1H - 3D
     # ----------------------------------------------------
     elif response == "3D":
-        # คำนวณสูตร Hand Evaluation ตามกฎ: Hcp + Singleton(3) + void(5) + (จำนวนH-5)*4 + second suit >= 22
-        h_count = h
-        computed_val = hcp + (3 if has_short_suit else 0) + ((h_count - 5) * 4 if h_count > 5 else 0)
-        if computed_val >= 22:
-            return "4H", "Formula >= 22"
-        if hcp >= 17 and has_short_suit:
-            return "3N", "17+ any short"
-        return "3H", "waiting 0-5 ไม่เกม"
+        return "3D", "waiting <==ถ้าไพ่ที่อยากบลอค์ 4H ก็ทำได้แต่ตอนนี้ยังนึกไม่ออกว่าไพ่แบบไหนบิดเลย"
 
     # ----------------------------------------------------
     # CASE: 1H - 3H
