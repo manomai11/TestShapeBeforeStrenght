@@ -11,7 +11,7 @@ from engine import (
     response_1c,
     opener_rebid_1c,
     opener_rebid_1d,
-    opener_rebid_1h,
+    opener_rebid_1h,  # <-- เติมคอมมาตรงนี้ครับ
 )
 
 # ==================================================
