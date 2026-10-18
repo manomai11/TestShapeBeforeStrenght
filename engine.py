@@ -1598,7 +1598,7 @@ def opener_rebid_1h(response, hcp, shape, extra_info=None):
             return "3D", "สนใจเกมถ้า 10-12"
         if 11 <= hcp <= 13 and not has_short_suit:
             return "3H", "bad hand"
-        return "4H", 11-13 with short"
+        return "4H", "11-13 with short"
 
     # ----------------------------------------------------
     # CASE: 1H - 3D
