@@ -448,6 +448,8 @@ elif st.session_state.page == "menu":
             start_new_practice("opener_1c_rebid")
         if st.button("Opener 1D Rebid", use_container_width=True):
             start_new_practice("opener_1d_rebid")
+        if st.button("Opener 1H Rebid", use_container_width=True):
+            start_new_practice("opener_1h_rebid")
 
     with col_m4:
         st.markdown("### ส่วนที่ 4")
@@ -474,6 +476,7 @@ elif st.session_state.page in [
     "response_1s",
     "opener_1c_rebid",
     "opener_1d_rebid",
+    "opener_1h_rebid",
 ]:
 
     if st.session_state.current_hand_data is None:
@@ -494,6 +497,7 @@ elif st.session_state.page in [
         "response_1s": "Response 1S",
         "opener_1c_rebid": "Opener 1C Rebid Practice",
         "opener_1d_rebid": "Opener 1D Rebid Practice",
+        "opener_1h_rebid": "Opener 1H Rebid Practice",
     }
     current_topic_name = titles.get(st.session_state.page, "Bridge Practice")
 
