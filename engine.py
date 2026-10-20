@@ -1573,11 +1573,11 @@ def opener_rebid_1h(response, hcp, shape, extra_info=None):
         if hcp >= 16 or (hcp >= 13 and has_short_suit):
             return "3C", "ask short suit we have good hand "
 
-        if 11 <= hcp <= 12 and s <= 3 and extra_info.get("has_s_honor", False):
+        if 11 <= hcp <= 12 and h == 5 and s <= 3 and extra_info.get("has_s_honor", False):
             return "3H", "อาจไม่เกมถ้าสั้น S"
-        if 11 <= hcp <= 12 and d <= 3 and extra_info.get("has_d_honor", False):
+        if 11 <= hcp <= 12 and h == 5 and d <= 3 and extra_info.get("has_d_honor", False):
             return "3D", "อาจไม่เกมถ้าสั้น D"
-        if 11 <= hcp <= 12 and c <= 3 and extra_info.get("has_c_honor", False):
+        if 11 <= hcp <= 12 and h == 5 and c <= 3 and extra_info.get("has_c_honor", False):
             return "3C", "อาจไม่เกมถ้าสั้น C"
             
         return "4H"," game not slame"
