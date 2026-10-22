@@ -541,6 +541,7 @@ elif st.session_state.page in [
     "opener_1c_rebid",
     "opener_1d_rebid",
     "opener_1h_rebid",
+    "opener_1s_rebid",  # <--- เพิ่มบรรทัดนี้ครับ
 ]:
 
     if st.session_state.current_hand_data is None:
