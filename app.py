@@ -13,6 +13,7 @@ from engine import (
     opener_rebid_1d,
     opener_rebid_1h,
     opener_rebid_1s, 
+    is_balanced,  # <--- เพิ่มบรรทัดนี้ครับ
 )
 
 # ==================================================
