@@ -6,12 +6,13 @@ import streamlit as st
 from engine import (
     opening_bid,
     response_1nt,
-    response_1major,  # <-- เพิ่มบรรทัดนี้เข้าไปครับ
+    response_1major,  
     response_1d,
     response_1c,
     opener_rebid_1c,
     opener_rebid_1d,
     opener_rebid_1h,
+    opener_rebid_1s, 
 )
 
 # ==================================================
@@ -221,6 +222,54 @@ def get_next_question_data(mode_type):
                 continue
                                     
             st.session_state.current_auction_context = f"1H ➔ {resp}"
+
+        elif mode_type == "opener_1s_rebid":
+            # 1. เช็คก่อนว่ามือนี้เปิด 1S จริงไหม ถ้าไม่ใช่ให้สุ่มใหม่
+            opening_check = opening_bid(hcp, shape)
+            if not opening_check or opening_check[0] != "1S":
+                continue
+            
+            # 2. สุ่ม Response หลังเปิด 1S
+            responses = ["1N", "2C", "2D", "2H", "2S", "2N", "3C", "3D", "3H", "3S", "3N", "4C"]
+            weights   = [ 15,   15,   15,   10,   10,    8,    8,    5,    5,    3,    3,     3 ]
+            resp = random.choices(responses, weights=weights, k=1)[0]
+            
+            # เตรียมข้อมูลเสริมสำหรับคำนวณกฎเฉพาะของ 1S Rebid (เช่น แต้มชุดแดง, ชุดเหลี่ยม, ชุด C, short suit ฯลฯ)
+            s_cards, h_cards, d_cards, c_cards = hand["S"], hand["H"], hand["D"], hand["C"]
+            
+            # หา short suit
+            lengths = {"S": len(s_cards), "H": len(h_cards), "D": len(d_cards), "C": len(c_cards)}
+            short_suit = min(lengths, key=lengths.get) if min(lengths.values()) <= 1 else None
+            
+            # คำนวณแต้มชุดต่างๆ ตามเงื่อนไขในกฎของคุณ
+            red_points = sum(HCP_MAP.get(c, 0) for s in ["H", "D"] for c in hand[s])
+            diamond_points = sum(HCP_MAP.get(c, 0) for c in hand["D"])
+            c_points = sum(HCP_MAP.get(c, 0) for c in hand["C"])
+            
+            unused_red_points = sum(HCP_MAP.get(c, 0) for c in h_cards if c != "A")
+            unused_c_points = sum(HCP_MAP.get(c, 0) for c in c_cards if c != "A")
+            unused_diamond_points = sum(HCP_MAP.get(c, 0) for c in d_cards if c != "A")
+
+            extra_info = {
+                "short_suit": short_suit,
+                "red_points": red_points,
+                "diamond_points": diamond_points,
+                "c_points": c_points,
+                "unused_red_points": unused_red_points,
+                "unused_c_points": unused_c_points,
+                "unused_diamond_points": unused_diamond_points,
+                "S": len(s_cards),
+                "H": len(h_cards),
+                "D": len(d_cards),
+                "C": len(c_cards),
+                "balanced": is_balanced(shape)
+            }
+            
+            ans = opener_rebid_1s(resp, hcp, shape, extra_info)
+            if not ans:
+                continue
+                
+            st.session_state.current_auction_context = f"1S ➔ {resp}"
             
         elif mode_type == "opening":
             ans = opening_bid(hcp, shape)
@@ -462,6 +511,8 @@ elif st.session_state.page == "menu":
             start_new_practice("opener_1d_rebid")
         if st.button("Opener 1H Rebid", use_container_width=True):
             start_new_practice("opener_1h_rebid")
+        if st.button("Opener 1S Rebid", use_container_width=True):  # <--- เพิ่มปุ่มนี้
+            start_new_practice("opener_1s_rebid")
 
     with col_m4:
         st.markdown("### ส่วนที่ 4")
@@ -510,6 +561,7 @@ elif st.session_state.page in [
         "opener_1c_rebid": "Opener 1C Rebid Practice",
         "opener_1d_rebid": "Opener 1D Rebid Practice",
         "opener_1h_rebid": "Opener 1H Rebid Practice",
+        "opener_1s_rebid": "Opener 1S Rebid Practice",
     }
     current_topic_name = titles.get(st.session_state.page, "Bridge Practice")
 
@@ -754,6 +806,15 @@ elif st.session_state.page in [
 - 1H - 2D
 - 2H 11-13 other Game Try
                 """,  # <--- ปิดด้วยเครื่องหมายคำพูด 3 ตัวและใส่คอมมาให้ถูกต้อง
+                                "opener_1s_rebid": """
+**Opener 1S Rebid Rules:**
+- 1S - 1N: 2C 11-15 C4+ or 16+ any, 2D 11-15 D4+, 2H =11-15 D4+, 2S = 14-15 S6, 2N = Big NT
+- 1S - 2C: Transfer responses (2D=H, 2H=S, 2S=C, 2N/3C=D short, etc.)
+- 1S - 2D: 2H = waiting, 2S NF ทน 2H ไม่ไหว 2N = 16+ H2+ ,3H = 14-15 H3+, other 17+ S6/D4/C4,
+- 1S - 2H / 2N: Asking,other = Game try with short suit 
+- 1S - 2N: เปรียบเทียบแต้มหักชุดแดง/เหลี่ยม/จิก ถ้าตัวน้อย <20 บิดชุดนั้นบอกว่าถ้าสั้นชุดนี้อาจไม่เกม ส่วน 3C อาจเป็นไพ่ดีที่สุด ถามว่าสั้นชุดไหน 
+- 1S - 3C/3D/3H/3N: 4S = 11-14 ไพ่มีตัวเสีย, other next step
+                """,
             }
             return sheets.get(mode, "หลักการ Shape Before Strength: หา Fit & Shape ก่อนแต้ม")
 
