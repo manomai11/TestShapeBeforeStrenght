@@ -1659,8 +1659,8 @@ def opener_rebid_1h(response, hcp, shape, extra_info=None):
         return "PASS", "ไม่น่าไปสแลมไหว"
 
     return "PASS", "no good bid for 1H rebid"
-    # ==========================================
-# OPENER REBID AFTER 1S
+# ==========================================
+# OPENER REBID AFTER 1S (Safe Version)
 # ==========================================
 
 def opener_rebid_1s(response, hcp, shape, extra_info=None):
@@ -1671,13 +1671,12 @@ def opener_rebid_1s(response, hcp, shape, extra_info=None):
     h = extra_info.get("H", int(shape[1]))
     d = extra_info.get("D", int(shape[2]))
     c = extra_info.get("C", int(shape[3]))
-    balanced = extra_info.get("balanced", is_balanced(shape))
+    balanced = extra_info.get("balanced", False)
     short_suit = extra_info.get("short_suit", None)
     
-    # สมมติ A และ B หรือแต้มรวม (total_point) จาก hcp + distribution
     total_point = hcp + extra_info.get("distribution_point", 0)
     a_min = total_point
-    b_max = total_point + 3 # หรือปรับตามการคำนวณจริง
+    b_max = total_point + 3
 
     # --- 1S - 1N ---
     if response == "1N":
@@ -1698,6 +1697,7 @@ def opener_rebid_1s(response, hcp, shape, extra_info=None):
             if h >= 4: return "2H", "11-15 H4+"
             if d >= 4: return "2D", "11-15 D4+"
             if c >= 4 or hcp >= 16: return "2C", "11-15 C4+ or 16+ any"
+        return "PASS", "11-15 Default pass"
 
     # --- 1S - 2C ---
     elif response == "2C":
@@ -1710,6 +1710,7 @@ def opener_rebid_1s(response, hcp, shape, extra_info=None):
         if d >= 5: return "3H", "S5D5"
         if 17 <= hcp <= 19 and balanced and h == 3: return "3S", "Big NT oM3"
         if 17 <= hcp <= 19 and balanced and h == 2: return "3N", "Big NT oM2"
+        return "2H", "Default 2H"
 
     # --- 1S - 2D ---
     elif response == "2D":
@@ -1720,6 +1721,7 @@ def opener_rebid_1s(response, hcp, shape, extra_info=None):
         if hcp >= 16 and h >= 2: return "2N", "asking"
         if 14 <= hcp <= 16 and s >= 6 and h < 2: return "2S", "S6+ ทนเดิน 2H ไม่ไหว"
         if 11 <= hcp <= 15: return "2H", "waiting"
+        return "2H", "Default 2H"
 
     # --- 1S - 2H / 2S ---
     elif response in ["2H", "2S"]:
@@ -1772,6 +1774,6 @@ def opener_rebid_1s(response, hcp, shape, extra_info=None):
     # --- 1S - 3S ---
     elif response == "3S":
         if a_min > 20: return "4S", "ยิง"
-        return "Pass", "ไม่น่าเกม"
+        return "PASS", "ไม่น่าเกม"
 
     return "PASS", "no good bid for 1S rebid"
