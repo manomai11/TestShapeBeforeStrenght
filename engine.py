@@ -1659,3 +1659,119 @@ def opener_rebid_1h(response, hcp, shape, extra_info=None):
         return "PASS", "ไม่น่าไปสแลมไหว"
 
     return "PASS", "no good bid for 1H rebid"
+    # ==========================================
+# OPENER REBID AFTER 1S
+# ==========================================
+
+def opener_rebid_1s(response, hcp, shape, extra_info=None):
+    if extra_info is None:
+        extra_info = {}
+    
+    s = extra_info.get("S", int(shape[0]))
+    h = extra_info.get("H", int(shape[1]))
+    d = extra_info.get("D", int(shape[2]))
+    c = extra_info.get("C", int(shape[3]))
+    balanced = extra_info.get("balanced", is_balanced(shape))
+    short_suit = extra_info.get("short_suit", None)
+    
+    # สมมติ A และ B หรือแต้มรวม (total_point) จาก hcp + distribution
+    total_point = hcp + extra_info.get("distribution_point", 0)
+    a_min = total_point
+    b_max = total_point + 3 # หรือปรับตามการคำนวณจริง
+
+    # --- 1S - 1N ---
+    if response == "1N":
+        sec_suit_len = extra_info.get("sec_suit_len", max(h, d, c))
+        if 11 <= hcp <= 15:
+            if s >= 8: return "4S", "11-15 S8+"
+            if s == 7: return "3S", "11-15 S7"
+            if s >= 6 and sec_suit_len >= 5: return "3N", "11-15 S6+ second suit 5+"
+            if h >= 6: return "4H", "11-15 H6+"
+            if d >= 6: return "4D", "11-15 D6+"
+            if c >= 6: return "4C", "11-15 C6+"
+        if 15 <= hcp <= 16 and h >= 5: return "3H", "15-16 H5+"
+        if 15 <= hcp <= 17 and d >= 5: return "3D", "15-17 D5+"
+        if 15 <= hcp <= 17 and c >= 5: return "3C", "15-17 C5+"
+        if 17 <= hcp <= 19 and balanced: return "2N", "Big NT"
+        if 14 <= hcp <= 15 and s >= 6: return "2S", "14-15 S6+"
+        if 11 <= hcp <= 15:
+            if h >= 4: return "2H", "11-15 H4+"
+            if d >= 4: return "2D", "11-15 D4+"
+            if c >= 4 or hcp >= 16: return "2C", "11-15 C4+ or 16+ any"
+
+    # --- 1S - 2C ---
+    elif response == "2C":
+        if h >= 4: return "2D", "Transfer H"
+        if s >= 6: return "2H", "Transfer S"
+        if c >= 4: return "2S", "Transfer C"
+        if d >= 4 and short_suit == 'H': return "2N", "Transfer D short Hi"
+        if d >= 4 and short_suit == 'C': return "3C", "Transfer D short Lo"
+        if d >= 4 and shape == "5242": return "3D", "Transfer D no short"
+        if d >= 5: return "3H", "S5D5"
+        if 17 <= hcp <= 19 and balanced and h == 3: return "3S", "Big NT oM3"
+        if 17 <= hcp <= 19 and balanced and h == 2: return "3N", "Big NT oM2"
+
+    # --- 1S - 2D ---
+    elif response == "2D":
+        if hcp >= 17 and s >= 6: return "3S", "17+ S6+"
+        if 14 <= hcp <= 15 and h == 4: return "3H", "14-15 H4"
+        if hcp >= 17 and d >= 4: return "3D", "17+ D4+"
+        if hcp >= 17 and c >= 4: return "3C", "17+ C4+"
+        if hcp >= 16 and h >= 2: return "2N", "asking"
+        if 14 <= hcp <= 16 and s >= 6 and h < 2: return "2S", "S6+ ทนเดิน 2H ไม่ไหว"
+        if 11 <= hcp <= 15: return "2H", "waiting"
+
+    # --- 1S - 2H / 2S ---
+    elif response in ["2H", "2S"]:
+        if a_min > 25 and b_max < 30 and not short_suit: return "4S", "not interest slam"
+        if a_min > 22 and b_max < 25 and s >= 6 and short_suit == 'H': return "3H", "Game try short H"
+        if a_min > 22 and b_max < 25 and s >= 6 and short_suit == 'D': return "3D", "Game try short D"
+        if a_min > 22 and b_max < 25 and s >= 6 and short_suit == 'C': return "3C", "Game try short C"
+        if b_max < 25 and s == 5 and not short_suit: return "2S", "not interest game"
+        return "2N", "Asking"
+
+    # --- 1S - 2N ---
+    elif response == "2N":
+        e = a_min - extra_info.get("red_points", 0)
+        f = a_min - extra_info.get("diamond_points", 0)
+        g = a_min - extra_info.get("c_points", 0)
+        min_efg = min(e, f, g)
+        if min_efg == e and e < 20: return "3H", "สั้น H อาจไม่เกม"
+        elif min_efg == f and f < 20: return "3D", "สั้น D อาจไม่เกม"
+        elif min_efg == g and g < 20: return "3C", "สั้น C อาจไม่เกม"
+        return "3C", "ถามชุดสั้น สนใจสแลม"
+
+    # --- 1S - 3C ---
+    elif response == "3C":
+        if a_min > 24 and b_max < 30: return "4S", "To play"
+        if b_max < 25: return "3S", "minimum hand"
+        return "3D", "สนใจเกม ถ้าถือ 10-12"
+
+    # --- 1S - 3D ---
+    elif response == "3D":
+        return "3S", "waiting"
+
+    # --- 1S - 3H ---
+    elif response == "3H":
+        k = hcp - extra_info.get("unused_red_points", 0) + 13
+        if k < 25: return "4S", "K < 25"
+        return "3S", "สนใจสแลม"
+
+    # --- 1S - 3N ---
+    elif response == "3N":
+        k = hcp - extra_info.get("unused_c_points", 0) + 13
+        if k < 25: return "4S", "K < 25"
+        return "4C", "สนใจสแลม"
+
+    # --- 1S - 4C ---
+    elif response == "4C":
+        k = hcp - extra_info.get("unused_diamond_points", 0) + 13
+        if k < 25: return "4S", "K < 25"
+        return "4D", "สนใจสแลม"
+
+    # --- 1S - 3S ---
+    elif response == "3S":
+        if a_min > 20: return "4S", "ยิง"
+        return "Pass", "ไม่น่าเกม"
+
+    return "PASS", "no good bid for 1S rebid"
