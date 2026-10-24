@@ -13,7 +13,7 @@ from engine import (
     opener_rebid_1d,
     opener_rebid_1h,
     opener_rebid_1s, 
-    is_balanced,  # <--- เพิ่มบรรทัดนี้ครับ
+    is_balanced,
 )
 
 # ==================================================
@@ -143,13 +143,13 @@ def get_next_question_data(mode_type):
             ans = response_1d(hcp, shape)
         elif mode_type == "response_1h":
             ans = response_1major("1H", hcp, shape)
+        elif mode_type == "response_1s":
+            ans = response_1major("1S", hcp, shape)
         elif mode_type == "opener_1c_rebid":
-            # 1. เช็คก่อนว่ามือนี้เปิด 1C จริงไหม ถ้าไม่ใช่ให้สุ่มใหม่
             opening_check = opening_bid(hcp, shape)
             if not opening_check or opening_check[0] != "1C":
                 continue
             
-            # 2. สุ่ม Response ตามน้ำหนักที่กำหนด
             responses = ["1D", "1H", "1S", "1N", "2C", "2D", "2H", "2S", "2N", "3C"]
             weights   = [ 24,   24,   8,   12,   8,   8,   8,   4,   2,   2 ]
             resp = random.choices(responses, weights=weights, k=1)[0]
@@ -162,31 +162,25 @@ def get_next_question_data(mode_type):
             if not ans:
                 continue
                 
-            # 3. บันทึก Sequence ไว้แสดงผล
             st.session_state.current_auction_context = f"1C ➔ {resp}"
             
         elif mode_type == "opener_1d_rebid":
-            # 1. เช็คก่อนว่ามือนี้เปิด 1D จริงไหม ถ้าไม่ใช่ให้สุ่มใหม่
             opening_check = opening_bid(hcp, shape)
             if not opening_check or opening_check[0] != "1D":
                 continue
             
-            # 2. สุ่ม Response ตามน้ำหนักที่กำหนด
             responses = ["1H", "1S", "1N", "2C", "2D", "2H", "2S", "2N", "3C", "3D"]
             weights   = [ 24,   24,   14,   8,    8,    8,    8,    2,    2,    2 ]
             resp = random.choices(responses, weights=weights, k=1)[0]
             
-            # --- เติม 2 บรรทัดนี้เพิ่มเข้าไปครับ ---
             d_cards = hand["D"]
             d_honors = sum(1 for card in d_cards if card in ["A", "K", "Q"])
-            
             extra_info = {"d_honors": d_honors}
             
             ans = opener_rebid_1d(resp, hcp, shape, extra_info)
             if not ans:
                 continue
                 
-            # 3. บันทึก Sequence ไว้แสดงผล
             st.session_state.current_auction_context = f"1D ➔ {resp}"
 
         elif mode_type == "opener_1h_rebid":
@@ -200,14 +194,10 @@ def get_next_question_data(mode_type):
             
             h_cards = hand["H"]
             h_honors = sum(1 for card in h_cards if card in ["A", "K", "Q"])
-            
-            # --- เพิ่มเช็ค Honor ในชุดอื่น ๆ สำหรับเคส Rebid ท้ายๆ ---
             s_cards = hand["S"]
             has_s_honor = any(card in ["K", "Q", "J"] for card in s_cards)
-            
             c_cards = hand["C"]
             has_c_honor = any(card in ["K", "Q", "J"] for card in c_cards)
-            
             d_cards = hand["D"]
             has_d_honor = any(card in ["K", "Q", "J"] for card in d_cards)
 
@@ -225,24 +215,18 @@ def get_next_question_data(mode_type):
             st.session_state.current_auction_context = f"1H ➔ {resp}"
 
         elif mode_type == "opener_1s_rebid":
-            # 1. เช็คก่อนว่ามือนี้เปิด 1S จริงไหม ถ้าไม่ใช่ให้สุ่มใหม่
             opening_check = opening_bid(hcp, shape)
             if not opening_check or opening_check[0] != "1S":
                 continue
             
-            # 2. สุ่ม Response หลังเปิด 1S
             responses = ["1N", "2C", "2D", "2H", "2S", "2N", "3C", "3D", "3H", "3S", "3N", "4C"]
             weights   = [ 15,   15,   15,   10,   10,    8,    8,    5,    5,    3,    3,     3 ]
             resp = random.choices(responses, weights=weights, k=1)[0]
             
-            # เตรียมข้อมูลเสริมสำหรับคำนวณกฎเฉพาะของ 1S Rebid (เช่น แต้มชุดแดง, ชุดเหลี่ยม, ชุด C, short suit ฯลฯ)
             s_cards, h_cards, d_cards, c_cards = hand["S"], hand["H"], hand["D"], hand["C"]
-            
-            # หา short suit
             lengths = {"S": len(s_cards), "H": len(h_cards), "D": len(d_cards), "C": len(c_cards)}
             short_suit = min(lengths, key=lengths.get) if min(lengths.values()) <= 1 else None
             
-            # คำนวณแต้มชุดต่างๆ ตามเงื่อนไขในกฎของคุณ
             red_points = sum(HCP_MAP.get(c, 0) for s in ["H", "D"] for c in hand[s])
             diamond_points = sum(HCP_MAP.get(c, 0) for c in hand["D"])
             c_points = sum(HCP_MAP.get(c, 0) for c in hand["C"])
@@ -271,11 +255,8 @@ def get_next_question_data(mode_type):
                 continue
                 
             st.session_state.current_auction_context = f"1S ➔ {resp}"
-            
-        elif mode_type == "opening":
-            ans = opening_bid(hcp, shape)
         else:
-            ans = response_1major("1S", hcp, shape)
+            ans = ("PASS", "No matching mode")
             
         if ans == "PASS":
             if st.session_state.pass_count_in_set >= 1:
@@ -328,7 +309,6 @@ def save_session_to_db(player_name, mode, score):
     conn.commit()
     conn.close()
 
-# ฟังก์ชันแจกจ่ายคำคม/เพลงที่แตกต่างกันตามโหมด
 def get_cheat_code_quote(mode):
     quotes = {
         "opening": [
@@ -343,7 +323,7 @@ def get_cheat_code_quote(mode):
         ],
         "response_1c": [
             "🎵 *'Club เล็กๆ แต่พลังยิ่งใหญ่ จุดประกายความหวัง'*",
-            "💡 **1C Mindset:** ก้าวเล็กที่มั่น and safe คือทางสู่เกมนิรันดร์",
+            "💡 **1C Mindset:** ก้าวเล็กที่มั่นและ safe คือทางสู่เกมนิรันดร์",
             "🔥 'คลับที่เรียบง่าย ซ่อนเร้นพลังมหาศาลไว้เสมอ'"
         ],
         "response_1d": [
@@ -374,29 +354,20 @@ if st.session_state.page == "login":
     left, right = st.columns([3, 2])
 
     with left:
-
         st.title("♠ Shape Before Strength")
-
         st.markdown("""
 ### A Modern Low-Information Transfer Club System
 
 ### Learn • Practice • Improve
 """)
-
         st.markdown("""
-เรียนรู้และฝึกประมูลไพ่บริดจ์ตามระบบ
+เรียนรู้และฝึกประมูลไพ่บริดจ์ตามระบบ **Shape Before Strength**
 
-**Shape Before Strength**
-
-✅ วิเคราะห์ Shape ก่อนแต้ม
-
-✅ ใช้การบิดแบบ Transfer
-
-✅ เปิดเผยข้อมูลให้น้อยที่สุด
-
-✅ หา Fit อย่างมีประสิทธิภาพ
-
-✅ ฝึกผ่านโจทย์จริง
+✅ วิเคราะห์ Shape ก่อนแต้ม  
+✅ ใช้การบิดแบบ Transfer  
+✅ เปิดเผยข้อมูลให้น้อยที่สุด  
+✅ หา Fit อย่างมีประสิทธิภาพ  
+✅ ฝึกผ่านโจทย์จริง  
 """)
 
     with right:
@@ -475,11 +446,10 @@ elif st.session_state.page == "trainer_dashboard":
 
 
 # ==================================================
-# 2. MENU SCREEN (4 Sections)
+# 2. MENU SCREEN
 # ==================================================
 
 elif st.session_state.page == "menu":
-
     st.title(f"Welcome, {st.session_state.player_name} 👋")
     st.markdown("### ♠ SHAPE BEFORE STRENGTH — หน้าเลือกเมนูแบบฝึกหัด")
     st.write("เลือกหัวข้อแบบฝึกหัดที่คุณต้องการฝึกซ้อม (ชุดละ 20 ข้อ):")
@@ -512,7 +482,7 @@ elif st.session_state.page == "menu":
             start_new_practice("opener_1d_rebid")
         if st.button("Opener 1H Rebid", use_container_width=True):
             start_new_practice("opener_1h_rebid")
-        if st.button("Opener 1S Rebid", use_container_width=True):  # <--- เพิ่มปุ่มนี้
+        if st.button("Opener 1S Rebid", use_container_width=True):
             start_new_practice("opener_1s_rebid")
 
     with col_m4:
@@ -528,7 +498,7 @@ elif st.session_state.page == "menu":
 
 
 # ==================================================
-# 3. QUIZ SCREEN (3 Sections)
+# 3. QUIZ SCREEN
 # ==================================================
 
 elif st.session_state.page in [
@@ -541,9 +511,8 @@ elif st.session_state.page in [
     "opener_1c_rebid",
     "opener_1d_rebid",
     "opener_1h_rebid",
-    "opener_1s_rebid",  # <--- เพิ่มบรรทัดนี้ครับ
+    "opener_1s_rebid",
 ]:
-
     if st.session_state.current_hand_data is None:
         st.session_state.current_hand_data = get_next_question_data(st.session_state.page)
 
@@ -569,9 +538,6 @@ elif st.session_state.page in [
 
     col_q1, col_q2, col_q3 = st.columns([1, 2.8, 1.2])
 
-    # ----------------------------------
-    # QUIZ SECTION 1: เมนูซ้าย
-    # ----------------------------------
     with col_q1:
         if st.button("⬅ กลับหน้าเมนู", use_container_width=True):
             st.session_state.page = "menu"
@@ -581,9 +547,6 @@ elif st.session_state.page in [
         st.metric(label="คะแนนสะสม", value=f"{st.session_state.score} / 20")
         st.metric(label="ข้อปัจจุบัน", value=f"{st.session_state.question} / 20")
 
-    # ----------------------------------
-    # QUIZ SECTION 2: พื้นที่ตรงกลาง
-    # ----------------------------------
     with col_q2:
         st.markdown(f"### 📚 {current_topic_name} (ผู้เล่น: {st.session_state.player_name})")
         st.markdown("---")
@@ -606,7 +569,7 @@ elif st.session_state.page in [
         )
         
         st.caption(f"✨ **แต้มรวม (HCP):** {hcp} &nbsp;&nbsp;|&nbsp;&nbsp; 📊 **ทรงไพ่ (Shape):** {shape}")
-        # เพิ่มบรรทัดนี้เพื่อให้โชว์สถานการณ์การประมูลครับ
+        
         if st.session_state.page in ["opener_1c_rebid", "opener_1d_rebid", "opener_1h_rebid", "opener_1s_rebid"] and "current_auction_context" in st.session_state:
             st.info(f"🔄 **สถานการณ์การประมูล:** {st.session_state.current_auction_context}")
             
@@ -620,7 +583,6 @@ elif st.session_state.page in [
                 st.session_state[level_key] = None
 
             allowed_levels = ["1", "2", "3", "4", "5", "6", "7"]
-            
             cols_box = st.columns(8)
             
             with cols_box[0]:
@@ -677,156 +639,31 @@ elif st.session_state.page in [
                     st.session_state.page = "summary"
                     st.rerun()
 
-    # ----------------------------------
-    # QUIZ SECTION 3: ฝั่งขวา (Cheat Sheet / Cheat Code)
-    # ----------------------------------
     with col_q3:
         st.markdown("### 📌 Cheat Sheet")
         st.markdown("*(สรุปกติกาเร่งด่วน)*")
         
         def get_cheat_sheet_content(mode):
             sheets = {
-                "opening": """
-**Opening Rules:**
-- Pass = 0-10 HCP
-- 1C = 11-20 HCP, ♣ 2+ (ถ้า Balanced ไม่จำกัดว่าชุดต้องยาวกว่า เช่น 5332, 4432)
-- 1D = 11-20 HCP, Unbalanced, ♦ 4+
-- 1H = 11-20 HCP, M5 (ไม่มี 5332 ยกเว้นมี 17+ HCP)
-- 1S = 11-20 HCP, M5 (ไม่มี 5332 ยกเว้นมี 17+ HCP)
-- 1NT = 14-16 (Balanced)
-- 2C = 21+ or 8.5 PT
-- 2D = weak 1M or 17-20 M55
-- 2M = 11-13 M6 no second suit >4
-                """,
-                "response_1c": """
-**Response 1C Rules:**
-- 1D = Transfer H (4+)
-- 1H = Transfer S (4+)
-- 1S = 0-10, No M4, No Void
-- 1NT = GF, No M5
-- 2C = Transfer D
-- 2D = GI (C 5+)
-- 2H = GI Balanced (M<4m<5)
-- 3C = NF (C 6)
-                """,
-                "response_1nt": """
-**Response 1NT Rules:**
-- 2C = inverted stayman จะทะยอยเพิ่มรายละเอียดในเวป
-- 2D = Transfer to H or mss
-- 2H = Transfer to S
-- 2S/2N = transfer C/D
-- 3C = Ask M คนถามไม่มี M5 และแค่เกมไม่สนใจสแลม
-- 3D = GF 9+ M55 (GF 10+ M54 ใช้ 2C)
-- 3H = GF 3154 or 3145
-- 3S = GF 1354 or 1345
-- 3N = To play
-                """,
-                "response_1d": """
-**Response 1D Rules:**
-- Level 1 คล้าย เปิด 1C
-- 2C = NF C6+ or 3325 (แทน 1N  ที่คุณเคยเล่น)
-- 2D = NF D3-4
-- 2H = 11-12 Balance 
-- 2S = GI C5+ C>D
-- 3C = GI D4+ D>C
-- 3D = NF D5 or D4 with any short
-                """,
-                "response_1h": """
-**Response 1H Rules:**
-- 1S = S<5 แทน 1NFC
-- 1N = S5+ less than GF
-- 2C = GF RELAY
-- 2D = GI H3 or GF H3 with any short
-- 2H = constructive raised H3 or 3433
-- 2S = <10 S6
-- 2N = 10-12 H4+ with any short
-- 3C = 8-12 H4+ no short
-- 3D = 0-5 H4 or GF H4 with any void
-- 3H = 4-7 H4 4-5 must have A
-- 3S = GF H4+ singleton S
-- 3N = GF H4+ singleton C
-- 4C = GF H4+ singleton D
-- 4H = <10 H5 or H4+short
-                """,
-                "response_1s": """
-**Response 1S Rules:**
-- 1N = Force 1 round
-- 2C = GF RELAY
-- 2D = Transfer H
-- 2H = GI S3 or GF S3 with any short
-- 2S = constructive raised S3 or 4333
-- 2N up คล้าย open 1H
-                """,
-                "opener_1c_rebid": """
-**Opener 1C Rebid Rules:**
-- 1C - 1D or 1C - 1H
-- Extran hand 16+
-- 2N 17-19 Balanced M4
-- 2D Turbo Fit 16+ M3
-- 2oM Power Fit 16+ M4
-- 1N 17-19 Bal no M4 or 16+ M<3
-- Medium Hand 14-15
-- 2M 14-15 M4 
-- 3C 14-15 good C6+
-- minimum 11-15
-- 1M Accept transfer 11-13 Balanced or M4
-- 1S 11-15 S4 unbalanced
-- 2C 11-15 C5+ 
-                """,  # <--- ปิดด้วยเครื่องหมายคำพูด 3 ตัวและใส่คอมมาให้ถูกต้อง
-                "opener_1d_rebid": """
-**Opener 1D Rebid Rules:**
-- After 1D-1N (1C-1N)
-- 2C 444-1 or (balanced when open 1C)
-- 2D Transfer H
-- 2H Transfer S
-- 2S Transfer C(C6 when open 1C)
-- 2N Transfer D6 have short (D4 with short S when open 1C) 
-- 3C Transfer D6 no short (D4 with short H when open 1C)
-- (D4 no short 2245 when open 1C)
-- After 1D - 2H (1C-2H)
-- 2S F bid 2N 11-12 444-1 or 14+ any (14+ or 11-12 no m5)
-- 2N 11-13C<4(13 balanced )
-- 3C 11-12 C4+ (11-12 C5)
-- 3D 11-13 D6  (11-12 D5)
-                """,  # <--- ปิดด้วยเครื่องหมายคำพูด 3 ตัวและใส่คอมมาให้ถูกต้อง
-
-                "opener_1h_rebid": """
-**Opener 1H Rebid Rules:**
-- 1H - 1S
-- 1N 11-15 D4+ or 16+ any
-- 2C 11-15 C4+ 
-- 2D 11-15 S4
-- 2H 14-16 H6 no S4
-- 3m 15-17 m5
-- 1H - 1N
-- 2C 11-15 C4+ or 16+ any
-- 2D 11-15 D4+
-- 2H 14-16 H6
-- 2S 11-13 S3+
-- 2N 14-15 S5+
-- 3m 15-17 m5
-- 1H - 2D
-- 2H 11-13 other Game Try
-                """,  # <--- ปิดด้วยเครื่องหมายคำพูด 3 ตัวและใส่คอมมาให้ถูกต้อง
-                                "opener_1s_rebid": """
-**Opener 1S Rebid Rules:**
-- 1S - 1N: 2C 11-15 C4+ or 16+ any, 2D 11-15 D4+, 2H =11-15 D4+, 2S = 14-15 S6, 2N = Big NT
-- 1S - 2C: Transfer responses (2D=H, 2H=S, 2S=C, 2N/3C=D short, etc.)
-- 1S - 2D: 2H = waiting, 2S NF ทน 2H ไม่ไหว 2N = 16+ H2+ ,3H = 14-15 H3+, other 17+ S6/D4/C4,
-- 1S - 2H / 2N: Asking,other = Game try with short suit 
-- 1S - 2N: เปรียบเทียบแต้มหักชุดแดง/เหลี่ยม/จิก ถ้าตัวน้อย <20 บิดชุดนั้นบอกว่าถ้าสั้นชุดนี้อาจไม่เกม ส่วน 3C อาจเป็นไพ่ดีที่สุด ถามว่าสั้นชุดไหน 
-- 1S - 3C/3D/3H/3N: 4S = 11-14 ไพ่มีตัวเสีย, other next step
-                """,
+                "opening": "**Opening Rules:**\n- Pass = 0-10 HCP\n- 1C = 11-20 HCP, ♣ 2+\n- 1D = 11-20 HCP, Unbalanced, ♦ 4+\n- 1H/1S = 11-20 HCP, M5\n- 1NT = 14-16 Balanced",
+                "response_1c": "**Response 1C Rules:**\n- 1D = Transfer H\n- 1H = Transfer S\n- 1S = 0-10, No M4\n- 1NT = GF",
+                "response_1nt": "**Response 1NT Rules:**\n- 2C = Stayman\n- 2D/2H/2S/2N = Transfers\n- 3N = To Play",
+                "response_1d": "**Response 1D Rules:**\n- 1M = 4+ Major\n- 2C = NF C6+\n- 2H = 11-12 Balance",
+                "response_1h": "**Response 1H Rules:**\n- 1S = S<5\n- 2C = GF RELAY\n- 2H = Constructive H3",
+                "response_1s": "**Response 1S Rules:**\n- 1N = Force\n- 2D = Transfer H\n- 2S = Constructive S3",
+                "opener_1c_rebid": "**Opener 1C Rebid Rules:**\n- 2N = 17-19 Balanced\n- Power/Turbo Fit variants",
+                "opener_1d_rebid": "**Opener 1D Rebid Rules:**\n- Rebid structures based on response",
+                "opener_1h_rebid": "**Opener 1H Rebid Rules:**\n- Rebid structures after 1H",
+                "opener_1s_rebid": "**Opener 1S Rebid Rules:**\n- Rebid structures after 1S"
             }
-            return sheets.get(mode, "หลักการ Shape Before Strength: หา Fit & Shape ก่อนแต้ม")
+            return sheets.get(mode, "หลักการ Shape Before Strength")
 
         with st.expander("📖 เปิดดู Cheat Sheet", expanded=True):
             st.markdown(get_cheat_sheet_content(st.session_state.page))
 
         st.markdown("---")
         st.markdown("### 💡 คำคมประจำหมวด")
-        current_quote = get_cheat_code_quote(st.session_state.page)
-        st.info(current_quote)
+        st.info(get_cheat_code_quote(st.session_state.page))
 
 
 # ==================================================
@@ -835,19 +672,8 @@ elif st.session_state.page in [
 
 elif st.session_state.page == "summary":
     st.title("🎉 สรุปผลการฝึกซ้อมครบ 20 ข้อ")
-    
     st.markdown(f"### ผู้ฝึกซ้อม: {st.session_state.player_name}")
     st.metric(label="คะแนนรวมที่คุณทำได้", value=f"{st.session_state.score} / 20")
-    
-    percentage = (st.session_state.score / 20) * 100
-    if percentage >= 80:
-        st.success("🌟 ยอดเยี่ยมมาก! บันทึกสถิติลงระบบเรียบร้อยแล้ว")
-    elif percentage >= 50:
-        st.info("👍 ทำได้ดี! ระบบได้บันทึกสถิติการฝึกรอบนี้ไว้แล้ว")
-    else:
-        st.warning("💪 สู้ๆ ครับ บันทึกผลไว้แล้ว ลองกลับมาฝึกซ้อมซ้ำเพื่อพัฒนาการที่ดีขึ้น!")
-
-    st.markdown("<br>", unsafe_allow_html=True)
     
     col_s1, col_s2 = st.columns(2)
     with col_s1:
