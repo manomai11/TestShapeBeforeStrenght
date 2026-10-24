@@ -1265,10 +1265,11 @@ def opener_rebid_1h(response, hcp, shape, extra_info=None):
 
     elif response == "1N":
         sec_suit_len = extra_info.get("sec_suit_len", max(s, d, c))
-        if 14 <= hcp <= 15 and s >= 4: return "3S", "14-15 S4"
+        if 14 <= hcp <= 15 and s >= 4: return "3S", "14-15 S4+"
+        if 11 <= hcp <= 15 and s >= 3: return "2S", "11-13 S3+"    
         if 11 <= hcp <= 15:
-            if h >= 8: return "4H", "11-15 H8+"
-            if h == 7: return "3H", "11-15 H7"
+            if h >= 8 and s <= 3: return "4H", "11-15 H8+"
+            if h == 7 and s <= 3: return "3H", "11-15 H7"
             if h >= 6 and sec_suit_len >= 5: return "3N", "11-15 H6+ second suit 5+"
             if d >= 6: return "4D", "11-15 D6+"
             if c >= 6: return "4C", "11-15 C6+"
@@ -1277,7 +1278,6 @@ def opener_rebid_1h(response, hcp, shape, extra_info=None):
         if 17 <= hcp <= 19 and shape == "2533": return "2N", "Big NT"
         if 14 <= hcp <= 15 and h >= 6: return "2H", "14-15 S6+"
         if 11 <= hcp <= 15:
-            if s >= 3: return "2S", "11-13 S3+"
             if d >= 4: return "2D", "11-15 D4+"
             if c >= 4 or hcp >= 16: return "2C", "11-15 C4+ or 16+ any"
 
