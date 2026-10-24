@@ -1406,140 +1406,84 @@ def opener_rebid_1h(response, hcp, shape, extra_info=None):
 
     if extra_info is None:
         extra_info = {}
+    s = extra_info.get("S", int(shape[0]))
+    h = extra_info.get("H", int(shape[1]))
+    d = extra_info.get("D", int(shape[2]))
+    c = extra_info.get("C", int(shape[3]))
+    balanced = extra_info.get("balanced", False)
+    short_suit = extra_info.get("short_suit", None)
     
-    s, h, d, c = shape_lengths(shape)
-    balanced = is_balanced(shape)
-    has_short_suit = has_short(shape)
-    s_honors = extra_info.get("s_honors", 0) # จำนวนตัว A, K, Q ในชุด D
-    has_s_honor = extra_info.get("has_s_honor", False)
-    has_c_honor = extra_info.get("has_c_honor", False)
-    has_d_honor = extra_info.get("has_d_honor", False)
+    total_point = hcp + extra_info.get("distribution_point", 0)
+    a_min = total_point
+    b_max = total_point + 3 
     
     # ----------------------------------------------------
     # CASE: 1H - 1S
     # ----------------------------------------------------
     if response == "1S":
-        # Rule 1: 4H priority 1000 (13-15 H6+ m5 )
-        if 13 <= hcp <= 15 and h >= 6 and (d >= 5 or c >= 5):
-            return "4H", "H6m5"
-        # Rule 2: 4C priority 950 (13-15 C6+)
-        if 13 <= hcp <= 15 and c >= 6:
-            return "4C", "C6H5"
-        # Rule 3: 4D priority 930 (13-15 D6+)
-        if 13 <= hcp <= 15 and d >= 6:
-            return "4D", "D6H5"
-        # Rule 4: 3H priority 900 (11-15 H7)
-        if 11 <= hcp <= 15 and h >= 7:
-            return "3H", "minimum H7"
-        # Rule 5: 3C priority 800 (15-17 C5+)
-        if 15 <= hcp <= 17 and c >= 5:
-            return "3C", "15-17 C5"
-        # Rule 6: 3D priority 750 (15-17 D5+)
-        if 15 <= hcp <= 17 and d >= 5:
-            return "3D", "15-17 D5"
-        # Rule 7: 2H priority 700 (14-16 H6+)
-        if 14 <= hcp <= 16 and h >= 6:
-            return "2H", "medium H6"
-        # Rule 8: 2S priority 600 (11-15 S5) -> แก้ไขตามเงื่อนไข (min H6S5 หรือ S5)
-        if 11 <= hcp <= 15 and s >= 5:
-            return "2S", "minimum H6S5"
-        # Rule 9: 2D priority 500 (11-15 S4+)
-        if 11 <= hcp <= 15 and s >= 4:
-            return "2D", "minimum S"
-        # Rule 10: 2C priority 400 (11-15 C4+)
-        if 11 <= hcp <= 15 and c >= 4:
-            return "2C", "minimum C"
-        # Rule 11: 1N priority 300 (11-15 D4+ or 16+ any)
-        if (11 <= hcp <= 15 and d >= 4) or hcp >= 16:
-            return "1N", "minimum D or Extra any"
-        return "2N", "Error"
+        sec_suit_len = extra_info.get("sec_suit_len", max(s, d, c))
+        if 11 <= hcp <= 15:
+            if h >= 8: return "4H", "11-15 H8+"
+            if h == 7: return "3H", "11-15 H7"
+            if s >= 5: return "2S", "11-15 S5+"
+            if h >= 6 and sec_suit_len >= 5: return "3N", "11-15 H6+ m5+"
+            if d >= 6: return "4D", "11-15 D6+"
+            if c >= 6: return "4C", "11-15 C6+"
+        if 15 <= hcp <= 16 and s >= 5: return "3S", "15-16 S5+"
+        if 15 <= hcp <= 17 and d >= 5: return "3D", "15-17 D5+"
+        if 15 <= hcp <= 17 and c >= 5: return "3C", "15-17 C5+"
+        if 17 <= hcp <= 19 and balanced: return "2N", "Big NT"
+        if 14 <= hcp <= 15 and h >= 6: return "2H", "14-15 H6+"
+        if 11 <= hcp <= 15:
+            if s == 4: return "2D", "11-15 S4"
+            if c >= 4: return "2C", "11-15 C4+"
+            if d >= 4 or hcp >= 16: return "1N", "11-15 D4+ or 16+ any"
 
     # ----------------------------------------------------
     # CASE: 1H - 1NT (1N)
     # ----------------------------------------------------
     elif response == "1N":
-        # Rule 1: 4H priority 1000
-        if 13 <= hcp <= 15 and h >= 6 and (d >= 5 or c >= 5):
-            return "4H", "H6m5"
-        # Rule 2: 4C priority 950
-        if 13 <= hcp <= 15 and c >= 6:
-            return "4C", "C6H5"
-        # Rule 3: 4D priority 930
-        if 13 <= hcp <= 15 and d >= 6:
-            return "4D", "D6H5"
-        # Rule 4: 3S priority 950 (14-15 S3+)
-        if 14 <= hcp <= 15 and s >= 3:
-            return "3S", "Medium S4"
-        # Rule 4 (ซ้ำ): 3H priority 900 (11-15 H7 S<3)
-        if 11 <= hcp <= 15 and h >= 7 and s < 3:
-            return "3H", "minimum H7"
-        # Rule 5: 3C priority 800 (15-17 C5+)
-        if 15 <= hcp <= 17 and c >= 5:
-            return "3C", "15-17 C5"
-        # Rule 6: 3D priority 750 (15-17 D5+)
-        if 15 <= hcp <= 17 and d >= 5:
-            return "3D", "15-17 D5"
-        # Rule 7: 2H priority 700 (14-16 H6+)
-        if 14 <= hcp <= 16 and h >= 6:
-            return "2H", "medium H6"
-        # Rule 8: 2N priority 600 (16+ S3+)
-        if hcp >= 16 and s >= 3:
-            return "2N", "Extra S3+"
-        # Rule 9: 2S priority 500 (11-13 S3+)
-        if 11 <= hcp <= 13 and s >= 3:
-            return "2S", "11-13 S3+"
-        # Rule 10: 2D priority 400 (11-15 D4)
-        if 11 <= hcp <= 15 and d == 4:
-            return "2D", "minimum D4"
-        # Rule 11: 2C priority 300 (ที่เหลือ)
-        return "2C", "Minimum C4 or Extra"
+        sec_suit_len = extra_info.get("sec_suit_len", max(s, d, c))
+        if 14 <= hcp <= 15 and S >= 4: return "3S", "14-15 S4"
+        if 11 <= hcp <= 15:
+            if h >= 8: return "4H", "11-15 H8+"
+            if h == 7: return "3H", "11-15 H7"
+            if h >= 6 and sec_suit_len >= 5: return "3N", "11-15 H6+ second suit 5+"
+            if d >= 6: return "4D", "11-15 D6+"
+            if c >= 6: return "4C", "11-15 C6+"
+        if 15 <= hcp <= 17 and d >= 5: return "3D", "15-17 D5+"
+        if 15 <= hcp <= 17 and c >= 5: return "3C", "15-17 C5+"
+        if 17 <= hcp <= 19 and shape == "2533": return "2N", "Big NT"
+        if 14 <= hcp <= 15 and h >= 6: return "2H", "14-15 S6+"
+        if 11 <= hcp <= 15:
+            if s >= 3: return "2S", "11-13 S3+"
+            if d >= 4: return "2D", "11-15 D4+"
+            if c >= 4 or hcp >= 16: return "2C", "11-15 C4+ or 16+ any"
 
     # ----------------------------------------------------
     # CASE: 1H - 2C
     # ----------------------------------------------------
     elif response == "2C":
-        if h >= 6:
-            return "2D", "Transfer H (H6+)"
-        if s == 4:
-            return "2H", "Transfer S"
-        if c == 4:
-            return "2S", "Transfer C"
-        if d == 4 and s <= 1:
-            return "2N", "Transfer Last suit with short Hi"
-        if d == 4 and c <= 1:
-            return "3C", "Transfer Last suit with short Lo"
-        if d == 4:
-            return "3D", "Transfer Last suit with no short"
-            
-        return "3H", "17-19 Balanced"
+        if h >= 6: return "2D", "Transfer H"
+        if s >= 4: return "2H", "Transfer S"
+        if c >= 4: return "2S", "Transfer C"
+        if d >= 4 and short_suit == 'S': return "2N", "Transfer D short Hi"
+        if d >= 4 and short_suit == 'C': return "3C", "Transfer D short Lo"
+        if d >= 4 and shape == "2542": return "3D", "Transfer D no short"
+        if d >= 5: return "3H", "S5D5"
+        if 17 <= hcp <= 19 and balanced and s == 3: return "3S", "Big NT S3"
+        if 17 <= hcp <= 19 and balanced and h == 2: return "3N", "Big NT S2"
 
     # ----------------------------------------------------
-    # CASE: 1H - 2D
+    # CASE: 1H - 2D/2H
     # ----------------------------------------------------
-    elif response == "2D":
-        if hcp >= 11 and h >= 6 and s <= 1:
-            return "2N", "Short suit game try (S)"
-        if hcp >= 11 and h >= 6 and c <= 1:
-            return "3C", "Short suit game try (C)"
-        if hcp >= 11 and h >= 6 and d <= 1:
-            return "3D", "Short suit game try (D)"
-        if hcp >= 14:
-            return "2S", "Ask min max + honor"
-        return "2H", "waiting not good for invite"
-
-    # ----------------------------------------------------
-    # CASE: 1H - 2H
-    # ----------------------------------------------------
-    elif response == "2H":
-        if hcp >= 13 and h >= 6 and s <= 1:
-            return "2N", "Short suit game try (S)"
-        if hcp >= 13 and h >= 6 and c <= 1:
-            return "3C", "Short suit game try (C)"
-        if hcp >= 13 and h >= 6 and d <= 1:
-            return "3D", "Short suit game try (D)"
-        if hcp >= 16:
-            return "2S", "Ask min max + honor"
-        return "PASS", "minimum (no short)"
+    elif response in ["2D", "2H"]:
+        if a_min > 25 and b_max < 30 and not short_suit: return "4H", "not interest slam"
+        if a_min > 22 and b_max < 25 and s >= 6 and short_suit == 'S': return "2N", "Game try short S"
+        if a_min > 22 and b_max < 25 and s >= 6 and short_suit == 'D': return "3D", "Game try short D"
+        if a_min > 22 and b_max < 25 and s >= 6 and short_suit == 'C': return "3C", "Game try short C"
+        if b_max < 25 and s == 5 and not short_suit: return "2H", "not interest game"
+        return "2S", "Asking"
 
     # ----------------------------------------------------
     # CASE: 1H - 2S
@@ -1569,35 +1513,22 @@ def opener_rebid_1h(response, hcp, shape, extra_info=None):
     # CASE: 1H - 2N
     # ----------------------------------------------------
     elif response == "2N":
-
-        if hcp >= 16 or (hcp >= 13 and has_short_suit):
-            return "3C", "ask short suit we have good hand "
-
-        if 11 <= hcp <= 12 and h == 5 and s <= 3 and extra_info.get("has_s_honor", False):
-            return "3H", "อาจไม่เกมถ้าสั้น S"
-        if 11 <= hcp <= 12 and h == 5 and d <= 3 and extra_info.get("has_d_honor", False):
-            return "3D", "อาจไม่เกมถ้าสั้น D"
-        if 11 <= hcp <= 12 and h == 5 and c <= 3 and extra_info.get("has_c_honor", False):
-            return "3C", "อาจไม่เกมถ้าสั้น C"
-            
-        return "4H"," game not slame"
+        e = a_min - extra_info.get("black_points", 0)
+        f = a_min - extra_info.get("diamond_points", 0)
+        g = a_min - extra_info.get("c_points", 0)
+        min_efg = min(e, f, g)
+        if min_efg == e and e < 20: return "3H", "สั้น S อาจไม่เกม"
+        elif min_efg == f and f < 20: return "3D", "สั้น D อาจไม่เกม"
+        elif min_efg == g and g < 20: return "3C", "สั้น C อาจไม่เกม"
+        return "3C", "ถามชุดสั้น สนใจสแลม"
 
     # ----------------------------------------------------
     # CASE: 1H - 3C
     # ----------------------------------------------------
     elif response == "3C":
-        
-        if hcp >= 16 and d <= 1:
-            return "4C", "splinter Transfer"
-        if hcp >= 16 and c <= 1:
-            return "3N", "splinter Transfer"
-        if hcp >= 16 and s <= 1:
-            return "3S", "splinter S"
-        if hcp >= 14:
-            return "3D", "สนใจเกมถ้า 10-12"
-        if 11 <= hcp <= 13 and not has_short_suit:
-            return "3H", "bad hand"
-        return "4H", "11-13 with short"
+        if a_min > 24 and b_max < 30: return "4H", "To play"
+        if b_max < 25: return "3H", "minimum hand"
+        return "3D", "สนใจเกม ถ้าถือ 10-12"
 
     # ----------------------------------------------------
     # CASE: 1H - 3D
@@ -1609,48 +1540,32 @@ def opener_rebid_1h(response, hcp, shape, extra_info=None):
     # CASE: 1H - 3H
     # ----------------------------------------------------
     elif response == "3H":
-        if hcp >= 16 and not has_short_suit or hcp >= 14 and has_short_suit:
-            return "4H", "ไพ่ที่คิดว่าเกมได้"
-        if hcp >= 16 and d <= 1:
-            return "4C", "splinter D"
-        if hcp >= 16 and c <= 1:
-            return "3N", "splinter C"
-        if hcp >= 16 and s <= 1:
-            return "3S", "splinter S"
-        return "PASS", "ไพ่ที่คิดว่าไม่เกม ประมาณ 11-15 no short"
+        if a_min > 20: return "4H", "ยิง"
+        return "PASS", "ไม่น่าเกม"
 
     # ----------------------------------------------------
     # CASE: 1H - 3S
     # ----------------------------------------------------
     elif response == "3S":
-        # ถ้าแต้มน้อย 11-14 และมีแต้มเสียในชุด S ( มี Honor ในชุด S)
-        if 11 <= hcp <= 14 and extra_info.get("has_s_honor", False):
-            return "4H", "11-14 HCP มีแต้มเสียในชุด S ลงจบที่ 4H"
-        
-        # เคสที่เหลือทั้งหมด บิด 3NC สนใจสแลม
-        return "3N", "สนใจสแลม บิด 3N"
+        k = hcp - extra_info.get("unused_black_points", 0) + 13
+        if k < 25: return "4H", "bad hand"
+        return "3N", "สนใจสแลม"
 
     # ----------------------------------------------------
     # CASE: 1H - 3N
     # ----------------------------------------------------
     elif response == "3N":
-        # ถ้าแต้มน้อย 11-14 และมีแต้มเสียในชุด C ( มี Honor ในชุด C)
-        if 11 <= hcp <= 14 and extra_info.get("has_c_honor", False):
-            return "4H", "11-14 HCP มีแต้มเสียในชุด C ลงจบที่ 4H"
-        
-        # เคสที่เหลือทั้งหมด บิด 4C สนใจสแลม
-        return "4C", "สนใจสแลม บิด 4C"
+        k = hcp - extra_info.get("unused_c_points", 0) + 13
+        if k < 25: return "4S", "K < 25"
+        return "4C", "สนใจสแลม"
 
     # ----------------------------------------------------
     # CASE: 1H - 4C
     # ----------------------------------------------------
     elif response == "4C":
-        # ถ้าแต้มน้อย 11-14 และมีแต้มเสียในชุด D (มี Honor ในชุด D)
-        if 11 <= hcp <= 14 and extra_info.get("has_d_honor", False):
-            return "4H", "11-14 HCP มีแต้มเสียในชุด D ลงจบที่ 4H"
-        
-        # เคสที่เหลือทั้งหมด บิด 4D สนใจสแลม
-        return "4D", "สนใจสแลม บิด 4D"
+        k = hcp - extra_info.get("unused_diamond_points", 0) + 13
+        if k < 25: return "4S", "K < 25"
+        return "4D", "สนใจสแลม"
 
     # ----------------------------------------------------
     # CASE: 1H - 4H
@@ -1697,7 +1612,6 @@ def opener_rebid_1s(response, hcp, shape, extra_info=None):
             if h >= 4: return "2H", "11-15 H4+"
             if d >= 4: return "2D", "11-15 D4+"
             if c >= 4 or hcp >= 16: return "2C", "11-15 C4+ or 16+ any"
-        return "PASS", "11-15 Default pass"
 
     # --- 1S - 2C ---
     elif response == "2C":
