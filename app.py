@@ -192,20 +192,32 @@ def get_next_question_data(mode_type):
             weights   = [ 15,   12,   16,   11,    8,    2,    8,    8,    4,    2,    4,    4,    4,     2 ]
             resp = random.choices(responses, weights=weights, k=1)[0]
             
-            h_cards = hand["H"]
-            h_honors = sum(1 for card in h_cards if card in ["A", "K", "Q"])
             s_cards = hand["S"]
-            has_s_honor = any(card in ["K", "Q", "J"] for card in s_cards)
-            c_cards = hand["C"]
-            has_c_honor = any(card in ["K", "Q", "J"] for card in c_cards)
+            h_cards = hand["H"]
             d_cards = hand["D"]
-            has_d_honor = any(card in ["K", "Q", "J"] for card in d_cards)
+            c_cards = hand["C"]
+
+            # คำนวณแต้มตามชื่อที่ Engine ใช้ (black_point = spade, red_point = heart, c_point = club)
+            black_point = sum(HCP_MAP.get(card, 0) for card in s_cards)
+            diamond_point = sum(HCP_MAP.get(card, 0) for card in d_cards)
+            c_point = sum(HCP_MAP.get(card, 0) for card in c_cards)
+
+            unused_black_point = sum(HCP_MAP.get(card, 0) for card in s_cards if card != "A")
+            unused_c_point = sum(HCP_MAP.get(card, 0) for card in c_cards if card != "A")
+            unused_diamond_point = sum(HCP_MAP.get(card, 0) for card in d_cards if card != "A")
 
             extra_info = {
-                "h_honors": h_honors,
-                "has_s_honor": has_s_honor,
-                "has_c_honor": has_c_honor,
-                "has_d_honor": has_d_honor
+                "black_point": black_point,
+                "diamond_point": diamond_point,
+                "c_point": c_point,
+                "unused_black_point": unused_black_point,
+                "unused_c_point": unused_c_point,
+                "unused_diamond_point": unused_diamond_point,
+                "S": len(s_cards),
+                "H": len(h_cards),
+                "D": len(d_cards),
+                "C": len(c_cards),
+                "balanced": is_balanced(shape)
             }
             
             ans = opener_rebid_1h(resp, hcp, shape, extra_info)
@@ -227,22 +239,23 @@ def get_next_question_data(mode_type):
             lengths = {"S": len(s_cards), "H": len(h_cards), "D": len(d_cards), "C": len(c_cards)}
             short_suit = min(lengths, key=lengths.get) if min(lengths.values()) <= 1 else None
             
-            red_points = sum(HCP_MAP.get(c, 0) for s in ["H", "D"] for c in hand[s])
-            diamond_points = sum(HCP_MAP.get(c, 0) for c in hand["D"])
-            c_points = sum(HCP_MAP.get(c, 0) for c in hand["C"])
+            # คำนวณแต้มตามชื่อที่ Engine ใช้ (red_point = heart)
+            red_point = sum(HCP_MAP.get(card, 0) for card in h_cards)
+            diamond_point = sum(HCP_MAP.get(card, 0) for card in d_cards)
+            c_point = sum(HCP_MAP.get(card, 0) for card in c_cards)
             
-            unused_red_points = sum(HCP_MAP.get(c, 0) for c in h_cards if c != "A")
-            unused_c_points = sum(HCP_MAP.get(c, 0) for c in c_cards if c != "A")
-            unused_diamond_points = sum(HCP_MAP.get(c, 0) for c in d_cards if c != "A")
+            unused_red_point = sum(HCP_MAP.get(card, 0) for card in h_cards if card != "A")
+            unused_c_point = sum(HCP_MAP.get(card, 0) for card in c_cards if card != "A")
+            unused_diamond_point = sum(HCP_MAP.get(card, 0) for card in d_cards if card != "A")
 
             extra_info = {
                 "short_suit": short_suit,
-                "red_points": red_points,
-                "diamond_points": diamond_points,
-                "c_points": c_points,
-                "unused_red_points": unused_red_points,
-                "unused_c_points": unused_c_points,
-                "unused_diamond_points": unused_diamond_points,
+                "red_point": red_point,
+                "diamond_point": diamond_point,
+                "c_point": c_point,
+                "unused_red_point": unused_red_point,
+                "unused_c_point": unused_c_point,
+                "unused_diamond_point": unused_diamond_point,
                 "S": len(s_cards),
                 "H": len(h_cards),
                 "D": len(d_cards),
