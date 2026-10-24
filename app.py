@@ -652,31 +652,156 @@ elif st.session_state.page in [
                     st.session_state.page = "summary"
                     st.rerun()
 
+    # ----------------------------------
+    # QUIZ SECTION 3: ฝั่งขวา (Cheat Sheet / Cheat Code)
+    # ----------------------------------
     with col_q3:
         st.markdown("### 📌 Cheat Sheet")
         st.markdown("*(สรุปกติกาเร่งด่วน)*")
         
         def get_cheat_sheet_content(mode):
             sheets = {
-                "opening": "**Opening Rules:**\n- Pass = 0-10 HCP\n- 1C = 11-20 HCP, ♣ 2+\n- 1D = 11-20 HCP, Unbalanced, ♦ 4+\n- 1H/1S = 11-20 HCP, M5\n- 1NT = 14-16 Balanced",
-                "response_1c": "**Response 1C Rules:**\n- 1D = Transfer H\n- 1H = Transfer S\n- 1S = 0-10, No M4\n- 1NT = GF",
-                "response_1nt": "**Response 1NT Rules:**\n- 2C = Stayman\n- 2D/2H/2S/2N = Transfers\n- 3N = To Play",
-                "response_1d": "**Response 1D Rules:**\n- 1M = 4+ Major\n- 2C = NF C6+\n- 2H = 11-12 Balance",
-                "response_1h": "**Response 1H Rules:**\n- 1S = S<5\n- 2C = GF RELAY\n- 2H = Constructive H3",
-                "response_1s": "**Response 1S Rules:**\n- 1N = Force\n- 2D = Transfer H\n- 2S = Constructive S3",
-                "opener_1c_rebid": "**Opener 1C Rebid Rules:**\n- 2N = 17-19 Balanced\n- Power/Turbo Fit variants",
-                "opener_1d_rebid": "**Opener 1D Rebid Rules:**\n- Rebid structures based on response",
-                "opener_1h_rebid": "**Opener 1H Rebid Rules:**\n- Rebid structures after 1H",
-                "opener_1s_rebid": "**Opener 1S Rebid Rules:**\n- Rebid structures after 1S"
+                "opening": """
+**Opening Rules:**
+- Pass = 0-10 HCP
+- 1C = 11-20 HCP, ♣ 2+ (ถ้า Balanced ไม่จำกัดว่าชุดต้องยาวกว่า เช่น 5332, 4432)
+- 1D = 11-20 HCP, Unbalanced, ♦ 4+
+- 1H = 11-20 HCP, M5 (ไม่มี 5332 ยกเว้นมี 17+ HCP)
+- 1S = 11-20 HCP, M5 (ไม่มี 5332 ยกเว้นมี 17+ HCP)
+- 1NT = 14-16 (Balanced)
+- 2C = 21+ or 8.5 PT
+- 2D = weak 1M or 17-20 M55
+- 2M = 11-13 M6 no second suit >4
+                """,
+                "response_1c": """
+**Response 1C Rules:**
+- 1D = Transfer H (4+)
+- 1H = Transfer S (4+)
+- 1S = 0-10, No M4, No Void
+- 1NT = GF, No M5
+- 2C = Transfer D
+- 2D = GI (C 5+)
+- 2H = GI Balanced (M<4m<5)
+- 3C = NF (C 6)
+                """,
+                "response_1nt": """
+**Response 1NT Rules:**
+- 2C = inverted stayman จะทะยอยเพิ่มรายละเอียดในเวป
+- 2D = Transfer to H or mss
+- 2H = Transfer to S
+- 2S/2N = transfer C/D
+- 3C = Ask M คนถามไม่มี M5 และแค่เกมไม่สนใจสแลม
+- 3D = GF 9+ M55 (GF 10+ M54 ใช้ 2C)
+- 3H = GF 3154 or 3145
+- 3S = GF 1354 or 1345
+- 3N = To play
+                """,
+                "response_1d": """
+**Response 1D Rules:**
+- Level 1 คล้าย เปิด 1C
+- 2C = NF C6+ or 3325 (แทน 1N  ที่คุณเคยเล่น)
+- 2D = NF D3-4
+- 2H = 11-12 Balance 
+- 2S = GI C5+ C>D
+- 3C = GI D4+ D>C
+- 3D = NF D5 or D4 with any short
+                """,
+                "response_1h": """
+**Response 1H Rules:**
+- 1S = S<5 แทน 1NFC
+- 1N = S5+ less than GF
+- 2C = GF RELAY
+- 2D = GI H3 or GF H3 with any short
+- 2H = constructive raised H3 or 3433
+- 2S = <10 S6
+- 2N = 10-12 H4+ with any short
+- 3C = 8-12 H4+ no short
+- 3D = 0-5 H4 or GF H4 with any void
+- 3H = 4-7 H4 4-5 must have A
+- 3S = GF H4+ singleton S
+- 3N = GF H4+ singleton C
+- 4C = GF H4+ singleton D
+- 4H = <10 H5 or H4+short
+                """,
+                "response_1s": """
+**Response 1S Rules:**
+- 1N = Force 1 round
+- 2C = GF RELAY
+- 2D = Transfer H
+- 2H = GI S3 or GF S3 with any short
+- 2S = constructive raised S3 or 4333
+- 2N up คล้าย open 1H
+                """,
+                "opener_1c_rebid": """
+**Opener 1C Rebid Rules:**
+- 1C - 1D or 1C - 1H
+- Extran hand 16+
+- 2N 17-19 Balanced M4
+- 2D Turbo Fit 16+ M3
+- 2oM Power Fit 16+ M4
+- 1N 17-19 Bal no M4 or 16+ M<3
+- Medium Hand 14-15
+- 2M 14-15 M4 
+- 3C 14-15 good C6+
+- minimum 11-15
+- 1M Accept transfer 11-13 Balanced or M4
+- 1S 11-15 S4 unbalanced
+- 2C 11-15 C5+ 
+                """,  # <--- ปิดด้วยเครื่องหมายคำพูด 3 ตัวและใส่คอมมาให้ถูกต้อง
+                "opener_1d_rebid": """
+**Opener 1D Rebid Rules:**
+- After 1D-1N (1C-1N)
+- 2C 444-1 or (balanced when open 1C)
+- 2D Transfer H
+- 2H Transfer S
+- 2S Transfer C(C6 when open 1C)
+- 2N Transfer D6 have short (D4 with short S when open 1C) 
+- 3C Transfer D6 no short (D4 with short H when open 1C)
+- (D4 no short 2245 when open 1C)
+- After 1D - 2H (1C-2H)
+- 2S F bid 2N 11-12 444-1 or 14+ any (14+ or 11-12 no m5)
+- 2N 11-13C<4(13 balanced )
+- 3C 11-12 C4+ (11-12 C5)
+- 3D 11-13 D6  (11-12 D5)
+                """,  # <--- ปิดด้วยเครื่องหมายคำพูด 3 ตัวและใส่คอมมาให้ถูกต้อง
+
+                "opener_1h_rebid": """
+**Opener 1H Rebid Rules:**
+- 1H - 1S
+- 1N 11-15 D4+ or 16+ any
+- 2C 11-15 C4+ 
+- 2D 11-15 S4
+- 2H 14-16 H6 no S4
+- 3m 15-17 m5
+- 1H - 1N
+- 2C 11-15 C4+ or 16+ any
+- 2D 11-15 D4+
+- 2H 14-16 H6
+- 2S 11-13 S3+
+- 2N 14-15 S5+
+- 3m 15-17 m5
+- 1H - 2D
+- 2H 11-13 other Game Try
+                """,  # <--- ปิดด้วยเครื่องหมายคำพูด 3 ตัวและใส่คอมมาให้ถูกต้อง
+                                "opener_1s_rebid": """
+**Opener 1S Rebid Rules:**
+- 1S - 1N: 2C 11-15 C4+ or 16+ any, 2D 11-15 D4+, 2H =11-15 D4+, 2S = 14-15 S6, 2N = Big NT
+- 1S - 2C: Transfer responses (2D=H, 2H=S, 2S=C, 2N/3C=D short, etc.)
+- 1S - 2D: 2H = waiting, 2S NF ทน 2H ไม่ไหว 2N = 16+ H2+ ,3H = 14-15 H3+, other 17+ S6/D4/C4,
+- 1S - 2H / 2N: Asking,other = Game try with short suit 
+- 1S - 2N: เปรียบเทียบแต้มหักชุดแดง/เหลี่ยม/จิก ถ้าตัวน้อย <20 บิดชุดนั้นบอกว่าถ้าสั้นชุดนี้อาจไม่เกม ส่วน 3C อาจเป็นไพ่ดีที่สุด ถามว่าสั้นชุดไหน 
+- 1S - 3C/3D/3H/3N: 4S = 11-14 ไพ่มีตัวเสีย, other next step
+                """,
             }
-            return sheets.get(mode, "หลักการ Shape Before Strength")
+            return sheets.get(mode, "หลักการ Shape Before Strength: หา Fit & Shape ก่อนแต้ม")
 
         with st.expander("📖 เปิดดู Cheat Sheet", expanded=True):
             st.markdown(get_cheat_sheet_content(st.session_state.page))
 
         st.markdown("---")
         st.markdown("### 💡 คำคมประจำหมวด")
-        st.info(get_cheat_code_quote(st.session_state.page))
+        current_quote = get_cheat_code_quote(st.session_state.page)
+        st.info(current_quote)
 
 
 # ==================================================
