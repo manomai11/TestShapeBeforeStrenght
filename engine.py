@@ -1513,9 +1513,9 @@ def opener_rebid_1h(response, hcp, shape, extra_info=None):
     # CASE: 1H - 2N
     # ----------------------------------------------------
     elif response == "2N":
-        e = a_min - extra_info.get("black_points", 0)
+        e = a_min - extra_info.get("spade_points", 0)
         f = a_min - extra_info.get("diamond_points", 0)
-        g = a_min - extra_info.get("c_points", 0)
+        g = a_min - extra_info.get("club_points", 0)
         min_efg = min(e, f, g)
         if min_efg == e and e < 20: return "3H", "สั้น S อาจไม่เกม"
         elif min_efg == f and f < 20: return "3D", "สั้น D อาจไม่เกม"
@@ -1648,9 +1648,9 @@ def opener_rebid_1s(response, hcp, shape, extra_info=None):
 
     # --- 1S - 2N ---
     elif response == "2N":
-        e = a_min - extra_info.get("red_points", 0)
+        e = a_min - extra_info.get("herth_points", 0)
         f = a_min - extra_info.get("diamond_points", 0)
-        g = a_min - extra_info.get("c_points", 0)
+        g = a_min - extra_info.get("club_points", 0)
         min_efg = min(e, f, g)
         if min_efg == e and e < 20: return "3H", "สั้น H อาจไม่เกม"
         elif min_efg == f and f < 20: return "3D", "สั้น D อาจไม่เกม"
