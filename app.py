@@ -608,7 +608,7 @@ elif st.session_state.page in [
         
         st.caption(f"✨ **แต้มรวม (HCP):** {hcp} &nbsp;&nbsp;|&nbsp;&nbsp; 📊 **ทรงไพ่ (Shape):** {shape}")
         
-        if st.session_state.page in ["opener_1c_rebid", "opener_1d_rebid", "opener_1h_rebid", "opener_1s_rebid", "opener_1n_rebid] and "current_auction_context" in st.session_state:
+        if st.session_state.page in ["opener_1c_rebid", "opener_1d_rebid", "opener_1h_rebid", "opener_1s_rebid", "opener_1n_rebid"] and "current_auction_context" in st.session_state:
             st.info(f"🔄 **สถานการณ์การประมูล:** {st.session_state.current_auction_context}")
             
         st.markdown("---")
