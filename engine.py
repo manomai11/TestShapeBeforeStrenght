@@ -1476,3 +1476,142 @@ def opener_rebid_1s(response, hcp, shape, extra_info=None):
         return "PASS", "ไม่น่าเกม"
 
     return "PASS", "no good bid for 1S rebid"
+    
+# ==========================================
+# OPENER REBID AFTER 1NT (14-16)
+# ==========================================
+
+def opener_rebid_1n(response, hcp, shape, extra_info=None):
+    if extra_info is None:
+        extra_info = {}
+    
+    s, h, d, c = shape_lengths(shape)
+    min_s4 = extra_info.get("min_s4", False)
+    min_h4 = extra_info.get("min_h4", False)
+    min_2m = extra_info.get("min_2m", False)
+    c_honors = extra_info.get("c_honors", 0)
+    d_honors = extra_info.get("d_honors", 0)
+
+    # ----------------------------
+    # 1N - 2C (Stayman / Special)
+    # ----------------------------
+    if response == "2C":
+        if hcp == 16:
+            return "2D", "2D 16, max any"
+        if h >= 4:
+            return "2H", "2H 14-15 S4+, minimum S4+"
+        if s >= 4:
+            return "2S", "2S 14-15 H4+, minimum H4+"
+        return "2N", "2N 14-15 2M, minimum 2M"
+
+    # ----------------------------
+    # 1N - 2D (Transfer to H)
+    # ----------------------------
+    elif response == "2D":
+        if hcp == 16:
+            return "2S", "2S 14-15 H4+, minimum H4+"
+        return "2H", "2H waiting, accept transfer"
+
+    # ----------------------------
+    # 1N - 2H (Transfer to S)
+    # ----------------------------
+    elif response == "2H":
+        if hcp == 16:
+            return "2N", "2N 14-15 S4+, minimum S4+"
+        return "2S", "2S waiting, accept transfer"
+
+    # ----------------------------
+    # 1N - 2S (Transfer to C)
+    # ----------------------------
+    elif response == "2S":
+        if c >= 3:
+            return "3C", "3C C=2, C2"
+        return "2N", "2N C3+, C3+"
+
+    # ----------------------------
+    # 1N - 2N (Transfer to D)
+    # ----------------------------
+    elif response == "2N":
+        if d == 2:
+            return "3D", "3D D=2, D2"
+        return "3C", "3C D3+, D3+"
+
+    # ----------------------------
+    # 1N - 3C (Minor Stayman / Ask M)
+    # ----------------------------
+    elif response == "3C":
+        if s == 5:
+            return "3S", "3S S=5, S5"
+        if h >= 4:
+            return "3H", "3H H4+, H4+ no S4"
+        if h < 4 and s == 4:
+            return "3D", "3D H<4, อาจจะมี S4"
+        return "3N", "3N 2M"
+
+    # ----------------------------
+    # 1N - 3D (Minor slam interest / Ask M)
+    # ----------------------------
+    elif response == "3D":
+        if h >= 3:
+            return "3H", "3H H3+, accept H"
+        if s >= 3:
+            return "3S", "3S S3+, accept S"
+        return "3N", "3N ที่เหลือ, no M3"
+
+    # ----------------------------
+    # 1N - 3H (slam interest in H)
+    # ----------------------------
+    elif response == "3H":
+        two_top_h = extra_info.get("two_top_h", False)
+        minor_len = extra_info.get("minor_len", 4)
+        if two_top_h and minor_len < 5:
+            return "3N", "3N 2 top in H m<5, อยากเดิน 3N"
+        if extra_info.get("is_even_key_cards_c", False):
+            return "4C", "4C even key cards C4+, 0/2/4 C4+"
+        if extra_info.get("is_even_key_cards_d", False):
+            return "4D", "4D Even Key cards D4+, 0/2/4 D4+"
+        if extra_info.get("bad_suit_h", False):
+            return "4H", "4H bad suit H, ask m5"
+        if h >= 5:
+            return "3S", "3S S5, Trumps S" # ตามโน้ตฝั่ง S/H
+        return "4H", "4H H4+, to play"
+
+    # ----------------------------
+    # 1N - 3S (slam interest in S)
+    # ----------------------------
+    elif response == "3S":
+        two_top_s = extra_info.get("two_top_s", False)
+        minor_len = extra_info.get("minor_len", 4)
+        if two_top_s and minor_len < 5:
+            return "3N", "3N 2 top in S m<5, อยากเดิน 3N"
+        if extra_info.get("is_even_key_cards_c", False):
+            return "4C", "4C even key cards C4+, 0/2/4 C4+"
+        if extra_info.get("is_even_key_cards_d", False):
+            return "4D", "4D Even Key cards D4+, 0/2/4 D4+"
+        if s == 5:
+            return "4H", "4H H=5 , to play"
+        if s >= 4:
+            return "4H", "4H H4+, to play"
+        if extra_info.get("bad_suit_s", False):
+            return "4S", "4S bad suit S, ask m5"
+        return "4H", "4H H=5 , to play"
+
+    # ----------------------------
+    # 1N - 3N (To play)
+    # ----------------------------
+    elif response == "3N":
+        return "PASS", "Pass to play"
+
+    # ----------------------------
+    # 1N - 4C (Texas / Cue)
+    # ----------------------------
+    elif response == "4C":
+        return "4H", "4H to play, waiting"
+
+    # ----------------------------
+    # 1N - 4D (Texas / Cue)
+    # ----------------------------
+    elif response == "4D":
+        return "4S", "4S to play , waiting"
+
+    return "PASS", "no good bid for 1N rebid"
