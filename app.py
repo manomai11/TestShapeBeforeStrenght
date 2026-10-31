@@ -13,6 +13,7 @@ from engine import (
     opener_rebid_1d,
     opener_rebid_1h,
     opener_rebid_1s, 
+    opener_rebid_1n,
     is_balanced,
 )
 
@@ -268,6 +269,27 @@ def get_next_question_data(mode_type):
                 continue
                 
             st.session_state.current_auction_context = f"1S ➔ {resp}"
+
+        elif mode_type == "opener_1n_rebid":
+            opening_check = opening_bid(hcp, shape)
+            if not opening_check or opening_check[0] != "1N":
+                continue
+            
+            responses = ["2C", "2D", "2H", "2S", "2N", "3C", "3D", "3H", "3S", "3N", "4C", "4D"]
+            weights   = [ 20,   15,   20,   5,   5,    20,    5,    2,    2,    2,    2,    2 ]
+            resp = random.choices(responses, weights=weights, k=1)[0]
+            
+            extra_info = {}
+            if resp in ["3H", "3S"]:
+                extra_info["two_top_h"] = random.choice([True, False])
+                extra_info["two_top_s"] = random.choice([True, False])
+                extra_info["minor_len"] = random.choice([3, 4, 5])
+            
+            ans = opener_rebid_1n(resp, hcp, shape, extra_info)
+            if not ans:
+                continue
+                
+            st.session_state.current_auction_context = f"1NT ➔ {resp}"
         else:
             ans = ("PASS", "No matching mode")
             
@@ -546,6 +568,7 @@ elif st.session_state.page in [
         "opener_1d_rebid": "Opener 1D Rebid Practice",
         "opener_1h_rebid": "Opener 1H Rebid Practice",
         "opener_1s_rebid": "Opener 1S Rebid Practice",
+        "opener_1n_rebid": "Opener 1N Rebid Practice",
     }
     current_topic_name = titles.get(st.session_state.page, "Bridge Practice")
 
@@ -583,7 +606,7 @@ elif st.session_state.page in [
         
         st.caption(f"✨ **แต้มรวม (HCP):** {hcp} &nbsp;&nbsp;|&nbsp;&nbsp; 📊 **ทรงไพ่ (Shape):** {shape}")
         
-        if st.session_state.page in ["opener_1c_rebid", "opener_1d_rebid", "opener_1h_rebid", "opener_1s_rebid"] and "current_auction_context" in st.session_state:
+        if st.session_state.page in ["opener_1c_rebid", "opener_1d_rebid", "opener_1h_rebid", "opener_1s_rebid". "opener_1n_rebid] and "current_auction_context" in st.session_state:
             st.info(f"🔄 **สถานการณ์การประมูล:** {st.session_state.current_auction_context}")
             
         st.markdown("---")
@@ -792,6 +815,24 @@ elif st.session_state.page in [
 - 1S - 2N: เปรียบเทียบแต้มหักชุดแดง/เหลี่ยม/จิก ถ้าตัวน้อย <20 บิดชุดนั้นบอกว่าถ้าสั้นชุดนี้อาจไม่เกม ส่วน 3C อาจเป็นไพ่ดีที่สุด ถามว่าสั้นชุดไหน 
 - 1S - 3C/3D/3H/3N: 4S = 11-14 ไพ่มีตัวเสีย, other next step
                 """,
+                "opener_1h_rebid": """
+**Opener 1N Rebid Rules:**
+- 1H - 2C
+- 2D max any
+- 2H min S4+ 
+- 2S min H4+
+- 2N min 2M
+- 1N - 3C
+- 3D may have S4
+- 3H H4+
+- 3S S5
+- 3N 2M
+- 1N-2S/2N pre accept
+- 1N-3D
+- 3M set trump
+- 3N no M3
+
+                """,  # <--- ปิดด้วยเครื่องหมายคำพูด 3 ตัวและใส่คอมมาให้ถูกต้อง
             }
             return sheets.get(mode, "หลักการ Shape Before Strength: หา Fit & Shape ก่อนแต้ม")
 
