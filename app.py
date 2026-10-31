@@ -519,6 +519,8 @@ elif st.session_state.page == "menu":
             start_new_practice("opener_1h_rebid")
         if st.button("Opener 1S Rebid", use_container_width=True):
             start_new_practice("opener_1s_rebid")
+        if st.button("Opener 1NT Rebid", use_container_width=True):  # <--- เพิ่มปุ่มนี้
+            start_new_practice("opener_1n_rebid")
 
     with col_m4:
         st.markdown("### ส่วนที่ 4")
@@ -568,7 +570,7 @@ elif st.session_state.page in [
         "opener_1d_rebid": "Opener 1D Rebid Practice",
         "opener_1h_rebid": "Opener 1H Rebid Practice",
         "opener_1s_rebid": "Opener 1S Rebid Practice",
-        "opener_1n_rebid": "Opener 1N Rebid Practice",
+        "opener_1n_rebid": "Opener 1NT Rebid Practice", # <--- เพิ่มบรรทัดนี้
     }
     current_topic_name = titles.get(st.session_state.page, "Bridge Practice")
 
@@ -606,7 +608,7 @@ elif st.session_state.page in [
         
         st.caption(f"✨ **แต้มรวม (HCP):** {hcp} &nbsp;&nbsp;|&nbsp;&nbsp; 📊 **ทรงไพ่ (Shape):** {shape}")
         
-        if st.session_state.page in ["opener_1c_rebid", "opener_1d_rebid", "opener_1h_rebid", "opener_1s_rebid". "opener_1n_rebid] and "current_auction_context" in st.session_state:
+        if st.session_state.page in ["opener_1c_rebid", "opener_1d_rebid", "opener_1h_rebid", "opener_1s_rebid", "opener_1n_rebid] and "current_auction_context" in st.session_state:
             st.info(f"🔄 **สถานการณ์การประมูล:** {st.session_state.current_auction_context}")
             
         st.markdown("---")
