@@ -1509,7 +1509,7 @@ def opener_rebid_1n(response, hcp, shape, extra_info=None):
     # 1N - 2D (Transfer to H)
     # ----------------------------
     elif response == "2D":
-        if 14 <= hcp <= 15:
+        if 14 <= hcp <= 15 and h >= 4:
             return "2S", "minimum H4+"
         return "2H", "waiting"
 
@@ -1517,7 +1517,7 @@ def opener_rebid_1n(response, hcp, shape, extra_info=None):
     # 1N - 2H (Transfer to S)
     # ----------------------------
     elif response == "2H":
-        if 14 <= hcp <= 15:
+        if 14 <= hcp <= 15 and s >= 4:
             return "2N", "minimum S4+"
         return "2S", "waiting"
 
