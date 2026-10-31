@@ -1495,7 +1495,7 @@ def opener_rebid_1n(response, hcp, shape, extra_info=None):
     # ----------------------------
     # 1N - 2C (Stayman / Special)
     # ----------------------------
-    elif response == "2C":
+    if response == "2C":
         if hcp == 16:
             return "2D", "2D 16, max any"
         if s == 4 and h == 4:
