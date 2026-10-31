@@ -1504,6 +1504,7 @@ def opener_rebid_1n(response, hcp, shape, extra_info=None):
             return "2S", "minimum H4+"
         if s >= 4:
             return "2H", "minimum S4+"
+        return "2D", "minimum no M"
 
     # ----------------------------
     # 1N - 2D (Transfer to H)
