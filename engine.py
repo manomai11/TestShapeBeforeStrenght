@@ -1538,16 +1538,16 @@ def opener_rebid_1n(response, hcp, shape, extra_info=None):
         return "3C", "3C D3+, D3+"
 
     # ----------------------------
-    # 1N - 3C (Minor Stayman / Ask M)
+    # 1N - 3C (Ask M)
     # ----------------------------
     elif response == "3C":
+        if s == 4 and h == 4:
+            return "3N", "2M"
         if s == 5:
             return "3S", "3S S=5, S5"
         if h >= 4:
             return "3H", "3H H4+, H4+ no S4"
-        if h < 4 and s == 4:
-            return "3D", "3D H<4, อาจจะมี S4"
-        return "3N", "3N 2M"
+        return "3D", "may have S4"
 
     # ----------------------------
     # 1N - 3D (Minor slam interest / Ask M)
