@@ -1564,38 +1564,30 @@ def opener_rebid_1n(response, hcp, shape, extra_info=None):
     # 1N - 3H (GF short H)
     # ----------------------------
     elif response == "3H":
-        two_top_s = extra_info.get("two_top_s", False)
-        minor_len = extra_info.get("minor_len", 4)
         if s == 5:
             return "3S", "Trumps S"
-        if two_top_s and minor_len < 5:
-            return "3N", "3N 2 top in S m<5, อยากเดิน 3N"
+        if h >= 4:
+            return "3N", "อยากเดิน 3N ควรมี 2  stop หรือแต้มเสียเยอะๆ"
         if c >= 4:
             return "4C", "4C even key cards C4+, 0/2/4 C4+"
         if d >= 4:
             return "4D", "4D Even Key cards D4+, 0/2/4 D4+"
-        if extra_info.get("bad_suit_h", False):
-            return "4H", "ask m5"
-        return "3S", "Trumps S" 
+        return "4H", "ask m5" 
 
 
     # ----------------------------
     # 1N - 3S GF short S)
     # ----------------------------
     elif response == "3S":
-        two_top_s = extra_info.get("two_top_s", False)
-        minor_len = extra_info.get("minor_len", 4)
         if h == 5:
-            return "4H", "4H H=5 , to play"
-        if two_top_s and minor_len < 5:
-            return "3N", "3N 2 top in S m<5, อยากเดิน 3N"
+            return "4H", "Trumps H"
+        if s >= 4:
+            return "3N", "อยากเดิน 3N ควรมี 2  stop หรือแต้มเสียเยอะๆ"
         if c >= 4:
             return "4C", "4C even key cards C4+, 0/2/4 C4+"
         if d >= 4:
             return "4D", "4D Even Key cards D4+, 0/2/4 D4+"
-        if s == 4:
-            return "4S", "to play"
-        return "4H", "ask m5"
+        return "4S", "ask m5" 
 
     # ----------------------------
     # 1N - 3N (To play)
