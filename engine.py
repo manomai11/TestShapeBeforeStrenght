@@ -1495,14 +1495,15 @@ def opener_rebid_1n(response, hcp, shape, extra_info=None):
     # ----------------------------
     # 1N - 2C (Stayman / Special)
     # ----------------------------
-    if response == "2C":
+    elif response == "2C":
         if hcp == 16:
             return "2D", "2D 16, max any"
+        if s == 4 and h == 4:
+            return "2N", "minimum 2M"
         if h >= 4:
-            return "2H", "2H 14-15 S4+, minimum S4+"
+            return "2S", "minimum H4+"
         if s >= 4:
-            return "2S", "2S 14-15 H4+, minimum H4+"
-        return "2N", "2N 14-15 2M, minimum 2M"
+            return "2H", "minimum S4+"
 
     # ----------------------------
     # 1N - 2D (Transfer to H)
