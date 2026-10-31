@@ -549,6 +549,7 @@ elif st.session_state.page in [
     "opener_1d_rebid",
     "opener_1h_rebid",
     "opener_1s_rebid",
+    "opener_1n_rebid",  # <--- เพิ่มบรรทัดนี้
 ]:
     if st.session_state.current_hand_data is None:
         st.session_state.current_hand_data = get_next_question_data(st.session_state.page)
@@ -817,7 +818,7 @@ elif st.session_state.page in [
 - 1S - 2N: เปรียบเทียบแต้มหักชุดแดง/เหลี่ยม/จิก ถ้าตัวน้อย <20 บิดชุดนั้นบอกว่าถ้าสั้นชุดนี้อาจไม่เกม ส่วน 3C อาจเป็นไพ่ดีที่สุด ถามว่าสั้นชุดไหน 
 - 1S - 3C/3D/3H/3N: 4S = 11-14 ไพ่มีตัวเสีย, other next step
                 """,
-                "opener_1h_rebid": """
+                "opener_1n_rebid": """
 **Opener 1N Rebid Rules:**
 - 1H - 2C
 - 2D max any
