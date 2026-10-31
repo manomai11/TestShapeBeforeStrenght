@@ -1497,7 +1497,7 @@ def opener_rebid_1n(response, hcp, shape, extra_info=None):
     # ----------------------------
     if response == "2C":
         if hcp == 16:
-            return "2D", "2D 16, max any"
+            return "2D", "max any"
         if s == 4 and h == 4:
             return "2N", "minimum 2M"
         if h >= 4:
@@ -1510,65 +1510,65 @@ def opener_rebid_1n(response, hcp, shape, extra_info=None):
     # ----------------------------
     elif response == "2D":
         if 14 <= hcp <= 15:
-            return "2S", "2S 14-15 H4+, minimum H4+"
-        return "2H", "2H waiting, accept transfer"
+            return "2S", "minimum H4+"
+        return "2H", "waiting"
 
     # ----------------------------
     # 1N - 2H (Transfer to S)
     # ----------------------------
     elif response == "2H":
         if 14 <= hcp <= 15:
-            return "2N", "2N 14-15 S4+, minimum S4+"
-        return "2S", "2S waiting, accept transfer"
+            return "2N", "minimum S4+"
+        return "2S", "waiting"
 
     # ----------------------------
     # 1N - 2S (Transfer to C)
     # ----------------------------
     elif response == "2S":
-        if c >= 3:
-            return "3C", "3C C=2, C2"
-        return "2N", "2N C3+, C3+"
+        if c == 2:
+            return "3C", "C2"
+        return "2N", "C3+"
 
     # ----------------------------
     # 1N - 2N (Transfer to D)
     # ----------------------------
     elif response == "2N":
         if d == 2:
-            return "3D", "3D D=2, D2"
-        return "3C", "3C D3+, D3+"
+            return "3D", "D2"
+        return "3C", "D3+"
 
     # ----------------------------
     # 1N - 3C (Ask M)
     # ----------------------------
     elif response == "3C":
-        if s == 4 and h == 4:
+        if s ==4 and h == 4:
             return "3N", "2M"
         if s == 5:
-            return "3S", "3S S=5, S5"
+            return "3S", "S5"
         if h >= 4:
-            return "3H", "3H H4+, H4+ no S4"
-        return "3D", "may have S4"
+            return "3H", "H4+ no S4"
+        return "3D", "อาจจะมี S4"
 
     # ----------------------------
-    # 1N - 3D (Minor slam interest / Ask M)
+    # 1N - 3D (GF 2M)
     # ----------------------------
     elif response == "3D":
         if h >= 3:
-            return "3H", "3H H3+, accept H"
+            return "3H", "accept H"
         if s >= 3:
-            return "3S", "3S S3+, accept S"
+            return "3S", "accept S"
         return "3N", "3N ที่เหลือ, no M3"
 
     # ----------------------------
-    # 1N - 3H (slam interest in H)
+    # 1N - 3H (GF short H)
     # ----------------------------
     elif response == "3H":
-        two_top_h = extra_info.get("two_top_h", False)
+        two_top_s = extra_info.get("two_top_s", False)
         minor_len = extra_info.get("minor_len", 4)
         if s == 5:
             return "3S", "Trumps S"
-        if two_top_h and minor_len < 5:
-            return "3N", "3N 2 top in H m<5, อยากเดิน 3N"
+        if two_top_s and minor_len < 5:
+            return "3N", "3N 2 top in S m<5, อยากเดิน 3N"
         if c >= 4:
             return "4C", "4C even key cards C4+, 0/2/4 C4+"
         if d >= 4:
@@ -1579,7 +1579,7 @@ def opener_rebid_1n(response, hcp, shape, extra_info=None):
 
 
     # ----------------------------
-    # 1N - 3S (slam interest in S)
+    # 1N - 3S GF short S)
     # ----------------------------
     elif response == "3S":
         two_top_s = extra_info.get("two_top_s", False)
@@ -1606,12 +1606,12 @@ def opener_rebid_1n(response, hcp, shape, extra_info=None):
     # 1N - 4C (Texas / Cue)
     # ----------------------------
     elif response == "4C":
-        return "4H", "4H to play, waiting"
+        return "4H", "waiting"
 
     # ----------------------------
     # 1N - 4D (Texas / Cue)
     # ----------------------------
     elif response == "4D":
-        return "4S", "4S to play , waiting"
+        return "4S", "waiting"
 
     return "PASS", "no good bid for 1N rebid"
